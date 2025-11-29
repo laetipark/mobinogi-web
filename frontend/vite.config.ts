@@ -1,0 +1,92 @@
+import {defineConfig, loadEnv} from "vite";
+import react from "@vitejs/plugin-react";
+
+// https://vitejs.dev/config/
+export default defineConfig(({mode}) => {
+	// 환경 변수 로드
+	const env = loadEnv(mode, process.cwd(), "");
+	const isDev = mode === "development";
+	const isProd = mode === "production";
+	
+	return {
+		plugins : [react()],
+		
+		// 개발 서버 설정
+		server : {
+			port : parseInt(env.VITE_DEV_SERVER_PORT) || 3000,
+			host : env.VITE_DEV_SERVER_HOST || "localhost",
+			open : true,
+			proxy : {
+				"/api" : {
+					target : env.VITE_API_BASE_URL || "http://localhost:8080",
+					changeOrigin : true,
+					secure : false,
+					// API 요청 로깅 (개발환경에서만)
+					configure : (proxy, _options) => {
+						if(isDev && env.VITE_ENABLE_DEBUG_LOGS === "true"){
+							proxy.on("proxyReq", (_proxyReq, req, _res) => {
+								console.log("🚀 API Request:", req.method, req.url);
+							});
+						}
+					}
+				},
+				"/ws" : {
+					target : env.VITE_WEBSOCKET_URL?.replace("ws://", "http://").replace("wss://", "https://") || "http://localhost:8080",
+					ws : true,
+					changeOrigin : true
+				}
+			}
+		},
+		
+		// 빌드 설정
+		build : {
+			outDir : "dist",
+			assetsDir : "assets",
+			sourcemap : env.VITE_ENABLE_SOURCEMAP === "true",
+			minify : isProd ? (env.VITE_BUILD_MINIFY === "true" ? "terser" : true) : false,
+			target : "esnext",
+			
+			// 청크 크기 경고 임계값
+			chunkSizeWarningLimit : parseInt(env.VITE_BUILD_CHUNK_SIZE_WARNING_LIMIT) || 500,
+			
+			// 롤업 옵션
+			rollupOptions : {
+				output : {
+					// 청크 분할 전략
+					manualChunks : {
+						vendor : ["react", "react-dom"],
+						router : ["react-router-dom"],
+						utils : ["axios", "lucide-react"]
+					},
+					// 파일명 패턴
+					chunkFileNames : isProd ? "assets/js/[name]-[hash].js" : "assets/js/[name].js",
+					entryFileNames : isProd ? "assets/js/[name]-[hash].js" : "assets/js/[name].js",
+					assetFileNames : isProd ? "assets/[ext]/[name]-[hash].[ext]" : "assets/[ext]/[name].[ext]"
+				}
+			}
+		},
+		
+		// 환경 변수 설정
+		define : {
+			__APP_ENV__ : JSON.stringify(env.VITE_APP_ENV),
+			__DEV__ : isDev,
+			__PROD__ : isProd
+		},
+		
+		// CSS 설정
+		css : {
+			devSourcemap : isDev,
+			preprocessorOptions : {
+				// SCSS 등을 사용할 경우 여기에 설정
+			}
+		},
+		
+		// Base path 설정
+		base : "/",
+		
+		// 최적화 설정
+		optimizeDeps : {
+			include : ["react", "react-dom", "react-router-dom", "axios"]
+		}
+	};
+});

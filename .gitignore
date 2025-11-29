@@ -34,3 +34,12 @@ build/
 /src/main/resources/google-oauth/credentials.json
 /src/main/resources/properties/env.properties
 /.env
+
+### Frontend ###
+frontend/node_modules/
+frontend/dist/
+frontend/.env.development
+frontend/.env.production
+
+### Claude AI Rules - Local/Private ###
+.claude/local/
