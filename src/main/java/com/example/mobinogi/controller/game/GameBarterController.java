@@ -1,7 +1,7 @@
-package com.example.mobinogi.controller;
+package com.example.mobinogi.controller.game;
 
 import com.example.mobinogi.entity.LifeBarter;
-import com.example.mobinogi.service.GameBarterService;
+import com.example.mobinogi.service.game.GameBarterService;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,7 +21,6 @@ public class GameBarterController{
 	
 	@RequestMapping(value = "/itemList.do", method = RequestMethod.GET)
 	public List<LifeBarter> getBarterItemByItemName(@RequestParam String itemName){
-		System.out.println("Item Name: " + itemName);
 		return gameBarterService.getBartersByItemName(itemName);
 	}
 }

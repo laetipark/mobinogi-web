@@ -52,6 +52,18 @@ public class LifeBarter{
 	private String barterEtc;
 	
 	@ManyToOne
+	@JoinColumn(name = "region_id", insertable = false, updatable = false)
+	private GameRegion gameRegion;
+	
+	@ManyToOne
+	@JoinColumn(name = "npc_id", insertable = false, updatable = false)
+	private GameNpc gameNpc;
+	
+	@ManyToOne
 	@JoinColumn(name = "item_id", insertable = false, updatable = false)
 	private GameItem gameItem;
+	
+	@ManyToOne
+	@JoinColumn(name = "exchange_id", referencedColumnName = "item_id", insertable = false, updatable = false)
+	private GameItem exchangeItem;
 }
