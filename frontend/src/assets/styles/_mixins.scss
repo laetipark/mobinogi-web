@@ -1,0 +1,107 @@
+// 공통 믹스인
+@use 'variables' as *;
+
+// 버튼 호버 효과 믹스인
+@mixin button-hover($bg-color, $hover-bg-color: null){
+	background-color:$bg-color;
+	transition:all $transition-fast;
+	
+	@if $hover-bg-color{
+		&:hover:not(:disabled){
+			background-color:$hover-bg-color;
+		}
+	} @else{
+		&:hover:not(:disabled){
+			background-color:darken($bg-color, 10%);
+		}
+	}
+}
+
+// 카드 호버 효과 믹스인
+@mixin card-hover($border-color: $primary-blue){
+	transition:all $transition-fast;
+	
+	&:hover{
+		border-color:$border-color;
+		box-shadow:$shadow-md;
+		transform:translateY(-2px);
+	}
+}
+
+// 플렉스 센터 정렬
+@mixin flex-center{
+	display:flex;
+	align-items:center;
+	justify-content:center;
+}
+
+// 플렉스 사이 정렬
+@mixin flex-between{
+	display:flex;
+	align-items:center;
+	justify-content:space-between;
+}
+
+// 반응형 그리드
+@mixin responsive-grid($min-width: 300px, $gap: 20px){
+	display:grid;
+	grid-template-columns: repeat(auto-fill, minmax($min-width, 1fr));
+	gap:$gap;
+}
+
+// 스피닝 애니메이션
+@mixin spinning{
+	animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+	from{
+		transform:rotate(0deg);
+	}
+	to{
+		transform:rotate(360deg);
+	}
+}
+
+// 텍스트 말줄임
+@mixin text-ellipsis{
+	white-space:nowrap;
+	overflow:hidden;
+	text-overflow:ellipsis;
+}
+
+// 포커스 스타일
+@mixin focus-style($color: $focus-blue){
+	&:focus{
+		outline:2px solid $color;
+		outline-offset:2px;
+	}
+}
+
+// 모바일 반응형
+@mixin mobile{
+	@media (max-width:$mobile){
+		@content;
+	}
+}
+
+// 태블릿 반응형
+@mixin tablet{
+	@media (max-width:$tablet){
+		@content;
+	}
+}
+
+// 데스크탑 반응형
+@mixin desktop{
+	@media (min-width:$desktop){
+		@content;
+	}
+}
+
+// 다크모드 스타일
+@mixin dark-mode{
+	@media (prefers-color-scheme:dark){
+		@content;
+	}
+}

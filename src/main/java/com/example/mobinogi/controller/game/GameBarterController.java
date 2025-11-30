@@ -19,7 +19,7 @@ public class GameBarterController{
 		this.gameBarterService = gameBarterService;
 	}
 	
-	@RequestMapping(value = "/itemList.do", method = RequestMethod.GET)
+	@RequestMapping(value = "/barterItem", method = RequestMethod.GET)
 	public List<LifeBarter> getBarterItemByItemName(@RequestParam String itemName){
 		return gameBarterService.getBartersByItemName(itemName);
 	}

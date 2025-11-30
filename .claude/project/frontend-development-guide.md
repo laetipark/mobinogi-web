@@ -54,11 +54,11 @@ frontend/src/
 ├── assets/             # Static assets
 │   ├── images/         # Image files
 │   ├── icons/          # Icon files
-│   └── fonts/          # Custom fonts
-├── styles/             # Global styles
-│   ├── globals.css     # Global CSS
-│   ├── variables.css   # CSS custom properties
-│   └── components.css  # Component-specific styles
+│   ├── fonts/          # Custom fonts
+│   └── styles/             # Global styles
+│       ├── globals.css     # Global CSS
+│       ├── variables.css   # CSS custom properties
+│       └── components.css  # Component-specific styles
 ├── app.tsx             # Main App component
 ├── index.tsx           # Application entry point
 └── vite-env.d.ts       # Vite environment types

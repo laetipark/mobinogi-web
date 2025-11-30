@@ -1,5 +1,6 @@
 import {defineConfig, loadEnv} from "vite";
 import react from "@vitejs/plugin-react";
+import path, {resolve} from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig(({mode}) => {
@@ -10,6 +11,20 @@ export default defineConfig(({mode}) => {
 	
 	return {
 		plugins : [react()],
+		
+		// 경로 alias 설정
+		resolve : {
+			alias : [
+				{
+					find : "@",
+					replacement : resolve(__dirname, "src")
+				},
+				{
+					find : "@/assets",
+					replacement : resolve(__dirname, "src/assets")
+				}
+			]
+		},
 		
 		// 개발 서버 설정
 		server : {
@@ -77,7 +92,16 @@ export default defineConfig(({mode}) => {
 		css : {
 			devSourcemap : isDev,
 			preprocessorOptions : {
-				// SCSS 등을 사용할 경우 여기에 설정
+				scss : {
+					api : "modern-compiler", // Use modern Sass API
+					silenceDeprecations : ["legacy-js-api"], // Temporarily silence warnings
+					includePaths : [path.resolve(__dirname, "src/assets/styles")]
+				}
+			},
+			modules : {
+				generateScopedName : isDev
+					? "[name]__[local]___[hash:base64:5]"
+					: "[hash:base64:8]"
 			}
 		},
 		

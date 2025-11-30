@@ -1,0 +1,66 @@
+// 공통 색상 변수
+$primary-blue:#3b82f6;
+$primary-blue-dark:#2563eb;
+$primary-blue-hover:#1565c0;
+
+// 카카오 브랜드 색상
+$kakao-yellow:#fee500;
+$kakao-yellow-hover:#fdd835;
+
+// 그레이 스케일
+$white:#ffffff;
+$gray-50:#f8fafc;
+$gray-100:#f1f5f9;
+$gray-200:#e2e8f0;
+$gray-400:#94a3b8;
+$gray-500:#64748b;
+$gray-600:#475569;
+$gray-700:#334155;
+$gray-800:#1e293b;
+$gray-900:#374151;
+
+// 텍스트 색상
+$primary-text:#2c2c2c;
+$secondary-text:#666;
+$muted-text:#777;
+
+// 상태 색상
+$success-color:#4caf50;
+$error-color:#c62828;
+$error-bg:#ffebee;
+$error-border:#ffcdd2;
+$warning-color:#f59e0b;
+$focus-blue:#2196f3;
+
+// 배경 색상
+$light-gray:#f0f0f0;
+
+// 브레이크포인트
+$mobile:480px;
+$tablet:768px;
+$desktop:1024px;
+
+// 보더 반지름
+$border-radius-sm:6px;
+$border-radius:8px;
+$border-radius-md:10px;
+$border-radius-lg:12px;
+$border-radius-xl:16px;
+
+// 그림자
+$shadow-sm:0 1px 3px rgba(0, 0, 0, 0.1);
+$shadow-md:0 4px 20px rgba(59, 130, 246, 0.15);
+$shadow-lg:0 8px 32px rgba(0, 0, 0, 0.1);
+
+// 트랜지션
+$transition-fast:0.2s;
+$transition-normal:0.3s;
+
+// 그라데이션
+$primary-gradient:linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+$error-gradient:linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+
+// Z-index 레벨
+$z-header:100;
+$z-modal:1000;
+$z-tooltip:1100;

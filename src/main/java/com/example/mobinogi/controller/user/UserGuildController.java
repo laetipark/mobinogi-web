@@ -18,7 +18,7 @@ public class UserGuildController{
 		this.userGuildService = userGuildService;
 	}
 	
-	@RequestMapping(value = "/members.do", method = RequestMethod.GET)
+	@RequestMapping(value = "/members", method = RequestMethod.GET)
 	public List<String> getBarterItemByItemName(@RequestParam String guildName) throws Exception{
 		System.out.println("Item Name: " + guildName);
 		return userGuildService.getGuildPlayersByName(guildName);

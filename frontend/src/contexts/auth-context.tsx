@@ -28,7 +28,7 @@ axios.interceptors.request.use(
 	(config) => {
 		const token = localStorage.getItem("accessToken");
 		if(token){
-			config.headers.Authorization = "Bearer";
+			config.headers.Authorization = `Bearer ${token}`;
 		}
 		return config;
 	},
@@ -41,7 +41,10 @@ axios.interceptors.request.use(
 axios.interceptors.response.use(
 	(response) => response,
 	(error) => {
-		if(error.response?.status === 401){
+		// 아이템 관련 API는 인증 에러 무시
+		const isItemAPI = error.config?.url?.includes('/item/');
+		
+		if(error.response?.status === 401 && !isItemAPI){
 			localStorage.removeItem("accessToken");
 			window.location.href = "/login";
 		}

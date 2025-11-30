@@ -23,7 +23,9 @@ public class SecurityConfig{
 			.csrf(AbstractHttpConfigurer::disable)
 			.cors(cors -> cors.configurationSource(corsConfigurationSource))
 			.authorizeHttpRequests(auth -> auth
-				// 일반적으로 허용되는 경로들
+				// CORS preflight 요청 허용
+				.requestMatchers("OPTIONS", "/**").permitAll()
+				// 게임 관련 API는 모든 접근 허용 (인증 불필요)
 				.requestMatchers("/item/**", "/barter/**", "/guild/**", "/event/**").permitAll()
 				// 인증 관련 API는 모든 접근 허용
 				.requestMatchers("/api/auth/**").permitAll()
@@ -33,10 +35,10 @@ public class SecurityConfig{
 					boolean isLocalhost = isLocalhostIp(clientIp);
 					return new org.springframework.security.authorization.AuthorizationDecision(isLocalhost);
 				})
-				// 나머지 모든 요청은 인증 필요
-				.anyRequest().authenticated()
+				// 나머지 요청은 일단 허용 (개발 단계에서)
+				.anyRequest().permitAll()
 			)
-			.httpBasic(Customizer.withDefaults());
+			.httpBasic(AbstractHttpConfigurer::disable); // HTTP Basic Authentication 비활성화
 		
 		return http.build();
 	}

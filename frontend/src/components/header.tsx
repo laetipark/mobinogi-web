@@ -1,6 +1,6 @@
 ﻿import React from "react";
 import {useNavigate, useLocation} from "react-router-dom";
-import {Gamepad2, Shield, LogOut} from "lucide-react";
+import {Gamepad2, Shield, Package, LogOut} from "lucide-react";
 import {useAuth} from "../hooks/use-auth.ts";
 
 const Header:React.FC = () => {
@@ -29,16 +29,29 @@ const Header:React.FC = () => {
 					</div>
 					
 					<nav className="nav">
+						<button
+							className={`nav-btn ${isActive("/") ? "active" : ""}`}
+							onClick={() => handleNavigation("/")}
+						>
+							홈
+						</button>
+						<button
+							className={`nav-btn ${isActive("/items") ? "active" : ""}`}
+							onClick={() => handleNavigation("/items")}
+						>
+							<Package size={16}/>
+							아이템
+						</button>
 						{user ? (
 							<>
-								<button
-									className={`nav-btn ${isActive("/controllers") ? "active" : ""}`}
-									onClick={() => handleNavigation("/controllers")}
-								>
-									<Shield size={16}/>
-									Controllers
-								</button>
 								<div className="user-menu">
+									<button
+										className={`nav-btn ${isActive("/profile") ? "active" : ""}`}
+										onClick={() => handleNavigation("/profile")}
+									>
+										<Shield size={16}/>
+										{user.nickname}
+									</button>
 									<span className="user-name">{user.username}</span>
 									<button className="logout-btn" onClick={handleLogout} title="Logout">
 										<LogOut size={16}/>
@@ -48,16 +61,10 @@ const Header:React.FC = () => {
 						) : (
 							<>
 								<button
-									className={`nav-btn ${isActive("/login") ? "active" : ""}`}
+									className={`nav-btn primary ${isActive("/login") ? "active" : ""}`}
 									onClick={() => handleNavigation("/login")}
 								>
 									Login
-								</button>
-								<button
-									className={`nav-btn primary ${isActive("/register") ? "active" : ""}`}
-									onClick={() => handleNavigation("/register")}
-								>
-									Sign Up
 								</button>
 							</>
 						)}

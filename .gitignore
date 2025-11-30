@@ -43,3 +43,4 @@ frontend/.env.production
 
 ### Claude AI Rules - Local/Private ###
 .claude/local/
+/.aiassistant/
