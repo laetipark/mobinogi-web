@@ -1,7 +1,6 @@
 package com.example.mobinogi.scheduler;
 
 import com.example.mobinogi.service.util.GoogleSheetsService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,20 +12,13 @@ public class GoogleSheetScheduler{
 	
 	private final GoogleSheetsService sheetService;
 	
-	@Value("${server.instance.id:0}")
-	private int instanceId;
-	
 	public GoogleSheetScheduler(GoogleSheetsService sheetService){
 		this.sheetService = sheetService;
 	}
 	
 	@Transactional
-	@Scheduled(cron = "0 */5 * * * *") // 5분 단위로 실행
+	@Scheduled(cron = "0 0 */6 * * *")
 	public void fetchSheetData(){
-		if(instanceId != 0){
-			return;
-		}
-		
 		try{
 			sheetService.fetchAndSaveItem();
 			sheetService.fetchAndSaveNpc();

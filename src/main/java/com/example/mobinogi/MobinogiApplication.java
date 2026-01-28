@@ -1,6 +1,5 @@
 package com.example.mobinogi;
 
-import com.example.mobinogi.service.rank.RankCollectService;
 import com.example.mobinogi.service.util.GoogleSheetsService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -17,11 +16,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class MobinogiApplication implements CommandLineRunner{
 	
 	private final GoogleSheetsService sheetsService;
-	private final RankCollectService rankCollectService;
 	
-	public MobinogiApplication(GoogleSheetsService sheetsService, RankCollectService rankCollectService){
+	public MobinogiApplication(GoogleSheetsService sheetsService){
 		this.sheetsService = sheetsService;
-		this.rankCollectService = rankCollectService;
 	}
 	
 	public static void main(String[] args){

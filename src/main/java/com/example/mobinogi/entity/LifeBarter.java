@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "life_barter")
@@ -51,6 +52,15 @@ public class LifeBarter{
 	@Column(name = "barter_etc", length = 100)
 	private String barterEtc;
 	
+	@Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+	private LocalDateTime createdAt;
+
+	@Column(name = "updated_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+	private LocalDateTime updatedAt;
+
+	@Column(name = "deleted_at", columnDefinition = "TIMESTAMP")
+	private LocalDateTime deletedAt;
+	
 	@ManyToOne
 	@JoinColumn(name = "region_id", insertable = false, updatable = false)
 	private GameRegion gameRegion;
@@ -66,4 +76,15 @@ public class LifeBarter{
 	@ManyToOne
 	@JoinColumn(name = "exchange_id", referencedColumnName = "item_id", insertable = false, updatable = false)
 	private GameItem exchangeItem;
+	
+	@PrePersist
+	public void prePersist(){
+		this.createdAt = LocalDateTime.now();
+		this.updatedAt = LocalDateTime.now();
+	}
+	
+	@PreUpdate
+	public void preUpdate(){
+		this.updatedAt = LocalDateTime.now();
+	}
 }

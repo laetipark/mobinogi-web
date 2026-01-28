@@ -1088,3 +1088,53 @@ body{
 		--text-muted:#ccc;
 	}
 }
+
+/* Guild Management Section */
+.guild-management-section {
+  margin: 4rem 0;
+  padding: 4rem 0;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+  border-radius: 24px;
+  margin-top: 6rem;
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+
+    h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    p {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+  }
+}
+
+/* Additional responsive styles for guild section */
+@media (max-width: 768px) {
+  .guild-management-section {
+    margin: 2rem 0;
+    padding: 2rem 0;
+
+    .section-header {
+      h2 {
+        font-size: 2rem;
+      }
+
+      p {
+        font-size: 1rem;
+      }
+    }
+  }
+}

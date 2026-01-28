@@ -3,31 +3,37 @@ package com.example.mobinogi.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "life_craft")
-@Setter
+@Table(name = "game_event")
 @Getter
-public class LifeCraft{
-
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class GameEvent{
+	
 	@Id
-	@Column(name = "craft_id")
-	private Integer craftId;
-
-	@Column(name = "craft_sub_id")
-	private Integer craftSubId;
-
-	@Column(name = "item_id", nullable = false)
-	private Integer itemId;
-
-	@Column(name = "ingredient_id", nullable = false)
-	private Integer craftIngredientId;
-
-	@Column(name = "ingredient_cost", nullable = false)
-	private Integer craftIngredientCost;
-
+	@Column(name = "event_id", nullable = false, length = 50)
+	private String eventId;
+	
+	@Column(name = "thumbnail", length = 500)
+	private String thumbnail;
+	
+	@Column(name = "title", nullable = false, length = 255)
+	private String title;
+	
+	@Column(name = "start_date")
+	private LocalDateTime startDate;
+	
+	@Column(name = "end_date")
+	private LocalDateTime endDate;
+	
 	@Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
 	private LocalDateTime createdAt;
 
@@ -36,21 +42,13 @@ public class LifeCraft{
 
 	@Column(name = "deleted_at", columnDefinition = "TIMESTAMP")
 	private LocalDateTime deletedAt;
-
-	@ManyToOne
-	@JoinColumn(name = "item_id", insertable = false, updatable = false)
-	private GameItem gameItem;
-
-	@ManyToOne
-	@JoinColumn(name = "ingredient_id", referencedColumnName = "item_id", insertable = false, updatable = false)
-	private GameItem ingredientItem;
-
+	
 	@PrePersist
 	public void prePersist(){
 		this.createdAt = LocalDateTime.now();
 		this.updatedAt = LocalDateTime.now();
 	}
-
+	
 	@PreUpdate
 	public void preUpdate(){
 		this.updatedAt = LocalDateTime.now();

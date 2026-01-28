@@ -2,6 +2,7 @@
 import {useNavigate} from "react-router-dom";
 import {ChevronRight, Shield, Users, Settings, Gamepad2, Zap, BarChart3} from "lucide-react";
 import {useAuth} from "../hooks/use-auth.ts";
+import GuildManagementPage from "@/pages/guild-management.tsx";
 
 const HomePage:React.FC = () => {
 	const {user} = useAuth();
@@ -9,6 +10,9 @@ const HomePage:React.FC = () => {
 	
 	return (
 		<div className="page">
+			<GuildManagementPage>
+			
+			</GuildManagementPage>
 			<div className="hero">
 				<div className="hero-content">
 					<div className="hero-badge">

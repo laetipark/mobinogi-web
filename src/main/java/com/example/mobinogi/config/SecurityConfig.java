@@ -26,7 +26,7 @@ public class SecurityConfig{
 				// CORS preflight 요청 허용
 				.requestMatchers("OPTIONS", "/**").permitAll()
 				// 게임 관련 API는 모든 접근 허용 (인증 불필요)
-				.requestMatchers("/item/**", "/barter/**", "/guild/**", "/event/**").permitAll()
+				.requestMatchers("/item/**", "/barter/**", "/guild/**", "/event/**", "/user/**").permitAll()
 				// 인증 관련 API는 모든 접근 허용
 				.requestMatchers("/api/auth/**").permitAll()
 				// /rank/** 경로는 로컬에서만 접근 허용
