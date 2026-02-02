@@ -1,0 +1,7 @@
+// 모든 SCSS 파일을 통합하는 인덱스 파일
+@forward 'variables';
+@forward 'mixins';
+
+// 또는 사용자가 편리하게 사용할 수 있도록 re-export
+@use 'variables' as *;
+@use 'mixins' as *;

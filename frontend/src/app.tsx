@@ -1,12 +1,14 @@
-﻿import React from "react";
+import React from "react";
 import {BrowserRouter as Router, Routes, Route, Navigate} from "react-router-dom";
-import {AuthProvider} from "./contexts/auth-context.tsx";
-import {useAuth} from "./hooks/use-auth.ts";
-import Header from "./components/header.tsx";
-import HomePage from "./pages/home.tsx";
-import LoginPage from "./pages/login.tsx";
-import GameItemsPage from "./pages/game-items.tsx";
-import LoadingScreen from "./components/loading-screen.tsx";
+import {AuthProvider} from "./contexts/auth-context";
+import {useAuth} from "./hooks/use-auth";
+import Header from "./components/layout/header";
+import HomePage from "./pages/home";
+import LoginPage from "./pages/auth/login";
+import GameItemsPage from "./pages/game/game-items";
+import ItemSearchPage from "./pages/game/item-search";
+import LoadingScreen from "./components/common/loading-screen";
+import DarkModeToggle from "./components/common/dark-mode-toggle";
 
 const PublicRoute:React.FC<{children:React.ReactNode}> = ({children}) => {
 	const {user} = useAuth();
@@ -25,7 +27,9 @@ const AppContent:React.FC = () => {
 				<Route path="/" element={<HomePage/>}/>
 				<Route path="/login" element={<PublicRoute><LoginPage/></PublicRoute>}/>
 				<Route path="/items" element={<GameItemsPage/>}/>
+				<Route path="/item" element={<ItemSearchPage/>}/>
 			</Routes>
+			<DarkModeToggle/>
 		</>
 	);
 };

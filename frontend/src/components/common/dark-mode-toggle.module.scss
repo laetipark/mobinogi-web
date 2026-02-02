@@ -1,0 +1,51 @@
+@use '../../styles/index' as *;
+
+.darkModeToggle{
+	position:fixed;
+	bottom:2rem;
+	right:2rem;
+	width:56px;
+	height:56px;
+	border-radius:50%;
+	border:none;
+	background:$primary-gradient;
+	color:$white;
+	box-shadow:$shadow-lg;
+	cursor:pointer;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	transition:all $transition-normal;
+	z-index:$z-tooltip;
+
+	&:hover{
+		transform:translateY(-4px) scale(1.05);
+		box-shadow:0 12px 40px rgba(168, 213, 229, 0.35);
+	}
+
+	&:active{
+		transform:translateY(-2px) scale(1.02);
+	}
+
+	svg{
+		transition:transform $transition-normal;
+	}
+
+	&:hover svg{
+		transform:rotate(15deg);
+	}
+}
+
+@include mobile{
+	.darkModeToggle{
+		bottom:1rem;
+		right:1rem;
+		width:48px;
+		height:48px;
+
+		svg{
+			width:20px;
+			height:20px;
+		}
+	}
+}

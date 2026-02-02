@@ -1,0 +1,473 @@
+@use '../../styles/index' as *;
+
+.modalBackdrop{
+	position:fixed;
+	top:0;
+	left:0;
+	right:0;
+	bottom:0;
+	background:rgba(0, 0, 0, 0.6);
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	z-index:1000;
+	padding:20px;
+	backdrop-filter:blur(4px);
+}
+
+.modalContent{
+	background:$white;
+	border-radius:$border-radius-lg;
+	max-width:600px;
+	width:100%;
+	max-height:80vh;
+	overflow:hidden;
+	display:flex;
+	flex-direction:column;
+	box-shadow:0 25px 50px -12px rgba(0, 0, 0, 0.25);
+	animation:slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp{
+	from{
+		opacity:0;
+		transform:translateY(20px);
+	}
+	to{
+		opacity:1;
+		transform:translateY(0);
+	}
+}
+
+.modalHeader{
+	display:flex;
+	align-items:center;
+	justify-content:space-between;
+	padding:20px 24px;
+	border-bottom:1px solid $gray-200;
+	background:linear-gradient(135deg, $primary-blue 0%, $primary-blue-darker 100%);
+	color:$white;
+
+	.itemInfo{
+		display:flex;
+		align-items:center;
+		gap:12px;
+
+		h2{
+			margin:0;
+			font-size:1.25rem;
+			font-weight:600;
+		}
+
+		.itemMeta{
+			display:flex;
+			gap:8px;
+			margin-top:4px;
+
+			.itemType{
+				font-size:0.8rem;
+				opacity:0.9;
+			}
+
+			.itemRarity{
+				font-size:0.8rem;
+				font-weight:600;
+			}
+		}
+	}
+
+	.closeBtn{
+		background:rgba(255, 255, 255, 0.2);
+		border:none;
+		color:$white;
+		cursor:pointer;
+		padding:8px;
+		border-radius:$border-radius;
+		display:flex;
+		align-items:center;
+		justify-content:center;
+		transition:background $transition-fast;
+
+		&:hover{
+			background:rgba(255, 255, 255, 0.3);
+		}
+	}
+}
+
+.itemEffect{
+	padding:16px 24px;
+	background:$gray-50;
+	color:$gray-600;
+	font-size:0.9rem;
+	line-height:1.5;
+	border-bottom:1px solid $gray-200;
+}
+
+.loading{
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	gap:12px;
+	padding:60px 24px;
+	color:$gray-500;
+}
+
+.spinning{
+	@include spinning;
+}
+
+.tabs{
+	display:flex;
+	padding:0 24px;
+	border-bottom:1px solid $gray-200;
+	background:$gray-50;
+}
+
+.tab{
+	display:flex;
+	align-items:center;
+	gap:8px;
+	padding:14px 20px;
+	border:none;
+	background:transparent;
+	color:$gray-600;
+	font-size:0.9rem;
+	font-weight:500;
+	cursor:pointer;
+	border-bottom:2px solid transparent;
+	margin-bottom:-1px;
+	transition:all $transition-fast;
+
+	&:hover{
+		color:$primary-blue;
+	}
+
+	&.active{
+		color:$primary-blue;
+		border-bottom-color:$primary-blue;
+		background:$white;
+	}
+
+	.count{
+		background:$gray-200;
+		color:$gray-600;
+		font-size:0.75rem;
+		padding:2px 8px;
+		border-radius:10px;
+		font-weight:600;
+	}
+
+	&.active .count{
+		background:rgba($primary-blue, 0.1);
+		color:$primary-blue;
+	}
+}
+
+.tabContent{
+	padding:20px 24px;
+	overflow-y:auto;
+	flex:1;
+}
+
+.section{
+	&:not(:last-child){
+		margin-bottom:24px;
+	}
+}
+
+.sectionTitle{
+	font-size:0.9rem;
+	font-weight:600;
+	color:$gray-700;
+	margin:0 0 12px 0;
+	display:flex;
+	align-items:center;
+	gap:4px;
+
+	.highlight{
+		color:$primary-blue;
+	}
+}
+
+.barterList{
+	display:flex;
+	flex-direction:column;
+	gap:12px;
+}
+
+.barterCard{
+	background:$gray-50;
+	border:1px solid $gray-200;
+	border-radius:$border-radius;
+	padding:14px;
+	transition:all $transition-fast;
+
+	&:hover{
+		border-color:$primary-blue;
+		box-shadow:0 2px 8px rgba($primary-blue, 0.1);
+	}
+}
+
+.barterLocation{
+	display:flex;
+	align-items:center;
+	gap:6px;
+	font-size:0.8rem;
+	color:$gray-500;
+	margin-bottom:10px;
+
+	svg{
+		color:$gray-400;
+	}
+}
+
+.barterExchange{
+	display:flex;
+	align-items:center;
+	gap:12px;
+
+	.arrow{
+		color:$gray-400;
+		flex-shrink:0;
+	}
+}
+
+.exchangeItem{
+	flex:1;
+	display:flex;
+	flex-direction:column;
+	gap:2px;
+	background:$white;
+	padding:10px 12px;
+	border-radius:$border-radius;
+	border:1px solid $gray-200;
+
+	.itemName{
+		font-size:0.9rem;
+		font-weight:500;
+		color:$gray-800;
+	}
+
+	.itemCount{
+		font-size:0.8rem;
+		color:$primary-blue;
+		font-weight:600;
+	}
+}
+
+.barterNote{
+	margin-top:10px;
+	font-size:0.8rem;
+	color:$gray-500;
+	font-style:italic;
+	padding-top:10px;
+	border-top:1px dashed $gray-200;
+}
+
+.craftList{
+	display:flex;
+	flex-direction:column;
+	gap:12px;
+}
+
+.craftGroup{
+	background:$gray-50;
+	border:1px solid $gray-200;
+	border-radius:$border-radius;
+	padding:14px;
+	transition:all $transition-fast;
+
+	&:hover{
+		border-color:$primary-blue;
+		box-shadow:0 2px 8px rgba($primary-blue, 0.1);
+	}
+}
+
+.craftResult{
+	display:flex;
+	align-items:center;
+	gap:8px;
+	padding-bottom:12px;
+	margin-bottom:12px;
+	border-bottom:1px solid $gray-200;
+
+	svg{
+		color:$primary-blue;
+	}
+
+	.resultName{
+		font-size:1rem;
+		font-weight:600;
+		color:$gray-800;
+	}
+}
+
+.craftIngredients{
+	display:flex;
+	flex-wrap:wrap;
+	gap:8px;
+}
+
+.ingredient{
+	display:flex;
+	align-items:center;
+	gap:6px;
+	background:$white;
+	padding:8px 12px;
+	border-radius:$border-radius;
+	border:1px solid $gray-200;
+
+	.ingredientName{
+		font-size:0.85rem;
+		color:$gray-700;
+	}
+
+	.ingredientCount{
+		font-size:0.8rem;
+		color:$primary-blue;
+		font-weight:600;
+	}
+}
+
+.empty, .noData{
+	text-align:center;
+	padding:40px 20px;
+	color:$gray-400;
+	font-size:0.9rem;
+}
+
+.noData{
+	padding:60px 24px;
+}
+
+// 반응형
+@include tablet{
+	.modalContent{
+		max-height:90vh;
+	}
+
+	.barterExchange{
+		flex-direction:column;
+		gap:8px;
+
+		.arrow{
+			transform:rotate(90deg);
+		}
+	}
+
+	.exchangeItem{
+		width:100%;
+	}
+}
+
+@include mobile{
+	.modalBackdrop{
+		padding:10px;
+	}
+
+	.modalHeader{
+		padding:16px;
+
+		.itemInfo{
+			h2{
+				font-size:1.1rem;
+			}
+		}
+	}
+
+	.tabs{
+		padding:0 16px;
+	}
+
+	.tab{
+		padding:12px 14px;
+		font-size:0.85rem;
+
+		span:not(.count){
+			display:none;
+		}
+	}
+
+	.tabContent{
+		padding:16px;
+	}
+
+	.craftIngredients{
+		flex-direction:column;
+	}
+
+	.ingredient{
+		width:100%;
+		justify-content:space-between;
+	}
+}
+
+// 다크 모드
+@include dark-mode{
+	.modalContent{
+		background:#1e293b;
+	}
+
+	.modalHeader{
+		border-color:#334155;
+	}
+
+	.itemEffect{
+		background:#0f172a;
+		border-color:#334155;
+		color:#94a3b8;
+	}
+
+	.tabs{
+		background:#0f172a;
+		border-color:#334155;
+	}
+
+	.tab{
+		color:#94a3b8;
+
+		&.active{
+			background:#1e293b;
+		}
+
+		.count{
+			background:#334155;
+			color:#94a3b8;
+		}
+	}
+
+	.sectionTitle{
+		color:#e2e8f0;
+	}
+
+	.barterCard, .craftGroup{
+		background:#0f172a;
+		border-color:#334155;
+	}
+
+	.exchangeItem, .ingredient{
+		background:#1e293b;
+		border-color:#334155;
+
+		.itemName, .ingredientName{
+			color:#e2e8f0;
+		}
+	}
+
+	.barterLocation{
+		color:#94a3b8;
+	}
+
+	.barterNote{
+		border-color:#334155;
+		color:#94a3b8;
+	}
+
+	.craftResult{
+		border-color:#334155;
+
+		.resultName{
+			color:#f1f5f9;
+		}
+	}
+}

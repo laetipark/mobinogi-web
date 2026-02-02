@@ -20,7 +20,8 @@ public class CorsConfig{
 		configuration.setAllowedOriginPatterns(Arrays.asList(
 			"http://localhost:3000",  // React 기본 개발 서버
 			"http://127.0.0.1:3000",
-			"http://localhost:*"      // 개발 시 다른 포트도 허용
+			"http://localhost:*",     // 개발 시 다른 포트도 허용
+			"http://172.30.1.*:*"     // 내부 네트워크 IP 허용
 		));
 		
 		// 허용할 HTTP 메서드

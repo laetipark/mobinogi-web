@@ -1,0 +1,129 @@
+# Mobinogi API - Local Development
+server {
+    listen 80;
+    server_name mobinogi.local api.mobinogi.local;
+
+    # Custom Logs
+    access_log /var/log/nginx/mobinogi.local.access.log main;
+    error_log /var/log/nginx/mobinogi.local.error.log;
+
+    # Security Headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    # API 요청들 - 로드 밸런싱
+    location /api/ {
+        limit_req zone=api burst=20 nodelay;
+
+        proxy_pass http://spring_backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $server_name;
+
+        # Timeout 설정
+        proxy_connect_timeout 5s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+
+        # Buffer 설정
+        proxy_buffering on;
+        proxy_buffer_size 4k;
+        proxy_buffers 8 4k;
+
+        # HTTP/1.1 설정
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+    }
+
+    # Rank API - 직접 접근 안내
+    location /api/rank/ {
+        limit_req zone=rank burst=10 nodelay;
+
+        return 200 '{
+    "message": "Rank API는 각 인스턴스에 직접 접근하세요",
+    "instances": {
+        "instance-1": "http://mobinogi.local:50621/api/rank/",
+        "instance-2": "http://mobinogi.local:50622/api/rank/",
+        "instance-3": "http://mobinogi.local:50623/api/rank/",
+        "instance-4": "http://mobinogi.local:50624/api/rank/"
+    },
+    "direct_access": {
+        "instance-1": "http://instance1.mobinogi.local/api/rank/",
+        "instance-2": "http://instance2.mobinogi.local/api/rank/",
+        "instance-3": "http://instance3.mobinogi.local/api/rank/",
+        "instance-4": "http://instance4.mobinogi.local/api/rank/"
+    }
+}';
+        add_header Content-Type application/json;
+    }
+
+    # Health Check
+    location /actuator/health {
+        proxy_pass http://health_backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        access_log off;
+    }
+
+    # Load Balancer 정보
+    location /lb-info {
+        return 200 '{
+    "domain": "mobinogi.local",
+    "load_balancer": "nginx",
+    "algorithm": "least_conn",
+    "backend_servers": 4,
+    "access_methods": {
+        "main_domain": "http://mobinogi.local",
+        "api_domain": "http://api.mobinogi.local",
+        "direct_instances": {
+            "instance-1": "http://instance1.mobinogi.local",
+            "instance-2": "http://instance2.mobinogi.local", 
+            "instance-3": "http://instance3.mobinogi.local",
+            "instance-4": "http://instance4.mobinogi.local"
+        }
+    }
+}';
+        add_header Content-Type application/json;
+    }
+
+    # Static Files
+    location /static/ {
+        proxy_pass http://spring_backend;
+        proxy_set_header Host $host;
+        expires 1d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Root Path
+    location / {
+        limit_req zone=general burst=30 nodelay;
+
+        proxy_pass http://spring_backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $server_name;
+
+        proxy_connect_timeout 5s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+    }
+
+    # Error Pages
+    error_page 502 503 504 /50x.html;
+    location = /50x.html {
+        return 502 '{
+    "error": "Backend servers are temporarily unavailable",
+    "status": 502,
+    "domain": "mobinogi.local",
+    "timestamp": "$time_iso8601"
+}';
+        add_header Content-Type application/json;
+    }
+}

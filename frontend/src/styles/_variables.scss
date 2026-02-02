@@ -1,0 +1,86 @@
+// 파스텔톤 메인 색상
+$primary-pastel:#a8d5e5;        // 파스텔 블루
+$primary-pastel-dark:#8bc4d6;
+$primary-pastel-darker:#6eb3c7;
+$primary-pastel-light:#c5e5ef;
+
+$secondary-pastel:#f5c6d6;      // 파스텔 핑크
+$secondary-pastel-dark:#edb3c7;
+
+$accent-pastel:#b8e0c8;         // 파스텔 그린
+$accent-pastel-dark:#9fd4b5;
+
+$warning-pastel:#fce5b0;        // 파스텔 옐로우
+$purple-pastel:#d4c5f0;         // 파스텔 퍼플
+$peach-pastel:#fcd5c5;          // 파스텔 피치
+
+// 기존 변수 호환성 유지
+$primary-blue:$primary-pastel;
+$primary-blue-dark:$primary-pastel-dark;
+$primary-blue-darker:$primary-pastel-darker;
+$primary-blue-hover:$primary-pastel-darker;
+
+// 카카오 브랜드 색상
+$kakao-yellow:#fee500;
+$kakao-yellow-hover:#fdd835;
+
+// 그레이 스케일 (부드러운 톤)
+$white:#ffffff;
+$gray-50:#fafbfc;
+$gray-100:#f4f6f8;
+$gray-200:#e8ecf0;
+$gray-400:#a8b5c4;
+$gray-500:#7a8a9c;
+$gray-600:#5c6b7a;
+$gray-700:#3d4a56;
+$gray-800:#2a3440;
+$gray-900:#1e2730;
+
+// 텍스트 색상
+$primary-text:#3d4a56;
+$secondary-text:#5c6b7a;
+$muted-text:#7a8a9c;
+
+// 상태 색상 (파스텔)
+$success-color:#9ed4b0;
+$error-color:#e8a8a8;
+$error-bg:#fdf2f2;
+$error-border:#f5d5d5;
+$warning-color:#f5d89a;
+$focus-blue:#a8d5e5;
+
+// 배경 색상
+$light-gray:#f8fafc;
+$bg-gradient:linear-gradient(135deg, #fafbfc 0%, #f0f4f8 100%);
+
+// 브레이크포인트
+$mobile:480px;
+$tablet:768px;
+$desktop:1024px;
+
+// 보더 반지름
+$border-radius-sm:8px;
+$border-radius:10px;
+$border-radius-md:12px;
+$border-radius-lg:16px;
+$border-radius-xl:20px;
+
+// 그림자 (부드러운 파스텔 톤)
+$shadow-sm:0 2px 8px rgba(168, 213, 229, 0.15);
+$shadow-md:0 4px 16px rgba(168, 213, 229, 0.2);
+$shadow-lg:0 8px 32px rgba(168, 213, 229, 0.25);
+
+// 트랜지션
+$transition-fast:0.2s ease;
+$transition-normal:0.3s ease;
+
+// 그라데이션 (파스텔)
+$primary-gradient:linear-gradient(135deg, #a8d5e5 0%, #d4c5f0 100%);
+$secondary-gradient:linear-gradient(135deg, #f5c6d6 0%, #fce5b0 100%);
+$accent-gradient:linear-gradient(135deg, #b8e0c8 0%, #a8d5e5 100%);
+$error-gradient:linear-gradient(135deg, #e8a8a8 0%, #f5c6d6 100%);
+
+// Z-index 레벨
+$z-header:100;
+$z-modal:1000;
+$z-tooltip:1100;

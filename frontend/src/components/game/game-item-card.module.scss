@@ -1,0 +1,183 @@
+@use '../../styles/index' as *;
+
+.card{
+	--rarity-color:#6b7280;
+	--rarity-bg:rgba(107, 114, 128, 0.1);
+
+	position:relative;
+	background:var(--surface);
+	border:1px solid var(--border);
+	border-radius:$border-radius-lg;
+	padding:20px;
+	transition:all $transition-fast;
+	overflow:hidden;
+	
+	&.clickable{
+		cursor:pointer;
+		
+		.clickHint{
+			opacity:0;
+		}
+		
+		&:hover{
+			transform:translateY(-2px);
+			box-shadow:0 8px 24px rgba(0, 0, 0, 0.1);
+			border-color:var(--rarity-color);
+			
+			.clickHint{
+				opacity:1;
+			}
+			
+			.rarityIndicator{
+				width:6px;
+			}
+		}
+	}
+}
+
+.rarityIndicator{
+	position:absolute;
+	left:0;
+	top:0;
+	bottom:0;
+	width:4px;
+	background:var(--rarity-color);
+	transition:width $transition-fast;
+}
+
+.header{
+	display:flex;
+	align-items:center;
+	gap:12px;
+	margin-bottom:12px;
+}
+
+.iconWrapper{
+	width:40px;
+	height:40px;
+	border-radius:$border-radius;
+	background:var(--rarity-bg);
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	color:var(--rarity-color);
+	flex-shrink:0;
+}
+
+.meta{
+	display:flex;
+	flex-direction:column;
+	gap:2px;
+}
+
+.id{
+	font-size:12px;
+	color:var(--text-muted);
+	font-weight:500;
+}
+
+.rarity{
+	font-size:13px;
+	font-weight:600;
+	color:var(--rarity-color);
+}
+
+.name{
+	font-size:17px;
+	font-weight:700;
+	color:var(--text);
+	margin:0 0 12px 0;
+	line-height:1.4;
+	word-break:keep-all;
+}
+
+.type{
+	display:inline-flex;
+	align-items:center;
+	gap:6px;
+	background:var(--surface-hover);
+	padding:6px 10px;
+	border-radius:$border-radius-sm;
+	margin-bottom:12px;
+}
+
+.typeLabel{
+	font-size:11px;
+	color:var(--text-muted);
+	font-weight:500;
+	text-transform:uppercase;
+}
+
+.typeValue{
+	font-size:13px;
+	color:var(--text);
+	font-weight:500;
+}
+
+.effect{
+	font-size:13px;
+	color:var(--text-muted);
+	line-height:1.6;
+	margin:0;
+	padding-top:12px;
+	border-top:1px solid var(--border-light);
+}
+
+.clickHint{
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	gap:6px;
+	margin-top:16px;
+	padding-top:12px;
+	border-top:1px dashed var(--border);
+	font-size:12px;
+	color:var(--primary);
+	font-weight:500;
+	transition:opacity $transition-fast;
+	
+	svg{
+		flex-shrink:0;
+	}
+}
+
+// 반응형
+@include tablet{
+	.card{
+		padding:16px;
+	}
+	
+	.name{
+		font-size:16px;
+	}
+	
+	.iconWrapper{
+		width:36px;
+		height:36px;
+	}
+}
+
+@include mobile{
+	.card{
+		padding:14px;
+	}
+	
+	.name{
+		font-size:15px;
+	}
+	
+	.header{
+		gap:10px;
+	}
+	
+	.iconWrapper{
+		width:32px;
+		height:32px;
+		
+		svg{
+			width:16px;
+			height:16px;
+		}
+	}
+}
+

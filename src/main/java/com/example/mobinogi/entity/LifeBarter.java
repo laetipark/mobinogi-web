@@ -1,5 +1,6 @@
 package com.example.mobinogi.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class LifeBarter{
 	
 	@Id
@@ -61,19 +63,19 @@ public class LifeBarter{
 	@Column(name = "deleted_at", columnDefinition = "TIMESTAMP")
 	private LocalDateTime deletedAt;
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "region_id", insertable = false, updatable = false)
 	private GameRegion gameRegion;
-	
-	@ManyToOne
+
+	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "npc_id", insertable = false, updatable = false)
 	private GameNpc gameNpc;
-	
-	@ManyToOne
+
+	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "item_id", insertable = false, updatable = false)
 	private GameItem gameItem;
-	
-	@ManyToOne
+
+	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "exchange_id", referencedColumnName = "item_id", insertable = false, updatable = false)
 	private GameItem exchangeItem;
 	

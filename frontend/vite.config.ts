@@ -20,6 +20,42 @@ export default defineConfig(({mode}) => {
 					replacement : resolve(__dirname, "src")
 				},
 				{
+					find : "@/components",
+					replacement : resolve(__dirname, "src/components")
+				},
+				{
+					find : "@/pages",
+					replacement : resolve(__dirname, "src/pages")
+				},
+				{
+					find : "@/hooks",
+					replacement : resolve(__dirname, "src/hooks")
+				},
+				{
+					find : "@/services",
+					replacement : resolve(__dirname, "src/services")
+				},
+				{
+					find : "@/contexts",
+					replacement : resolve(__dirname, "src/contexts")
+				},
+				{
+					find : "@/types",
+					replacement : resolve(__dirname, "src/types")
+				},
+				{
+					find : "@/utils",
+					replacement : resolve(__dirname, "src/utils")
+				},
+				{
+					find : "@/styles",
+					replacement : resolve(__dirname, "src/styles")
+				},
+				{
+					find : "@/config",
+					replacement : resolve(__dirname, "src/config")
+				},
+				{
 					find : "@/assets",
 					replacement : resolve(__dirname, "src/assets")
 				}
@@ -95,7 +131,10 @@ export default defineConfig(({mode}) => {
 				scss : {
 					api : "modern-compiler", // Use modern Sass API
 					silenceDeprecations : ["legacy-js-api"], // Temporarily silence warnings
-					includePaths : [path.resolve(__dirname, "src/assets/styles")]
+					includePaths : [
+						path.resolve(__dirname, "src/styles"),
+						path.resolve(__dirname, "src/assets/styles")
+					]
 				}
 			},
 			modules : {

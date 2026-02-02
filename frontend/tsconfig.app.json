@@ -26,11 +26,35 @@
 			"@/*" : [
 				"src/*"
 			],
-			"@/assets/*" : [
-				"src/assets/*"
-			],
 			"@/components/*" : [
 				"src/components/*"
+			],
+			"@/pages/*" : [
+				"src/pages/*"
+			],
+			"@/hooks/*" : [
+				"src/hooks/*"
+			],
+			"@/services/*" : [
+				"src/services/*"
+			],
+			"@/contexts/*" : [
+				"src/contexts/*"
+			],
+			"@/types/*" : [
+				"src/types/*"
+			],
+			"@/utils/*" : [
+				"src/utils/*"
+			],
+			"@/styles/*" : [
+				"src/styles/*"
+			],
+			"@/config/*" : [
+				"src/config/*"
+			],
+			"@/assets/*" : [
+				"src/assets/*"
 			]
 		},
 		/* Linting */

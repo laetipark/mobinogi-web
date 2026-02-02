@@ -31,8 +31,14 @@ public class CorsFilter implements Filter {
 
         log.info("🌐 CORS 요청: {} {} from origin: {}", method, uri, origin);
 
-        // CORS 헤더 설정
-        httpResponse.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+        // CORS 헤더 설정 - 요청한 origin을 동적으로 허용
+        if (origin != null && (origin.startsWith("http://localhost") ||
+            origin.startsWith("http://127.0.0.1") ||
+            origin.startsWith("http://172.30.1."))) {
+            httpResponse.setHeader("Access-Control-Allow-Origin", origin);
+        } else {
+            httpResponse.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+        }
         httpResponse.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
         httpResponse.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept, Origin");
         httpResponse.setHeader("Access-Control-Allow-Credentials", "true");

@@ -2,7 +2,7 @@ package com.example.mobinogi.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -24,9 +24,11 @@ public class SecurityConfig{
 			.cors(cors -> cors.configurationSource(corsConfigurationSource))
 			.authorizeHttpRequests(auth -> auth
 				// CORS preflight 요청 허용
-				.requestMatchers("OPTIONS", "/**").permitAll()
+				.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+				// 에러 페이지 허용
+				.requestMatchers("/error", "/error/**").permitAll()
 				// 게임 관련 API는 모든 접근 허용 (인증 불필요)
-				.requestMatchers("/item/**", "/barter/**", "/guild/**", "/event/**", "/user/**").permitAll()
+				.requestMatchers("/item/**", "/barter/**", "/craft/**", "/guild/**", "/event/**", "/user/**").permitAll()
 				// 인증 관련 API는 모든 접근 허용
 				.requestMatchers("/api/auth/**").permitAll()
 				// /rank/** 경로는 로컬에서만 접근 허용

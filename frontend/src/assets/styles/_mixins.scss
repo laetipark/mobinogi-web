@@ -5,14 +5,14 @@
 @mixin button-hover($bg-color, $hover-bg-color: null){
 	background-color:$bg-color;
 	transition:all $transition-fast;
-	
+
 	@if $hover-bg-color{
 		&:hover:not(:disabled){
 			background-color:$hover-bg-color;
 		}
 	} @else{
 		&:hover:not(:disabled){
-			background-color:darken($bg-color, 10%);
+			filter:brightness(0.9);
 		}
 	}
 }
