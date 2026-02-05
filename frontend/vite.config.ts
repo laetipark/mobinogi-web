@@ -64,9 +64,17 @@ export default defineConfig(({mode}) => {
 		
 		// 개발 서버 설정
 		server : {
-			port : parseInt(env.VITE_DEV_SERVER_PORT) || 3000,
-			host : env.VITE_DEV_SERVER_HOST || "localhost",
+			port : parseInt(env.VITE_SERVER_PORT) || 3000,
+			host : env.VITE_SERVER_HOST || "localhost",
 			open : true,
+			// 개발환경: 모든 호스트 허용 (ngrok 등), production: 특정 호스트만 허용
+			allowedHosts : isDev
+				? true
+				: [
+					"localhost",
+					"127.0.0.1",
+					env.VITE_ALLOWED_HOST || "mobinogi.com"
+				],
 			proxy : {
 				"/api" : {
 					target : env.VITE_API_BASE_URL || "http://localhost:8080",
@@ -89,6 +97,19 @@ export default defineConfig(({mode}) => {
 			}
 		},
 		
+		// 프리뷰 서버 설정 (production build preview)
+		preview : {
+			port : parseInt(env.VITE_SERVER_PORT) || 3000,
+			host : env.VITE_SERVER_HOST || "localhost",
+			open : false,
+			allowedHosts : [
+				"localhost",
+				"127.0.0.1",
+				"laetipark.me",
+				"www.laetipark.me"
+			]
+		},
+
 		// 빌드 설정
 		build : {
 			outDir : "dist",
@@ -150,6 +171,6 @@ export default defineConfig(({mode}) => {
 		// 최적화 설정
 		optimizeDeps : {
 			include : ["react", "react-dom", "react-router-dom", "axios"]
-		}
+		},
 	};
 });

@@ -11,6 +11,8 @@ interface ExtendedAuthContextType extends AuthContextType{
 	isKakaoLoggedIn:boolean;
 	kakaoLoading:boolean;
 	kakaoError:string | null;
+	isNewUser:boolean;
+	clearNewUserFlag:() => void;
 }
 
 export const AuthContext = createContext<ExtendedAuthContextType | undefined>(undefined);
@@ -62,9 +64,11 @@ export const AuthProvider:React.FC<AuthProviderProps> = ({children}) => {
 		isLoggedIn : isKakaoLoggedIn,
 		isLoading : kakaoLoading,
 		error : kakaoError,
+		isNewUser,
 		kakaoLogin : performKakaoLogin,
 		logout : performKakaoLogout,
-		checkLoginStatus
+		checkLoginStatus,
+		clearNewUserFlag
 	} = useKakaoLogin();
 	
 	useEffect(() => {
@@ -246,7 +250,9 @@ export const AuthProvider:React.FC<AuthProviderProps> = ({children}) => {
 		kakaoLogout,
 		isKakaoLoggedIn,
 		kakaoLoading,
-		kakaoError
+		kakaoError,
+		isNewUser,
+		clearNewUserFlag
 	};
 	
 	return (

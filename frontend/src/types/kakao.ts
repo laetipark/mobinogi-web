@@ -59,6 +59,7 @@ export interface AuthResponse{
 	message:string;
 	user?:{
 		id:number;
+		userId?:number;
 		username:string;
 		email?:string;
 		nickname?:string;
@@ -68,4 +69,5 @@ export interface AuthResponse{
 		createdAt:string;
 	};
 	token?:string;
+	isNewUser?:boolean;
 }

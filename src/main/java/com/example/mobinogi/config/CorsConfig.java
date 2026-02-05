@@ -16,28 +16,22 @@ public class CorsConfig{
 	public CorsConfigurationSource corsConfigurationSource(){
 		CorsConfiguration configuration = new CorsConfiguration();
 		
-		// 허용할 오리진 설정 (React 개발 서버)
+		// 허용할 오리진 설정
 		configuration.setAllowedOriginPatterns(Arrays.asList(
-			"http://localhost:3000",  // React 기본 개발 서버
+			"http://localhost:3000",
 			"http://127.0.0.1:3000",
-			"http://localhost:*",     // 개발 시 다른 포트도 허용
-			"http://172.30.1.*:*"     // 내부 네트워크 IP 허용
+			"http://localhost:*",
+			"http://172.30.1.*:*",
+			"https://*.ngrok-free.dev" // 혹은 ngrok 주소가 바뀌어도 되게 와일드카드 사용
 		));
 		
-		// 허용할 HTTP 메서드
 		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-		
-		// 허용할 헤더
 		configuration.setAllowedHeaders(List.of("*"));
-		
-		// 자격 증명 허용 (쿠키, Authorization 헤더 등)
 		configuration.setAllowCredentials(true);
-		
-		// Preflight 요청 캐시 시간 (초)
 		configuration.setMaxAge(3600L);
 		
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		source.registerCorsConfiguration("/**", configuration); // 모든 경로에 CORS 적용
+		source.registerCorsConfiguration("/**", configuration);
 		
 		return source;
 	}

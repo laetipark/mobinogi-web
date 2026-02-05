@@ -8,6 +8,7 @@ export const useKakaoLogin = () => {
 	const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [error, setError] = useState<string | null>(null);
+	const [isNewUser, setIsNewUser] = useState<boolean>(false);
 	
 	// Initialize Kakao SDK
 	useEffect(() => {
@@ -133,11 +134,12 @@ export const useKakaoLogin = () => {
 			if(response.data.success && response.data.user && response.data.token){
 				// Save JWT token
 				localStorage.setItem("accessToken", response.data.token);
-				
+
 				// Set user info
 				setUser(response.data.user as User);
 				setIsLoggedIn(true);
-				
+				setIsNewUser(response.data.isNewUser || false);
+
 				console.log("Login completed:", response.data.user);
 			}else{
 				throw new Error(response.data.message || "Server authentication failed");
@@ -184,8 +186,13 @@ export const useKakaoLogin = () => {
 		localStorage.removeItem("accessToken");
 		setUser(null);
 		setIsLoggedIn(false);
+		setIsNewUser(false);
 		setError(null);
 		console.log("Logout completed");
+	};
+
+	const clearNewUserFlag = () => {
+		setIsNewUser(false);
 	};
 	
 	return {
@@ -193,8 +200,10 @@ export const useKakaoLogin = () => {
 		isLoggedIn,
 		isLoading,
 		error,
+		isNewUser,
 		kakaoLogin,
 		logout,
-		checkLoginStatus
+		checkLoginStatus,
+		clearNewUserFlag
 	};
 };

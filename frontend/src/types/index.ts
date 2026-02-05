@@ -170,3 +170,19 @@ export interface ListSearchParams{
 	sortDir?:"asc" | "desc";
 	keyword?:string;
 }
+
+// 캐릭터 정보
+export interface UserCharacter{
+	characterId:number;
+	userId:number;
+	characterName:string;
+	serverName?:string;
+	className?:string;
+	createdAt:string;
+}
+
+export interface UserCharacterRequest{
+	characterName:string;
+	serverName?:string;
+	className?:string;
+}

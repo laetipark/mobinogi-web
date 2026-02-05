@@ -7,6 +7,7 @@ import HomePage from "./pages/home";
 import LoginPage from "./pages/auth/login";
 import GameItemsPage from "./pages/game/game-items";
 import ItemSearchPage from "./pages/game/item-search";
+import CharactersPage from "./pages/user/characters";
 import LoadingScreen from "./components/common/loading-screen";
 import DarkModeToggle from "./components/common/dark-mode-toggle";
 
@@ -28,6 +29,7 @@ const AppContent:React.FC = () => {
 				<Route path="/login" element={<PublicRoute><LoginPage/></PublicRoute>}/>
 				<Route path="/items" element={<GameItemsPage/>}/>
 				<Route path="/item" element={<ItemSearchPage/>}/>
+				<Route path="/characters" element={<CharactersPage/>}/>
 			</Routes>
 			<DarkModeToggle/>
 		</>

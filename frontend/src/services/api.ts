@@ -22,6 +22,10 @@ class ApiService{
 		// 요청 인터셉터
 		this.api.interceptors.request.use(
 			(config) => {
+				const token = localStorage.getItem("accessToken");
+				if(token){
+					config.headers.Authorization = `Bearer ${token}`;
+				}
 				debugLog("🚀 API Request:", config.method?.toUpperCase(), config.url);
 				debugLog("📤 Request Data:", config.data);
 				return config;

@@ -41,6 +41,12 @@ frontend/dist/
 frontend/.env.development
 frontend/.env.production
 
+### Nginx ###
+nginx/nginx.conf
+
+### Docker ###
+docker-compose.yml
+
 ### Claude AI Rules - Local/Private ###
 .claude/local/
 /.aiassistant/
