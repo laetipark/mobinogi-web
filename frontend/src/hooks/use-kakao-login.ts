@@ -1,7 +1,15 @@
-﻿import {useState, useEffect} from "react";
+import {useState, useEffect} from "react";
 import axios from "axios";
 import {KakaoUser, KakaoLoginRequest, AuthResponse} from "../types/kakao";
 import {User} from "../types";
+import {config} from "../config/env";
+
+// 대기 중인 카카오 사용자 정보 타입
+export interface PendingKakaoUser{
+	kakaoId:number;
+	email?:string;
+	profileImage?:string;
+}
 
 export const useKakaoLogin = () => {
 	const [user, setUser] = useState<User | null>(null);
@@ -9,7 +17,8 @@ export const useKakaoLogin = () => {
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [error, setError] = useState<string | null>(null);
 	const [isNewUser, setIsNewUser] = useState<boolean>(false);
-	
+	const [pendingKakaoUser, setPendingKakaoUser] = useState<PendingKakaoUser | null>(null);
+
 	// Initialize Kakao SDK
 	useEffect(() => {
 		const initKakao = () => {
@@ -23,7 +32,7 @@ export const useKakaoLogin = () => {
 				}
 			}
 		};
-		
+
 		// Wait for SDK to load
 		if(window.Kakao){
 			initKakao();
@@ -34,28 +43,27 @@ export const useKakaoLogin = () => {
 					clearInterval(checkKakaoLoaded);
 				}
 			}, 100);
-			
+
 			return () => clearInterval(checkKakaoLoaded);
 		}
-		
+
 		// Check existing login status
 		const token = localStorage.getItem("accessToken");
 		if(token){
 			checkLoginStatus();
 		}
 	}, []);
-	
+
 	// Check login status
 	const checkLoginStatus = async() => {
 		try{
 			const token = localStorage.getItem("accessToken");
 			if(!token) return;
-			
-			const apiUrl = import.meta.env.VITE_API_URL;
-			const response = await axios.get(`${apiUrl}/api/auth/me`, {
+
+			const response = await axios.get(`${config.api.baseUrl}/auth/me`, {
 				headers : {Authorization : `Bearer ${token}`}
 			});
-			
+
 			if(response.data.success){
 				setUser(response.data.user);
 				setIsLoggedIn(true);
@@ -63,35 +71,37 @@ export const useKakaoLogin = () => {
 		}catch(error){
 			console.error("Login status check failed:", error);
 			localStorage.removeItem("accessToken");
+			setIsLoggedIn(false);
+			setUser(null);
 		}
 	};
-	
+
 	// Kakao login
 	const kakaoLogin = () => {
 		if(!window.Kakao){
 			setError("Kakao SDK not loaded.");
 			return;
 		}
-		
+
 		if(!window.Kakao.isInitialized()){
 			setError("Kakao SDK not initialized. Check environment variables.");
 			return;
 		}
-		
+
 		setIsLoading(true);
 		setError(null);
-		
+
 		window.Kakao.Auth.login({
 			success : async(authObj:any) => {
 				try{
 					console.log("Kakao login success", authObj);
-					
+
 					// Get user info
 					window.Kakao.API.request({
 						url : "/v2/user/me",
 						success : async(kakaoUser:KakaoUser) => {
 							console.log("Kakao user info:", kakaoUser);
-							await sendUserInfoToServer(kakaoUser);
+							await checkAndProcessKakaoUser(kakaoUser);
 						},
 						fail : (err:any) => {
 							console.error("Failed to get user info", err);
@@ -112,8 +122,83 @@ export const useKakaoLogin = () => {
 			}
 		});
 	};
-	
-	// Send user info to server
+
+	// 회원 존재 여부 확인 후 처리
+	const checkAndProcessKakaoUser = async(kakaoUser:KakaoUser) => {
+		try{
+			// 서버에 회원 존재 여부 확인
+			const checkResponse = await axios.get(`${config.api.baseUrl}/auth/kakao/check`, {
+				params : {kakaoId : kakaoUser.id}
+			});
+
+			if(checkResponse.data.exists){
+				// 기존 회원이면 바로 로그인
+				await sendUserInfoToServer(kakaoUser);
+			}else{
+				// 신규 회원이면 닉네임 입력을 위해 대기 상태로 저장
+				setPendingKakaoUser({
+					kakaoId : kakaoUser.id,
+					email : kakaoUser.kakao_account?.email || undefined,
+					profileImage : kakaoUser.kakao_account?.profile?.profile_image_url || undefined
+				});
+				setIsLoading(false);
+			}
+		}catch(error:any){
+			console.error("Failed to check user:", error);
+			setError("회원 확인 중 오류가 발생했습니다.");
+			setIsLoading(false);
+		}
+	};
+
+	// 닉네임 입력 후 회원가입 완료
+	const completeKakaoRegistration = async(nickname:string) => {
+		if(!pendingKakaoUser){
+			throw new Error("대기 중인 카카오 사용자 정보가 없습니다.");
+		}
+
+		setIsLoading(true);
+		setError(null);
+
+		try{
+			const userInfo:KakaoLoginRequest = {
+				kakaoId : pendingKakaoUser.kakaoId,
+				nickname : nickname,
+				email : pendingKakaoUser.email,
+				profileImage : pendingKakaoUser.profileImage
+			};
+
+			console.log("Completing registration with:", userInfo);
+
+			const response = await axios.post<AuthResponse>(
+				`${config.api.baseUrl}/auth/kakao`,
+				userInfo
+			);
+
+			if(response.data.success && response.data.user && response.data.token){
+				// Save JWT token
+				localStorage.setItem("accessToken", response.data.token);
+
+				// Set user info
+				setUser(response.data.user as User);
+				setIsLoggedIn(true);
+				setIsNewUser(true);
+				setPendingKakaoUser(null);
+
+				console.log("Registration completed:", response.data.user);
+			}else{
+				throw new Error(response.data.message || "회원가입에 실패했습니다.");
+			}
+		}catch(error:any){
+			console.error("Failed to complete registration:", error);
+			const message = error.response?.data?.message || error.message || "회원가입 중 오류가 발생했습니다.";
+			setError(message);
+			throw new Error(message);
+		}finally{
+			setIsLoading(false);
+		}
+	};
+
+	// Send user info to server (기존 회원용)
 	const sendUserInfoToServer = async(kakaoUser:KakaoUser) => {
 		try{
 			const userInfo:KakaoLoginRequest = {
@@ -122,15 +207,14 @@ export const useKakaoLogin = () => {
 				email : kakaoUser.kakao_account?.email || undefined,
 				profileImage : kakaoUser.kakao_account?.profile?.profile_image_url || undefined
 			};
-			
+
 			console.log("Sending user info to server:", userInfo);
-			
-			const apiUrl = import.meta.env.VITE_API_URL;
+
 			const response = await axios.post<AuthResponse>(
-				`${apiUrl}/api/auth/kakao`,
+				`${config.api.baseUrl}/auth/kakao`,
 				userInfo
 			);
-			
+
 			if(response.data.success && response.data.user && response.data.token){
 				// Save JWT token
 				localStorage.setItem("accessToken", response.data.token);
@@ -138,7 +222,7 @@ export const useKakaoLogin = () => {
 				// Set user info
 				setUser(response.data.user as User);
 				setIsLoggedIn(true);
-				setIsNewUser(response.data.isNewUser || false);
+				setIsNewUser(false);
 
 				console.log("Login completed:", response.data.user);
 			}else{
@@ -155,38 +239,24 @@ export const useKakaoLogin = () => {
 			setIsLoading(false);
 		}
 	};
-	
+
 	// Logout
 	const logout = () => {
 		if(window.Kakao && window.Kakao.Auth.getAccessToken()){
-			window.Kakao.API.request({
-				url : "/v1/user/unlink",
-				success : () => {
-					window.Kakao.Auth.logout(() => {
-						handleLogoutComplete();
-					});
-				},
-				fail : () => {
-					// Even if unlink fails, proceed with logout
-					if(window.Kakao.Auth.logout){
-						window.Kakao.Auth.logout(() => {
-							handleLogoutComplete();
-						});
-					}else{
-						handleLogoutComplete();
-					}
-				}
+			window.Kakao.Auth.logout(() => {
+				handleLogoutComplete();
 			});
 		}else{
 			handleLogoutComplete();
 		}
 	};
-	
+
 	const handleLogoutComplete = () => {
 		localStorage.removeItem("accessToken");
 		setUser(null);
 		setIsLoggedIn(false);
 		setIsNewUser(false);
+		setPendingKakaoUser(null);
 		setError(null);
 		console.log("Logout completed");
 	};
@@ -194,16 +264,23 @@ export const useKakaoLogin = () => {
 	const clearNewUserFlag = () => {
 		setIsNewUser(false);
 	};
-	
+
+	const clearPendingKakaoUser = () => {
+		setPendingKakaoUser(null);
+	};
+
 	return {
 		user,
 		isLoggedIn,
 		isLoading,
 		error,
 		isNewUser,
+		pendingKakaoUser,
 		kakaoLogin,
 		logout,
 		checkLoginStatus,
-		clearNewUserFlag
+		clearNewUserFlag,
+		clearPendingKakaoUser,
+		completeKakaoRegistration
 	};
 };

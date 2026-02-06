@@ -34,7 +34,8 @@ public class CorsFilter implements Filter {
         // CORS 헤더 설정 - 요청한 origin을 동적으로 허용
         if (origin != null && (origin.startsWith("http://localhost") ||
             origin.startsWith("http://127.0.0.1") ||
-            origin.startsWith("http://172.30.1."))) {
+            origin.startsWith("http://172.30.1.") ||
+            origin.startsWith("https://laetipark.me"))) {
             httpResponse.setHeader("Access-Control-Allow-Origin", origin);
         } else {
             httpResponse.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");

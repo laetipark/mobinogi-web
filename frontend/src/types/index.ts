@@ -49,8 +49,46 @@ export interface GameItem{
 	itemEffect:string;
 }
 
+// 물물교환 출처 정보
+export interface BarterSourceInfo{
+	regionName:string | null;
+	npcName:string | null;
+	exchangeItemName:string | null;
+	exchangeCost:number;
+}
+
+// 아이템 요약 정보 (목록용 - 물물교환/제작 요약 포함)
+export interface GameItemSummary{
+	itemId:number;
+	itemName:string;
+	itemType:string;
+	itemRarity:string;
+	itemEffect:string;
+	hasBarterSource:boolean;
+	barterSources:BarterSourceInfo[] | null;
+	hasCraftSource:boolean;
+	craftRecipeCount:number;
+}
+
 export interface GameItemPage{
 	content:GameItem[];
+	pageable:{
+		sort:{
+			sorted:boolean;
+			unsorted:boolean;
+		};
+		pageNumber:number;
+		pageSize:number;
+	};
+	totalElements:number;
+	totalPages:number;
+	last:boolean;
+	first:boolean;
+	numberOfElements:number;
+}
+
+export interface GameItemSummaryPage{
+	content:GameItemSummary[];
 	pageable:{
 		sort:{
 			sorted:boolean;

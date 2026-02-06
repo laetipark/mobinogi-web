@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useCallback} from "react";
-import {GameItem, LifeBarter, LifeCraft, ListSearchParams} from "@/types";
+import {GameItem, GameItemSummary, LifeBarter, LifeCraft, ListSearchParams} from "@/types";
 import GameItemService from "@/services/game-item-service";
 import GameItemCard from "@/components/game/game-item-card";
 import BarterCard from "@/components/game/barter-card";
@@ -12,10 +12,10 @@ type TabType = "items" | "barter" | "craft";
 
 const GameItemsPage:React.FC = () => {
 	const [activeTab, setActiveTab] = useState<TabType>("items");
-	const [selectedItem, setSelectedItem] = useState<GameItem | null>(null);
+	const [selectedItem, setSelectedItem] = useState<GameItem | GameItemSummary | null>(null);
 
 	// 아이템 상태
-	const [items, setItems] = useState<GameItem[]>([]);
+	const [items, setItems] = useState<GameItemSummary[]>([]);
 	const [barters, setBarters] = useState<LifeBarter[]>([]);
 	const [crafts, setCrafts] = useState<LifeCraft[]>([]);
 

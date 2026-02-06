@@ -1,11 +1,11 @@
 import React, {useState, useEffect} from "react";
-import {GameItem, GameItemData, LifeBarter, LifeCraft} from "@/types";
+import {GameItem, GameItemSummary, GameItemData, LifeBarter, LifeCraft} from "@/types";
 import GameItemService from "@/services/game-item-service";
 import {X, ArrowRight, Hammer, ArrowLeftRight, Package, MapPin, User, RefreshCw} from "lucide-react";
 import styles from "./item-detail-modal.module.scss";
 
 interface ItemDetailModalProps{
-	item:GameItem;
+	item:GameItem | GameItemSummary;
 	onClose:() => void;
 }
 

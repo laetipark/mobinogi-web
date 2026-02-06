@@ -1,6 +1,6 @@
 ﻿import React from "react";
 import {useNavigate, useLocation} from "react-router-dom";
-import {Gamepad2, Shield, Package, LogOut, Search} from "lucide-react";
+import {Gamepad2, Shield, Package, LogOut} from "lucide-react";
 import {useAuth} from "@/hooks/use-auth";
 
 const Header:React.FC = () => {
@@ -41,13 +41,6 @@ const Header:React.FC = () => {
 						>
 							<Package size={16}/>
 							아이템
-						</button>
-						<button
-							className={`nav-btn ${isActive("/item") ? "active" : ""}`}
-							onClick={() => handleNavigation("/item")}
-						>
-							<Search size={16}/>
-							아이템 검색
 						</button>
 						{user ? (
 							<>

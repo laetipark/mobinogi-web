@@ -35,11 +35,9 @@ public class SecurityConfig{
 				// 에러 페이지 허용
 				.requestMatchers("/error", "/error/**").permitAll()
 				// 게임 관련 API는 모든 접근 허용 (인증 불필요)
-				.requestMatchers("/item/**", "/barter/**", "/craft/**", "/guild/**", "/event/**", "/user/**").permitAll()
+				.requestMatchers("/api/items/**", "/api/barter/**", "/api/craft/**", "/api/guild/**", "/api/user/**").permitAll()
 				// 인증 관련 API는 모든 접근 허용
 				.requestMatchers("/api/auth/**").permitAll()
-				// 캐릭터 관련 API는 인증 필요
-				.requestMatchers("/api/user/**").authenticated()
 				// /rank/** 경로는 로컬에서만 접근 허용
 				.requestMatchers("/rank/**").access((authentication, context) -> {
 					String clientIp = getClientIp(context.getRequest());

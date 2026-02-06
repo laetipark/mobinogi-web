@@ -22,6 +22,7 @@ public class CorsConfig{
 			"http://127.0.0.1:3000",
 			"http://localhost:*",
 			"http://172.30.1.*:*",
+			"https://laetipark.me",
 			"https://*.ngrok-free.dev" // 혹은 ngrok 주소가 바뀌어도 되게 와일드카드 사용
 		));
 		

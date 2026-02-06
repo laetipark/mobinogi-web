@@ -1,0 +1,371 @@
+@use '../../styles/index' as *;
+
+.profilePage{
+	min-height:calc(100vh - 80px);
+	padding:40px 20px;
+	background:var(--background);
+}
+
+.container{
+	max-width:800px;
+	margin:0 auto;
+}
+
+.pageTitle{
+	font-size:28px;
+	font-weight:700;
+	color:var(--text);
+	margin-bottom:32px;
+}
+
+.section{
+	background:var(--surface);
+	border-radius:$border-radius-lg;
+	padding:24px;
+	margin-bottom:24px;
+	border:1px solid var(--border);
+}
+
+.sectionHeader{
+	display:flex;
+	justify-content:space-between;
+	align-items:center;
+	margin-bottom:20px;
+}
+
+.sectionTitle{
+	display:flex;
+	align-items:center;
+	gap:10px;
+	font-size:18px;
+	font-weight:600;
+	color:var(--text);
+	margin:0 0 20px 0;
+
+	svg{
+		color:var(--primary);
+	}
+
+	.count{
+		background:var(--primary);
+		color:white;
+		font-size:12px;
+		padding:2px 8px;
+		border-radius:12px;
+	}
+}
+
+.sectionHeader .sectionTitle{
+	margin-bottom:0;
+}
+
+// 프로필 폼
+.profileForm{
+	display:flex;
+	gap:32px;
+
+	@include mobile{
+		flex-direction:column;
+		align-items:center;
+	}
+}
+
+.profileImageSection{
+	flex-shrink:0;
+}
+
+.profileImageWrapper{
+	position:relative;
+	width:120px;
+	height:120px;
+	border-radius:50%;
+	overflow:hidden;
+	cursor:pointer;
+
+	&:hover .cameraOverlay{
+		opacity:1;
+	}
+}
+
+.profileImage{
+	width:100%;
+	height:100%;
+	object-fit:cover;
+}
+
+.profileImagePlaceholder{
+	width:100%;
+	height:100%;
+	background:var(--surface-hover);
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	color:var(--text-muted);
+}
+
+.cameraOverlay{
+	position:absolute;
+	inset:0;
+	background:rgba(0, 0, 0, 0.5);
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	color:white;
+	opacity:0;
+	transition:opacity $transition-fast;
+}
+
+.formFields{
+	flex:1;
+	display:flex;
+	flex-direction:column;
+	gap:16px;
+}
+
+.formGroup{
+	display:flex;
+	flex-direction:column;
+	gap:6px;
+
+	label{
+		font-size:13px;
+		font-weight:500;
+		color:var(--text-muted);
+	}
+
+	input{
+		padding:10px 14px;
+		border:1px solid var(--border);
+		border-radius:$border-radius;
+		background:var(--surface);
+		color:var(--text);
+		font-size:14px;
+		transition:border-color $transition-fast;
+
+		&:focus{
+			outline:none;
+			border-color:var(--primary);
+		}
+
+		&::placeholder{
+			color:var(--text-muted);
+		}
+	}
+}
+
+.message{
+	padding:10px 14px;
+	border-radius:$border-radius;
+	font-size:13px;
+
+	&.success{
+		background:rgba(16, 185, 129, 0.1);
+		color:#10b981;
+		border:1px solid rgba(16, 185, 129, 0.3);
+	}
+
+	&.error{
+		background:rgba(239, 68, 68, 0.1);
+		color:#ef4444;
+		border:1px solid rgba(239, 68, 68, 0.3);
+	}
+}
+
+.saveBtn, .addBtn, .confirmBtn{
+	display:inline-flex;
+	align-items:center;
+	justify-content:center;
+	gap:8px;
+	padding:10px 20px;
+	background:var(--primary);
+	color:white;
+	border:none;
+	border-radius:$border-radius;
+	font-size:14px;
+	font-weight:500;
+	cursor:pointer;
+	transition:all $transition-fast;
+
+	&:hover:not(:disabled){
+		background:var(--primary-hover);
+	}
+
+	&:disabled{
+		opacity:0.6;
+		cursor:not-allowed;
+	}
+}
+
+.cancelBtn{
+	display:inline-flex;
+	align-items:center;
+	justify-content:center;
+	gap:8px;
+	padding:10px 20px;
+	background:var(--surface-hover);
+	color:var(--text);
+	border:1px solid var(--border);
+	border-radius:$border-radius;
+	font-size:14px;
+	font-weight:500;
+	cursor:pointer;
+	transition:all $transition-fast;
+
+	&:hover{
+		background:var(--border);
+	}
+}
+
+// 캐릭터 폼
+.characterForm{
+	background:var(--surface-hover);
+	padding:20px;
+	border-radius:$border-radius;
+	margin-bottom:20px;
+
+	h3{
+		font-size:15px;
+		font-weight:600;
+		color:var(--text);
+		margin:0 0 16px 0;
+	}
+}
+
+.formRow{
+	display:grid;
+	grid-template-columns:repeat(3, 1fr);
+	gap:16px;
+	margin-bottom:16px;
+
+	@include tablet{
+		grid-template-columns:1fr;
+	}
+}
+
+.formActions{
+	display:flex;
+	justify-content:flex-end;
+	gap:10px;
+}
+
+// 캐릭터 목록
+.characterList{
+	display:flex;
+	flex-direction:column;
+	gap:12px;
+}
+
+.characterCard{
+	display:flex;
+	justify-content:space-between;
+	align-items:center;
+	padding:16px;
+	background:var(--surface-hover);
+	border-radius:$border-radius;
+	border:1px solid var(--border);
+}
+
+.characterInfo{
+	display:flex;
+	align-items:center;
+	gap:12px;
+	flex-wrap:wrap;
+}
+
+.characterName{
+	font-size:15px;
+	font-weight:600;
+	color:var(--text);
+}
+
+.characterMeta{
+	font-size:13px;
+	color:var(--text-muted);
+	background:var(--surface);
+	padding:4px 10px;
+	border-radius:12px;
+}
+
+.characterActions{
+	display:flex;
+	gap:8px;
+}
+
+.editBtn, .deleteBtn{
+	width:32px;
+	height:32px;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	border:none;
+	border-radius:$border-radius-sm;
+	cursor:pointer;
+	transition:all $transition-fast;
+}
+
+.editBtn{
+	background:var(--surface);
+	color:var(--text-muted);
+
+	&:hover{
+		background:var(--primary);
+		color:white;
+	}
+}
+
+.deleteBtn{
+	background:var(--surface);
+	color:var(--text-muted);
+
+	&:hover{
+		background:#ef4444;
+		color:white;
+	}
+}
+
+// 빈 상태
+.emptyCharacters{
+	text-align:center;
+	padding:48px 20px;
+	color:var(--text-muted);
+
+	svg{
+		margin-bottom:16px;
+		opacity:0.5;
+	}
+
+	p{
+		margin:0 0 20px 0;
+		font-size:14px;
+	}
+}
+
+.notLoggedIn{
+	text-align:center;
+	padding:100px 20px;
+	color:var(--text-muted);
+	font-size:16px;
+}
+
+// 로딩
+.loading{
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	gap:12px;
+	padding:40px;
+	color:var(--text-muted);
+}
+
+.spinning{
+	animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+	from{
+		transform:rotate(0deg);
+	}
+	to{
+		transform:rotate(360deg);
+	}
+}

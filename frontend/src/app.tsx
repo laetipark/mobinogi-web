@@ -5,9 +5,10 @@ import {useAuth} from "./hooks/use-auth";
 import Header from "./components/layout/header";
 import HomePage from "./pages/home";
 import LoginPage from "./pages/auth/login";
+import RegisterNicknamePage from "./pages/auth/register-nickname";
 import GameItemsPage from "./pages/game/game-items";
-import ItemSearchPage from "./pages/game/item-search";
 import CharactersPage from "./pages/user/characters";
+import ProfilePage from "./pages/user/profile";
 import LoadingScreen from "./components/common/loading-screen";
 import DarkModeToggle from "./components/common/dark-mode-toggle";
 
@@ -16,19 +17,45 @@ const PublicRoute:React.FC<{children:React.ReactNode}> = ({children}) => {
 	return !user ? <>{children}</> : <Navigate to="/"/>;
 };
 
+// 로그인 필수 라우트
+const PrivateRoute:React.FC<{children:React.ReactNode}> = ({children}) => {
+	const {user} = useAuth();
+	return user ? <>{children}</> : <Navigate to="/login"/>;
+};
+
+// 닉네임 입력 페이지용 라우트 (pendingKakaoUser가 있을 때만 접근 가능)
+const RegisterNicknameRoute:React.FC<{children:React.ReactNode}> = ({children}) => {
+	const {pendingKakaoUser} = useAuth();
+	return pendingKakaoUser ? <>{children}</> : <Navigate to="/login"/>;
+};
+
 const AppContent:React.FC = () => {
-	const {loading} = useAuth();
+	const {loading, pendingKakaoUser} = useAuth();
+	
 	if(loading){
 		return <LoadingScreen/>;
 	}
+	
+	// 신규 회원이면 닉네임 입력 페이지로 리다이렉트
+	if(pendingKakaoUser){
+		return (
+			<Routes>
+				<Route path="/register/nickname" element={<RegisterNicknamePage/>}/>
+				<Route path="*" element={<Navigate to="/register/nickname"/>}/>
+			</Routes>
+		);
+	}
+	
 	return (
 		<>
 			<Header/>
 			<Routes>
 				<Route path="/" element={<HomePage/>}/>
 				<Route path="/login" element={<PublicRoute><LoginPage/></PublicRoute>}/>
+				<Route path="/register/nickname"
+					   element={<RegisterNicknameRoute><RegisterNicknamePage/></RegisterNicknameRoute>}/>
 				<Route path="/items" element={<GameItemsPage/>}/>
-				<Route path="/item" element={<ItemSearchPage/>}/>
+				<Route path="/profile" element={<PrivateRoute><ProfilePage/></PrivateRoute>}/>
 				<Route path="/characters" element={<CharactersPage/>}/>
 			</Routes>
 			<DarkModeToggle/>

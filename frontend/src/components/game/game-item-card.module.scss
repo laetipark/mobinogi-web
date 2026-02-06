@@ -5,6 +5,8 @@
 	--rarity-bg:rgba(107, 114, 128, 0.1);
 
 	position:relative;
+	display:flex;
+	flex-direction:column;
 	background:var(--surface);
 	border:1px solid var(--border);
 	border-radius:$border-radius-lg;
@@ -123,19 +125,114 @@
 	border-top:1px solid var(--border-light);
 }
 
+// 획득 방법 섹션
+.sourceSection{
+	display:flex;
+	flex-direction:column;
+	gap:8px;
+	margin-top:12px;
+	padding-top:12px;
+	border-top:1px solid var(--border-light);
+	flex-grow:1;
+}
+
+.sourceInfo{
+	display:flex;
+	flex-direction:column;
+	gap:6px;
+	padding:10px;
+	background:var(--surface-hover);
+	border-radius:$border-radius-sm;
+}
+
+.sourceHeader{
+	display:flex;
+	align-items:center;
+	gap:6px;
+	font-size:12px;
+	font-weight:600;
+	color:var(--text);
+
+	svg{
+		color:var(--primary);
+		flex-shrink:0;
+	}
+}
+
+.sourceList{
+	display:flex;
+	flex-direction:column;
+	gap:4px;
+	padding-left:20px;
+}
+
+.sourceItem{
+	display:flex;
+	flex-wrap:wrap;
+	gap:8px;
+	font-size:12px;
+	color:var(--text-muted);
+}
+
+.sourceLocation,
+.sourceNpc{
+	display:inline-flex;
+	align-items:center;
+	gap:4px;
+
+	svg{
+		flex-shrink:0;
+		opacity:0.7;
+	}
+}
+
+.sourceLocation{
+	color:var(--info);
+}
+
+.sourceNpc{
+	color:var(--success);
+}
+
+.sourceMore{
+	font-size:11px;
+	color:var(--text-muted);
+	font-style:italic;
+}
+
+.sourceCount{
+	font-size:11px;
+	color:var(--text-muted);
+	background:var(--surface);
+	padding:2px 6px;
+	border-radius:4px;
+	font-weight:500;
+}
+
+.craftCount{
+	font-size:12px;
+	color:var(--text-muted);
+	padding-left:20px;
+}
+
+// 카드 콘텐츠 영역 (클릭 힌트를 제외한 부분)
+.cardContent{
+	flex:1;
+}
+
 .clickHint{
 	display:flex;
 	align-items:center;
 	justify-content:center;
 	gap:6px;
-	margin-top:16px;
+	margin-top:auto;
 	padding-top:12px;
 	border-top:1px dashed var(--border);
 	font-size:12px;
 	color:var(--primary);
 	font-weight:500;
 	transition:opacity $transition-fast;
-	
+
 	svg{
 		flex-shrink:0;
 	}

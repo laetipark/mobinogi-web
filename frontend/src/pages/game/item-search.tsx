@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useCallback} from "react";
-import {GameItem, GameItemData, LifeBarter, LifeCraft, GameItemSearchParams} from "@/types";
+import {GameItemSummary, GameItemData, LifeBarter, LifeCraft, GameItemSearchParams} from "@/types";
 import GameItemService from "@/services/game-item-service";
 import {Search, RefreshCw, Package, ArrowRightLeft, Hammer, ChevronDown, ChevronUp} from "lucide-react";
 import styles from "./item-search.module.scss";
@@ -11,7 +11,7 @@ const ItemSearchPage:React.FC = () => {
 	const [itemData, setItemData] = useState<GameItemData | null>(null);
 
 	// 자동완성 관련 상태
-	const [suggestions, setSuggestions] = useState<GameItem[]>([]);
+	const [suggestions, setSuggestions] = useState<GameItemSummary[]>([]);
 	const [showSuggestions, setShowSuggestions] = useState(false);
 	const [suggestionsLoading, setSuggestionsLoading] = useState(false);
 
@@ -71,7 +71,7 @@ const ItemSearchPage:React.FC = () => {
 	}, []);
 
 	// 자동완성 항목 클릭
-	const handleSuggestionClick = (item:GameItem) => {
+	const handleSuggestionClick = (item:GameItemSummary) => {
 		setSearchInput(item.itemName);
 		setShowSuggestions(false);
 		handleSearch(item.itemName);

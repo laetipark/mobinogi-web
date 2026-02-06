@@ -1,11 +1,11 @@
-import {GameItemPage, GameItemSearchParams, GameItemData, LifeBarterPage, LifeCraftPage, ListSearchParams} from "@/types";
+import {GameItemSummaryPage, GameItemSearchParams, GameItemData, LifeBarterPage, LifeCraftPage, ListSearchParams} from "@/types";
 import apiService from "./api";
 
 export class GameItemService{
 	/**
-	 * 게임 아이템 목록을 페이지네이션으로 조회
+	 * 게임 아이템 목록을 페이지네이션으로 조회 (물물교환/제작 요약 정보 포함)
 	 */
-	static async getGameItems(params:GameItemSearchParams = {}):Promise<GameItemPage>{
+	static async getGameItems(params:GameItemSearchParams = {}):Promise<GameItemSummaryPage>{
 		const {
 			page = 0,
 			size = 10,
@@ -25,14 +25,14 @@ export class GameItemService{
 			queryParams.keyword = keyword.trim();
 		}
 
-		return apiService.get<GameItemPage>("/item/itemList", queryParams);
+		return apiService.get<GameItemSummaryPage>("/items", queryParams);
 	}
 
 	/**
 	 * 특정 아이템의 상세 정보 조회 (물물교환, 제작 정보 포함)
 	 */
 	static async getItemByName(itemName:string):Promise<GameItemData>{
-		return apiService.get<GameItemData>("/item/itemUse", {itemName});
+		return apiService.get<GameItemData>(`/items/${encodeURIComponent(itemName)}/detail`);
 	}
 
 	/**

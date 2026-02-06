@@ -15,9 +15,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import com.example.mobinogi.dto.game.GameItemSummaryDto;
 
 @Service
 @RequiredArgsConstructor
@@ -63,47 +66,55 @@ public class GameItemService{
 		gameItemRepository.deleteByItemIdGreaterThanEqual(rowIndex);
 	}
 	
-	// 페이지네이션으로 게임 아이템 목록 조회
-	public Page<GameItem> getGameItems(int page, int size, String sortBy, String sortDir, String keyword){
+	// 페이지네이션으로 게임 아이템 목록 조회 (요약 정보 포함)
+	public Page<GameItemSummaryDto> getGameItemsWithSummary(int page, int size, String sortBy, String sortDir, String keyword){
 		log.info("🔍 GameItems 조회 시작 - page: {}, size: {}, sortBy: {}, sortDir: {}, keyword: {}",
 			page, size, sortBy, sortDir, keyword);
-		
+
 		Sort sort = sortDir.equalsIgnoreCase("desc") ?
 			Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-		
+
 		Pageable pageable = PageRequest.of(page, size, sort);
-		
+
 		Page<GameItem> result;
 		if(keyword != null && !keyword.trim().isEmpty()){
 			result = gameItemRepository.findByItemNameContaining(keyword, pageable);
 		}else{
 			result = gameItemRepository.findAll(pageable);
 		}
-		
-		// 📊 결과 로깅
-		log.info("📊 조회 결과:");
-		log.info("   - 총 요소 수: {}", result.getTotalElements());
-		log.info("   - 총 페이지 수: {}", result.getTotalPages());
-		log.info("   - 현재 페이지: {}", result.getNumber());
-		log.info("   - 페이지 크기: {}", result.getSize());
-		log.info("   - 현재 페이지 요소 수: {}", result.getNumberOfElements());
-		log.info("   - 첫 번째 페이지 여부: {}", result.isFirst());
-		log.info("   - 마지막 페이지 여부: {}", result.isLast());
-		
-		// 📋 실제 데이터 로깅 (처음 3개만)
-		List<GameItem> items = result.getContent();
-		log.info("📋 반환되는 아이템 데이터 (최대 3개):");
-		for(int i = 0 ; i < Math.min(3, items.size()) ; i++){
-			GameItem item = items.get(i);
-			log.info("   {}. ID: {}, 이름: {}, 타입: {}, 등급: {}, 효과: {}",
-				i + 1, item.getItemId(), item.getItemName(), item.getItemType(),
-				item.getItemRarity(), item.getItemEffect());
-		}
-		
-		if(items.size() > 3){
-			log.info("   ... 그리고 {}개 더", items.size() - 3);
-		}
-		
-		return result;
+
+		// GameItem을 GameItemSummaryDto로 변환하면서 물물교환/제작 정보 추가
+		Page<GameItemSummaryDto> summaryPage = result.map(item -> {
+			GameItemSummaryDto dto = GameItemSummaryDto.fromEntity(item);
+
+			// 물물교환 정보 조회 (이 아이템을 획득할 수 있는 물물교환)
+			List<LifeBarter> barters = lifeBarterRepository.findByItemId(item.getItemId());
+			dto.setHasBarterSource(!barters.isEmpty());
+
+			if(!barters.isEmpty()){
+				List<GameItemSummaryDto.BarterSourceInfo> barterSources = new ArrayList<>();
+				for(LifeBarter barter : barters){
+					GameItemSummaryDto.BarterSourceInfo info = new GameItemSummaryDto.BarterSourceInfo();
+					info.setRegionName(barter.getGameRegion() != null ? barter.getGameRegion().getRegionName() : null);
+					info.setNpcName(barter.getGameNpc() != null ? barter.getGameNpc().getNpcName() : null);
+					info.setExchangeItemName(barter.getExchangeItem() != null ? barter.getExchangeItem().getItemName() : null);
+					info.setExchangeCost(barter.getExchangeCost());
+					barterSources.add(info);
+				}
+				dto.setBarterSources(barterSources);
+			}
+
+			// 제작 정보 조회 (이 아이템을 제작할 수 있는지)
+			List<LifeCraft> crafts = lifeCraftRepository.findByItemId(item.getItemId());
+			dto.setHasCraftSource(!crafts.isEmpty());
+			dto.setCraftRecipeCount((int) crafts.stream().map(LifeCraft::getCraftSubId).distinct().count());
+
+			return dto;
+		});
+
+		log.info("📊 조회 결과: 총 {}개 아이템, 현재 페이지 {}개",
+			summaryPage.getTotalElements(), summaryPage.getNumberOfElements());
+
+		return summaryPage;
 	}
 }
