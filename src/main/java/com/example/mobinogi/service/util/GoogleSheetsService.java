@@ -18,18 +18,20 @@ public class GoogleSheetsService{
 	private final GameItemRepository gameItemRepository;
 	private final GameNpcRepository gameNpcRepository;
 	private final GameRegionRepository gameRegionRepository;
+	private final GameMonsterRepository gameMonsterRepository;
 	private final LifeBarterRepository lifeBarterRepository;
 	private final LifeCraftRepository lifeCraftRepository;
 	private final Sheets sheets;
 	private final GameItemService gameItemService;
-	
+
 	@Value("${google.sheets.id}")
 	private String SPREADSHEET_ID; // 실제 스프레드시트 ID로 변경 필요
-	
+
 	public GoogleSheetsService(
 		GameItemRepository gameItemRepository,
 		GameNpcRepository gameNpcRepository,
 		GameRegionRepository gameRegionRepository,
+		GameMonsterRepository gameMonsterRepository,
 		LifeBarterRepository lifeBarterRepository,
 		LifeCraftRepository lifeCraftRepository,
 		Sheets sheets,
@@ -38,6 +40,7 @@ public class GoogleSheetsService{
 		this.gameItemRepository = gameItemRepository;
 		this.gameNpcRepository = gameNpcRepository;
 		this.gameRegionRepository = gameRegionRepository;
+		this.gameMonsterRepository = gameMonsterRepository;
 		this.lifeBarterRepository = lifeBarterRepository;
 		this.lifeCraftRepository = lifeCraftRepository;
 		this.sheets = sheets;
@@ -184,6 +187,33 @@ public class GoogleSheetsService{
 		lifeCraftRepository.deleteByCraftIdGreaterThanEqual(rowIndex);
 	}
 	
+	@Transactional
+	public void fetchAndSaveMonster() throws IOException{
+		List<List<Object>> data = readSheet("monster!A2:D");
+		int rowIndex = 1;
+
+		for(List<Object> row : data){
+			if(row.size() < 4)
+				continue;
+
+			String monsterName = row.get(3).toString().trim();
+			if(monsterName.isEmpty() || row.getFirst().toString().trim().equals("#N/A"))
+				continue;
+
+			GameMonster monster = new GameMonster();
+			monster.setMonsterId(rowIndex);
+			monster.setRegionId(Integer.valueOf(row.getFirst().toString()));
+			monster.setMonsterType(row.get(1).toString().trim());
+			monster.setMonsterDifficulty(row.get(2).toString().trim());
+			monster.setMonsterName(monsterName);
+
+			gameMonsterRepository.save(monster);
+			rowIndex++;
+		}
+
+		gameMonsterRepository.deleteByMonsterIdGreaterThanEqual(rowIndex);
+	}
+
 	public List<List<Object>> readSheet(String range) throws IOException{
 		return sheets.spreadsheets().values()
 			.get(SPREADSHEET_ID, range)

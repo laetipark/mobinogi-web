@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {BrowserRouter as Router, Routes, Route, Navigate} from "react-router-dom";
 import {AuthProvider} from "./contexts/auth-context";
 import {useAuth} from "./hooks/use-auth";
@@ -9,6 +9,10 @@ import RegisterNicknamePage from "./pages/auth/register-nickname";
 import GameItemsPage from "./pages/game/game-items";
 import CharactersPage from "./pages/user/characters";
 import ProfilePage from "./pages/user/profile";
+import TodoPage from "./pages/user/todo";
+import BoardListPage from "./pages/board/board-list";
+import BoardDetailPage from "./pages/board/board-detail";
+import BoardWritePage from "./pages/board/board-write";
 import LoadingScreen from "./components/common/loading-screen";
 import DarkModeToggle from "./components/common/dark-mode-toggle";
 
@@ -31,11 +35,11 @@ const RegisterNicknameRoute:React.FC<{children:React.ReactNode}> = ({children}) 
 
 const AppContent:React.FC = () => {
 	const {loading, pendingKakaoUser} = useAuth();
-	
+
 	if(loading){
 		return <LoadingScreen/>;
 	}
-	
+
 	// 신규 회원이면 닉네임 입력 페이지로 리다이렉트
 	if(pendingKakaoUser){
 		return (
@@ -45,7 +49,7 @@ const AppContent:React.FC = () => {
 			</Routes>
 		);
 	}
-	
+
 	return (
 		<>
 			<Header/>
@@ -57,6 +61,12 @@ const AppContent:React.FC = () => {
 				<Route path="/items" element={<GameItemsPage/>}/>
 				<Route path="/profile" element={<PrivateRoute><ProfilePage/></PrivateRoute>}/>
 				<Route path="/characters" element={<CharactersPage/>}/>
+				<Route path="/todo" element={<PrivateRoute><TodoPage/></PrivateRoute>}/>
+				<Route path="/board" element={<BoardListPage/>}/>
+				<Route path="/board/external" element={<BoardDetailPage/>}/>
+				<Route path="/board/write" element={<PrivateRoute><BoardWritePage/></PrivateRoute>}/>
+				<Route path="/board/edit/:postId" element={<PrivateRoute><BoardWritePage/></PrivateRoute>}/>
+				<Route path="/board/:postId" element={<BoardDetailPage/>}/>
 			</Routes>
 			<DarkModeToggle/>
 		</>

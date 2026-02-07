@@ -25,6 +25,7 @@ public class GoogleSheetScheduler{
 			sheetService.fetchAndSaveRegion();
 			sheetService.fetchAndSaveBarter();
 			sheetService.fetchAndSaveCraft();
+			sheetService.fetchAndSaveMonster();
 			System.out.println("Data saved to DB.");
 		}catch(IOException e){
 			e.printStackTrace();

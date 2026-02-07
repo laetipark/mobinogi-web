@@ -1,0 +1,146 @@
+@use '../../styles/index' as *;
+
+.commentItem{
+	padding:16px;
+	background:var(--surface);
+	border-radius:$border-radius;
+	margin-bottom:8px;
+	border:1px solid var(--border);
+
+	&.reply{
+		margin-left:32px;
+		background:var(--background);
+		border-color:var(--border);
+	}
+}
+
+.commentHeader{
+	display:flex;
+	justify-content:space-between;
+	align-items:center;
+	margin-bottom:8px;
+}
+
+.authorInfo{
+	display:flex;
+	align-items:center;
+	gap:8px;
+}
+
+.avatar{
+	width:24px;
+	height:24px;
+	border-radius:50%;
+	object-fit:cover;
+}
+
+.authorName{
+	font-weight:600;
+	font-size:14px;
+	color:var(--text);
+}
+
+.date{
+	font-size:12px;
+	color:var(--text-muted);
+}
+
+.actions{
+	display:flex;
+	gap:4px;
+}
+
+.actionBtn{
+	padding:4px 8px;
+	background:transparent;
+	border:none;
+	color:var(--text-muted);
+	font-size:12px;
+	cursor:pointer;
+	transition:color $transition-fast;
+
+	&:hover{
+		color:var(--text);
+	}
+}
+
+.commentContent{
+	color:var(--text);
+	line-height:1.6;
+	margin:0;
+	white-space:pre-wrap;
+	font-size:14px;
+}
+
+.replyBtn{
+	margin-top:8px;
+	padding:4px 8px;
+	background:transparent;
+	border:none;
+	color:var(--primary);
+	font-size:13px;
+	cursor:pointer;
+
+	&:hover{
+		text-decoration:underline;
+	}
+}
+
+.editForm{
+	margin-top:8px;
+}
+
+.editTextarea{
+	width:100%;
+	padding:10px;
+	border:1px solid var(--border);
+	border-radius:$border-radius;
+	background:var(--background);
+	color:var(--text);
+	font-family:inherit;
+	font-size:14px;
+	resize:vertical;
+	box-sizing:border-box;
+
+	&:focus{
+		outline:none;
+		border-color:var(--primary);
+	}
+}
+
+.editActions{
+	display:flex;
+	gap:8px;
+	margin-top:8px;
+}
+
+.saveBtn, .cancelBtn{
+	padding:6px 14px;
+	border:none;
+	border-radius:$border-radius;
+	cursor:pointer;
+	font-size:13px;
+}
+
+.saveBtn{
+	background:var(--primary);
+	color:white;
+
+	&:hover{
+		opacity:0.9;
+	}
+}
+
+.cancelBtn{
+	background:var(--surface);
+	color:var(--text);
+	border:1px solid var(--border);
+
+	&:hover{
+		background:var(--background);
+	}
+}
+
+.replies{
+	margin-top:8px;
+}

@@ -224,3 +224,152 @@ export interface UserCharacterRequest{
 	serverName?:string;
 	className?:string;
 }
+
+// 몬스터 정보
+export interface GameMonster{
+	monsterId:number;
+	regionId:number;
+	regionName:string | null;
+	monsterType:string;
+	monsterDifficulty:string;
+	monsterName:string;
+}
+
+// 게시판 관련 타입
+export interface BoardCategory{
+	categoryId:number;
+	categoryName:string;
+	displayOrder:number;
+}
+
+export interface BoardPost{
+	postId:number;
+	categoryId:number | null;
+	categoryName:string | null;
+	userId:number | null;
+	authorNickname:string | null;
+	authorProfileImage:string | null;
+	title:string;
+	content:string;
+	viewCount:number;
+	sourceType:"USER" | "NOTION" | "DISCORD";
+	externalUrl:string | null;
+	externalAuthor:string | null;
+	commentCount:number;
+	createdAt:string;
+	updatedAt:string;
+}
+
+export interface BoardPostCreateRequest{
+	categoryId:number | null;
+	title:string;
+	content:string;
+}
+
+export interface BoardPostUpdateRequest{
+	categoryId:number | null;
+	title:string;
+	content:string;
+}
+
+export interface BoardComment{
+	commentId:number;
+	postId:number;
+	userId:number;
+	authorNickname:string | null;
+	authorProfileImage:string | null;
+	parentCommentId:number | null;
+	content:string;
+	createdAt:string;
+	updatedAt:string;
+	replies?:BoardComment[];
+}
+
+export interface BoardCommentCreateRequest{
+	parentCommentId?:number | null;
+	content:string;
+}
+
+export interface BoardPostPage{
+	content:BoardPost[];
+	pageable:{
+		sort:{
+			sorted:boolean;
+			unsorted:boolean;
+		};
+		pageNumber:number;
+		pageSize:number;
+	};
+	totalElements:number;
+	totalPages:number;
+	last:boolean;
+	first:boolean;
+	numberOfElements:number;
+}
+
+// 숙제 관련 타입
+export interface CounterTask{
+	current:number;
+	lastChargeTime?:string;
+}
+
+export interface PhantomTower{
+	floor:number;
+	stage:number;
+}
+
+export interface BossProgress{
+	completed:number[];
+	tracked:number[];
+}
+
+export interface DailyTasks{
+	dayDungeon:boolean;
+}
+
+export interface Resources{
+	silverCoin?:CounterTask;
+	demonTribute?:CounterTask;
+}
+
+export interface WeeklyTasks{
+	summoningBarrier:number;
+	blackHole:number;
+	phantomTower:PhantomTower;
+	fieldBoss:BossProgress;
+	abyss:number;
+	raid:BossProgress;
+}
+
+export interface TodoData{
+	daily:DailyTasks;
+	weekly:WeeklyTasks;
+	resources?:Resources;
+}
+
+export interface UserTodo{
+	userId:number;
+	characterId:number;
+	characterName:string;
+	serverName?:string;
+	className?:string;
+	todoData:TodoData;
+	lastDailyReset?:string;
+	lastWeeklyReset?:string;
+}
+
+export interface UserTodoBarter{
+	id:number;
+	userId:number;
+	characterId:number;
+	barterId:number;
+	barterCycle:string;
+	completed:boolean;
+	itemName?:string;
+	exchangeItemName?:string;
+	regionName?:string;
+	npcName?:string;
+	exchangeCost?:number;
+	barterQty?:number;
+	barterInitCycle?:number;
+}

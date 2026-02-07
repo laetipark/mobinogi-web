@@ -25,4 +25,14 @@ public interface LifeBarterRepository extends JpaRepository<LifeBarter, Integer>
 	// 페이지네이션 지원 메서드
 	@Query("SELECT b FROM LifeBarter b WHERE b.gameItem.itemName LIKE %:keyword% OR b.exchangeItem.itemName LIKE %:keyword%")
 	Page<LifeBarter> findByKeyword(@Param("keyword") String keyword, Pageable pageable);
+
+	// 획득 아이템 기준 검색
+	@Query("SELECT b FROM LifeBarter b WHERE b.gameItem.itemName LIKE %:keyword%")
+	Page<LifeBarter> findByItemNameKeyword(@Param("keyword") String keyword, Pageable pageable);
+
+	// 사이클 필터링
+	Page<LifeBarter> findByBarterInitCycle(Integer barterInitCycle, Pageable pageable);
+
+	@Query("SELECT b FROM LifeBarter b WHERE b.barterInitCycle = :cycle AND b.gameItem.itemName LIKE %:keyword%")
+	Page<LifeBarter> findByItemNameKeywordAndCycle(@Param("keyword") String keyword, @Param("cycle") Integer cycle, Pageable pageable);
 }

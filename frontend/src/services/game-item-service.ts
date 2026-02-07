@@ -38,13 +38,15 @@ export class GameItemService{
 	/**
 	 * 물물교환 목록을 페이지네이션으로 조회
 	 */
-	static async getBarters(params:ListSearchParams = {}):Promise<LifeBarterPage>{
+	static async getBarters(params:ListSearchParams & {searchMode?:string; cycle?:number} = {}):Promise<LifeBarterPage>{
 		const {
 			page = 0,
 			size = 10,
 			sortBy = "barterId",
 			sortDir = "asc",
-			keyword
+			keyword,
+			searchMode,
+			cycle
 		} = params;
 
 		const queryParams:Record<string, any> = {
@@ -56,6 +58,14 @@ export class GameItemService{
 
 		if(keyword && keyword.trim()){
 			queryParams.keyword = keyword.trim();
+		}
+
+		if(searchMode){
+			queryParams.searchMode = searchMode;
+		}
+
+		if(cycle !== undefined){
+			queryParams.cycle = cycle;
 		}
 
 		return apiService.get<LifeBarterPage>("/barter/list", queryParams);

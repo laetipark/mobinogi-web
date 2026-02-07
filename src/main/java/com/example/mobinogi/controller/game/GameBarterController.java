@@ -31,12 +31,19 @@ public class GameBarterController{
 		@RequestParam(defaultValue = "10") int size,
 		@RequestParam(defaultValue = "barterId") String sortBy,
 		@RequestParam(defaultValue = "asc") String sortDir,
-		@RequestParam(required = false) String keyword){
+		@RequestParam(required = false) String keyword,
+		@RequestParam(defaultValue = "all") String searchMode,
+		@RequestParam(required = false) Integer cycle){
 
-		log.info("API 호출: /barter/list - page: {}, size: {}, sortBy: {}, sortDir: {}, keyword: {}",
-			page, size, sortBy, sortDir, keyword);
+		log.info("API 호출: /barter/list - page: {}, size: {}, sortBy: {}, sortDir: {}, keyword: {}, searchMode: {}, cycle: {}",
+			page, size, sortBy, sortDir, keyword, searchMode, cycle);
 
-		Page<LifeBarter> result = gameBarterService.getBarters(page, size, sortBy, sortDir, keyword);
+		Page<LifeBarter> result;
+		if("obtained".equals(searchMode)){
+			result = gameBarterService.getBartersByObtainedItem(page, size, sortBy, sortDir, keyword, cycle);
+		}else{
+			result = gameBarterService.getBarters(page, size, sortBy, sortDir, keyword);
+		}
 
 		log.info("API 응답: 총 {}개 물물교환, 현재 페이지 {}개 반환",
 			result.getTotalElements(), result.getNumberOfElements());

@@ -1,24 +1,24 @@
 ﻿import React from "react";
 import {useNavigate, useLocation} from "react-router-dom";
-import {Gamepad2, Shield, Package, LogOut} from "lucide-react";
+import {Gamepad2, Shield, Package, LogOut, ClipboardCheck, MessageSquare} from "lucide-react";
 import {useAuth} from "@/hooks/use-auth";
 
 const Header:React.FC = () => {
 	const {user, logout} = useAuth();
 	const navigate = useNavigate();
 	const location = useLocation();
-	
+
 	const handleNavigation = (path:string):void => {
 		navigate(path);
 	};
-	
+
 	const handleLogout = ():void => {
 		logout();
 		navigate("/");
 	};
-	
+
 	const isActive = (path:string):boolean => location.pathname === path;
-	
+
 	return (
 		<header className="header">
 			<div className="container">
@@ -27,7 +27,7 @@ const Header:React.FC = () => {
 						<Gamepad2 className="logo-icon"/>
 						<span>MobiNogi</span>
 					</div>
-					
+
 					<nav className="nav">
 						<button
 							className={`nav-btn ${isActive("/") ? "active" : ""}`}
@@ -42,6 +42,22 @@ const Header:React.FC = () => {
 							<Package size={16}/>
 							아이템
 						</button>
+						<button
+							className={`nav-btn ${isActive("/board") ? "active" : ""}`}
+							onClick={() => handleNavigation("/board")}
+						>
+							<MessageSquare size={16}/>
+							게시판
+						</button>
+						{user && (
+							<button
+								className={`nav-btn ${isActive("/todo") ? "active" : ""}`}
+								onClick={() => handleNavigation("/todo")}
+							>
+								<ClipboardCheck size={16}/>
+								숙제
+							</button>
+						)}
 						{user ? (
 							<>
 								<div className="user-menu">

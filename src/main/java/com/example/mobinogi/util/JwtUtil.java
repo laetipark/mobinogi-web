@@ -11,22 +11,22 @@ import java.util.Date;
 
 @Component
 public class JwtUtil{
-
+	
 	@Value("${jwt.secret}")
 	private String secretKey;
-
+	
 	@Value("${jwt.expiration}")
 	private Long expiration;
-
+	
 	private SecretKey getSigningKey(){
 		byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
 		return Keys.hmacShaKeyFor(keyBytes);
 	}
-
+	
 	public String generateToken(Long userId, Long kakaoId){
 		Date now = new Date();
 		Date expiryDate = new Date(now.getTime() + expiration);
-
+		
 		return Jwts.builder()
 			.subject(String.valueOf(userId))
 			.claim("kakaoId", kakaoId)
@@ -35,27 +35,27 @@ public class JwtUtil{
 			.signWith(getSigningKey())
 			.compact();
 	}
-
+	
 	public Long getUserIdFromToken(String token){
 		Claims claims = Jwts.parser()
 			.verifyWith(getSigningKey())
 			.build()
 			.parseSignedClaims(token)
 			.getPayload();
-
+		
 		return Long.parseLong(claims.getSubject());
 	}
-
+	
 	public Long getKakaoIdFromToken(String token){
 		Claims claims = Jwts.parser()
 			.verifyWith(getSigningKey())
 			.build()
 			.parseSignedClaims(token)
 			.getPayload();
-
+		
 		return claims.get("kakaoId", Long.class);
 	}
-
+	
 	public boolean validateToken(String token){
 		try{
 			Jwts.parser()
@@ -67,7 +67,7 @@ public class JwtUtil{
 			return false;
 		}
 	}
-
+	
 	public boolean isTokenExpired(String token){
 		try{
 			Claims claims = Jwts.parser()
@@ -75,7 +75,7 @@ public class JwtUtil{
 				.build()
 				.parseSignedClaims(token)
 				.getPayload();
-
+			
 			return claims.getExpiration().before(new Date());
 		}catch(JwtException | IllegalArgumentException e){
 			return true;
