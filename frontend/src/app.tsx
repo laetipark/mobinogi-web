@@ -13,6 +13,7 @@ import TodoPage from "./pages/user/todo";
 import BoardListPage from "./pages/board/board-list";
 import BoardDetailPage from "./pages/board/board-detail";
 import BoardWritePage from "./pages/board/board-write";
+import DiscordCallbackPage from "./pages/auth/discord-callback";
 import LoadingScreen from "./components/common/loading-screen";
 import DarkModeToggle from "./components/common/dark-mode-toggle";
 
@@ -58,6 +59,7 @@ const AppContent:React.FC = () => {
 				<Route path="/login" element={<PublicRoute><LoginPage/></PublicRoute>}/>
 				<Route path="/register/nickname"
 					   element={<RegisterNicknameRoute><RegisterNicknamePage/></RegisterNicknameRoute>}/>
+				<Route path="/discord-callback" element={<DiscordCallbackPage/>}/>
 				<Route path="/items" element={<GameItemsPage/>}/>
 				<Route path="/profile" element={<PrivateRoute><ProfilePage/></PrivateRoute>}/>
 				<Route path="/characters" element={<CharactersPage/>}/>

@@ -2,9 +2,8 @@ package com.example.mobinogi.controller.board;
 
 import com.example.mobinogi.dto.board.*;
 import com.example.mobinogi.service.board.BoardCommentService;
+import com.example.mobinogi.service.board.BoardExternalService;
 import com.example.mobinogi.service.board.BoardService;
-import com.example.mobinogi.service.discord.DiscordSyncService;
-import com.example.mobinogi.service.notion.NotionSyncService;
 import com.example.mobinogi.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,8 +24,7 @@ public class BoardController{
 
 	private final BoardService boardService;
 	private final BoardCommentService commentService;
-	private final DiscordSyncService discordSyncService;
-	private final NotionSyncService notionSyncService;
+	private final BoardExternalService externalService;
 	private final JwtUtil jwtUtil;
 
 	private Long getUserIdFromToken(String authHeader){
@@ -88,11 +86,11 @@ public class BoardController{
 		}
 	}
 
-	// GET /api/board/external/discord - 캐시된 Discord 게시글
+	// GET /api/board/external/discord - Redis에서 Discord 게시글 조회
 	@GetMapping("/external/discord")
 	public ResponseEntity<?> getDiscordPosts(){
 		try{
-			List<BoardPostDto> posts = discordSyncService.getCachedPosts();
+			List<BoardPostDto> posts = externalService.getDiscordPosts();
 
 			Map<String, Object> response = new HashMap<>();
 			response.put("success", true);
@@ -106,11 +104,11 @@ public class BoardController{
 		}
 	}
 
-	// GET /api/board/external/notion - 캐시된 Notion 게시글
+	// GET /api/board/external/notion - Redis에서 Notion 게시글 조회
 	@GetMapping("/external/notion")
 	public ResponseEntity<?> getNotionPosts(){
 		try{
-			List<BoardPostDto> posts = notionSyncService.getCachedPosts();
+			List<BoardPostDto> posts = externalService.getNotionPosts();
 
 			Map<String, Object> response = new HashMap<>();
 			response.put("success", true);
@@ -282,54 +280,9 @@ public class BoardController{
 		}
 	}
 
-	// GET /api/board/debug/discord/{channelId}
-	@GetMapping("/debug/discord/{channelId}")
-	public ResponseEntity<?> debugDiscordForum(@PathVariable String channelId){
-		try{
-			Map<String, Object> result = discordSyncService.debugForumChannel(channelId);
-			result.put("success", true);
-			return ResponseEntity.ok(result);
-		}catch(Exception e){
-			Map<String, Object> errorResponse = new HashMap<>();
-			errorResponse.put("success", false);
-			errorResponse.put("message", e.getMessage());
-			return ResponseEntity.badRequest().body(errorResponse);
-		}
-	}
-
-	// POST /api/board/sync/discord
-	@PostMapping("/sync/discord")
-	public ResponseEntity<?> syncDiscord(){
-		try{
-			discordSyncService.syncDiscordChannels();
-			Map<String, Object> response = new HashMap<>();
-			response.put("success", true);
-			response.put("message", "Discord 동기화 완료");
-			return ResponseEntity.ok(response);
-		}catch(Exception e){
-			Map<String, Object> errorResponse = new HashMap<>();
-			errorResponse.put("success", false);
-			errorResponse.put("message", e.getMessage());
-			return ResponseEntity.badRequest().body(errorResponse);
-		}
-	}
-
-	// POST /api/board/sync/notion
-	@PostMapping("/sync/notion")
-	public ResponseEntity<?> syncNotion(){
-		try{
-			notionSyncService.syncNotionPages();
-			Map<String, Object> response = new HashMap<>();
-			response.put("success", true);
-			response.put("message", "Notion 동기화 완료");
-			return ResponseEntity.ok(response);
-		}catch(Exception e){
-			Map<String, Object> errorResponse = new HashMap<>();
-			errorResponse.put("success", false);
-			errorResponse.put("message", e.getMessage());
-			return ResponseEntity.badRequest().body(errorResponse);
-		}
-	}
+	// 디버그 및 동기화 엔드포인트는 제거됨
+	// Discord/Notion 동기화는 Node.js 크롤러에서 처리
+	// (필요시 Node.js 크롤러를 수동으로 실행하거나 PM2로 스케줄링)
 
 	// DELETE /api/board/comments/{commentId}
 	@DeleteMapping("/comments/{commentId}")

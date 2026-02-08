@@ -1,0 +1,58 @@
+@use '../../styles/index' as *;
+
+.toolbar{
+	display:flex;
+	align-items:center;
+	gap:2px;
+	padding:6px 8px;
+	background:var(--surface-hover);
+	border:1px solid var(--border);
+	border-bottom:none;
+	border-radius:$border-radius $border-radius 0 0;
+	flex-wrap:wrap;
+}
+
+.toolBtn{
+	display:inline-flex;
+	align-items:center;
+	justify-content:center;
+	width:30px;
+	height:30px;
+	padding:0;
+	background:transparent;
+	border:1px solid transparent;
+	border-radius:$border-radius;
+	color:var(--text-muted);
+	cursor:pointer;
+	transition:all $transition-fast;
+
+	&:hover{
+		background:var(--surface);
+		border-color:var(--border);
+		color:var(--text);
+	}
+}
+
+.divider{
+	display:inline-block;
+	width:1px;
+	height:20px;
+	background:var(--border);
+	margin:0 4px;
+}
+
+@include mobile{
+	.toolbar{
+		gap:1px;
+		padding:4px 6px;
+	}
+
+	.toolBtn{
+		width:28px;
+		height:28px;
+	}
+
+	.divider{
+		margin:0 2px;
+	}
+}

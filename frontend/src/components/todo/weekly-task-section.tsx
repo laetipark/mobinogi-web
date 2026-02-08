@@ -92,7 +92,7 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({weekly, fieldBossMo
 
 				<div className={styles.taskItemWithSettings}>
 					<BossChecklist
-						label="필드보스"
+						label="필드 보스"
 						monsters={trackedFieldBossMonsters}
 						completedIds={weekly.fieldBoss.completed}
 						onChange={(completed) => onChange({...weekly, fieldBoss : {...weekly.fieldBoss, completed}})}
@@ -100,7 +100,7 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({weekly, fieldBossMo
 					<button
 						className={styles.settingsBtn}
 						onClick={() => setShowFieldBossSettings(true)}
-						title="필드보스 설정"
+						title="필드 보스 설정"
 					>
 						&#9881;
 					</button>
@@ -132,7 +132,7 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({weekly, fieldBossMo
 
 			{showFieldBossSettings && (
 				<BossSettingsModal
-					title="필드보스"
+					title="필드 보스"
 					monsters={fieldBossMonsters}
 					trackedIds={weekly.fieldBoss.tracked || []}
 					onSave={(tracked) => {

@@ -15,5 +15,7 @@ public interface UserRepository extends JpaRepository<User, Long>{
 
 	Optional<User> findByUserIdAndDeletedAtIsNull(Long userId);
 
+	Optional<User> findByDiscordIdAndDeletedAtIsNull(String discordId);
+
 	boolean existsByKakaoId(Long kakaoId);
 }

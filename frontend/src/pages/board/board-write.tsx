@@ -1,16 +1,21 @@
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, useRef, useCallback} from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type {BoardCategory, BoardPostCreateRequest, BoardPostUpdateRequest} from "@/types";
 import {boardService} from "@/services/board-service";
+import {uploadService} from "@/services/upload-service";
 import {useAuth} from "@/hooks/use-auth";
+import {ImagePlus} from "lucide-react";
+import MarkdownToolbar from "@/components/board/markdown-toolbar";
 import styles from "./board-write.module.scss";
 
 const BoardWritePage:React.FC = () => {
 	const {postId} = useParams<{postId:string}>();
 	const navigate = useNavigate();
 	const {user} = useAuth();
+	const textareaRef = useRef<HTMLTextAreaElement>(null);
+	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const [categories, setCategories] = useState<BoardCategory[]>([]);
 	const [categoryId, setCategoryId] = useState<number | null>(null);
@@ -19,6 +24,7 @@ const BoardWritePage:React.FC = () => {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [showPreview, setShowPreview] = useState(false);
+	const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
 	const isEditMode = !!postId;
 
@@ -47,7 +53,7 @@ const BoardWritePage:React.FC = () => {
 	const loadPost = async () => {
 		try{
 			const post = await boardService.getPost(parseInt(postId!));
-			if(post.userId !== user?.id){
+			if(post.userId !== (user?.userId ?? user?.id)){
 				alert("수정 권한이 없습니다.");
 				navigate("/board");
 				return;
@@ -65,6 +71,73 @@ const BoardWritePage:React.FC = () => {
 			navigate("/board");
 		}
 	};
+
+	const insertImageMarkdown = (url:string) => {
+		const textarea = textareaRef.current;
+		if(!textarea){
+			setContent(prev => prev + `\n![이미지](${url})\n`);
+			return;
+		}
+		const start = textarea.selectionStart;
+		const end = textarea.selectionEnd;
+		const imageText = `![이미지](${url})`;
+		const newContent = content.substring(0, start) + imageText + content.substring(end);
+		setContent(newContent);
+
+		setTimeout(() => {
+			textarea.focus();
+			const newPos = start + imageText.length;
+			textarea.setSelectionRange(newPos, newPos);
+		}, 0);
+	};
+
+	const handleImageUpload = useCallback(async (file:File) => {
+		setUploadProgress(0);
+		try{
+			const result = await uploadService.uploadImage(file, "board", (progress) => {
+				setUploadProgress(progress);
+			});
+			if(result.success && result.url){
+				insertImageMarkdown(result.url);
+			}else{
+				setError(result.message || "이미지 업로드에 실패했습니다.");
+			}
+		}catch(err:any){
+			setError("이미지 업로드에 실패했습니다.");
+		}finally{
+			setUploadProgress(null);
+		}
+	}, [content]);
+
+	const handleFileSelect = (e:React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if(file) handleImageUpload(file);
+		e.target.value = "";
+	};
+
+	const handleDrop = useCallback((e:React.DragEvent) => {
+		e.preventDefault();
+		const file = e.dataTransfer.files[0];
+		if(file && file.type.startsWith("image/")){
+			handleImageUpload(file);
+		}
+	}, [handleImageUpload]);
+
+	const handleDragOver = (e:React.DragEvent) => {
+		e.preventDefault();
+	};
+
+	const handlePaste = useCallback((e:React.ClipboardEvent) => {
+		const items = e.clipboardData.items;
+		for(let i = 0; i < items.length; i++){
+			if(items[i].type.startsWith("image/")){
+				e.preventDefault();
+				const file = items[i].getAsFile();
+				if(file) handleImageUpload(file);
+				return;
+			}
+		}
+	}, [handleImageUpload]);
 
 	const handleSubmit = async (e:React.FormEvent) => {
 		e.preventDefault();
@@ -141,23 +214,52 @@ const BoardWritePage:React.FC = () => {
 					<div className={styles.formGroup}>
 						<div className={styles.contentHeader}>
 							<label>내용</label>
-							<div className={styles.tabToggle}>
-								<button
-									type="button"
-									className={`${styles.toggleBtn} ${!showPreview ? styles.active : ""}`}
-									onClick={() => setShowPreview(false)}
-								>
-									편집
-								</button>
-								<button
-									type="button"
-									className={`${styles.toggleBtn} ${showPreview ? styles.active : ""}`}
-									onClick={() => setShowPreview(true)}
-								>
-									미리보기
-								</button>
+							<div className={styles.contentActions}>
+								{!showPreview && (
+									<>
+										<input
+											ref={fileInputRef}
+											type="file"
+											accept="image/jpeg,image/png,image/gif,image/webp"
+											onChange={handleFileSelect}
+											className={styles.fileInput}
+										/>
+										<button
+											type="button"
+											className={styles.uploadBtn}
+											onClick={() => fileInputRef.current?.click()}
+											disabled={uploadProgress !== null}
+										>
+											<ImagePlus size={16}/>
+											이미지
+										</button>
+									</>
+								)}
+								<div className={styles.tabToggle}>
+									<button
+										type="button"
+										className={`${styles.toggleBtn} ${!showPreview ? styles.active : ""}`}
+										onClick={() => setShowPreview(false)}
+									>
+										편집
+									</button>
+									<button
+										type="button"
+										className={`${styles.toggleBtn} ${showPreview ? styles.active : ""}`}
+										onClick={() => setShowPreview(true)}
+									>
+										미리보기
+									</button>
+								</div>
 							</div>
 						</div>
+
+						{uploadProgress !== null && (
+							<div className={styles.progressBar}>
+								<div className={styles.progressFill} style={{width: `${uploadProgress}%`}}/>
+							</div>
+						)}
+
 						{showPreview ? (
 							<div className={styles.preview}>
 								{content.trim() ? (
@@ -167,13 +269,24 @@ const BoardWritePage:React.FC = () => {
 								)}
 							</div>
 						) : (
-							<textarea
-								value={content}
-								onChange={(e) => setContent(e.target.value)}
-								placeholder="마크다운 형식으로 작성할 수 있습니다.&#10;&#10;# 제목&#10;**굵게** *기울임*&#10;- 목록&#10;![이미지](url)&#10;[링크](url)"
-								className={styles.textarea}
-								rows={15}
-							/>
+							<div className={styles.editorWrap}>
+								<MarkdownToolbar
+									textareaRef={textareaRef}
+									content={content}
+									setContent={setContent}
+								/>
+								<textarea
+									ref={textareaRef}
+									value={content}
+									onChange={(e) => setContent(e.target.value)}
+									onDrop={handleDrop}
+									onDragOver={handleDragOver}
+									onPaste={handlePaste}
+									placeholder="마크다운 형식으로 작성할 수 있습니다.&#10;&#10;# 제목&#10;**굵게** *기울임*&#10;- 목록&#10;![이미지](url)&#10;[링크](url)&#10;&#10;이미지를 드래그하거나 붙여넣기(Ctrl+V)할 수 있습니다."
+									className={styles.textarea}
+									rows={15}
+								/>
+							</div>
 						)}
 					</div>
 

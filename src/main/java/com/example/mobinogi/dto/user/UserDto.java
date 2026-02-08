@@ -17,6 +17,9 @@ public class UserDto{
 	private String nickname;
 	private String email;
 	private String profileImage;
+	private String discordId;
+	private String discordUsername;
+	private String discordAvatar;
 	private String provider;
 	private LocalDateTime createdAt;
 
@@ -27,6 +30,9 @@ public class UserDto{
 			.nickname(user.getNickname())
 			.email(user.getEmail())
 			.profileImage(user.getProfileImage())
+			.discordId(user.getDiscordId())
+			.discordUsername(user.getDiscordUsername())
+			.discordAvatar(user.getDiscordAvatar())
 			.provider("kakao")
 			.createdAt(user.getCreatedAt())
 			.build();

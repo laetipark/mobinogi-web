@@ -9,29 +9,29 @@ const BoardListPage:React.FC = () => {
 	const navigate = useNavigate();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const {user} = useAuth();
-
+	
 	const [categories, setCategories] = useState<BoardCategory[]>([]);
 	const [posts, setPosts] = useState<BoardPost[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [totalPages, setTotalPages] = useState(0);
 	const [totalElements, setTotalElements] = useState(0);
-
+	
 	const selectedCategory = searchParams.get("category") ? parseInt(searchParams.get("category")!) : null;
 	const selectedSource = searchParams.get("source") || null;
 	const searchKeyword = searchParams.get("keyword") || "";
 	const currentPage = searchParams.get("page") ? parseInt(searchParams.get("page")!) : 0;
-
+	
 	const [keywordInput, setKeywordInput] = useState(searchKeyword);
-
+	
 	useEffect(() => {
 		loadCategories();
 	}, []);
-
+	
 	useEffect(() => {
 		loadPosts();
 	}, [selectedCategory, selectedSource, searchKeyword, currentPage]);
-
-	const loadCategories = async () => {
+	
+	const loadCategories = async() => {
 		try{
 			const data = await boardService.getCategories();
 			setCategories(data);
@@ -39,11 +39,11 @@ const BoardListPage:React.FC = () => {
 			console.error("카테고리 로드 실패:", err);
 		}
 	};
-
-	const loadPosts = async () => {
+	
+	const loadPosts = async() => {
 		try{
 			setLoading(true);
-
+			
 			if(selectedSource === "DISCORD"){
 				// Discord 캐시에서 로드
 				const discordPosts = await boardService.getDiscordPosts();
@@ -71,11 +71,11 @@ const BoardListPage:React.FC = () => {
 					boardService.getDiscordPosts(),
 					boardService.getNotionPosts()
 				]);
-
+				
 				// DB 게시글 + 외부 캐시 병합 후 작성일 내림차순 정렬
 				const allPosts = [...dbData.content, ...discordPosts, ...notionPosts];
 				allPosts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
+				
 				setPosts(allPosts);
 				setTotalPages(1);
 				setTotalElements(allPosts.length);
@@ -86,16 +86,16 @@ const BoardListPage:React.FC = () => {
 			setLoading(false);
 		}
 	};
-
+	
 	const updateParams = (updates:Record<string, string | null>) => {
 		const params:Record<string, string> = {};
 		const current = Object.fromEntries(searchParams.entries());
-
+		
 		// 기존 파라미터 유지
 		for(const [key, value] of Object.entries(current)){
 			if(value) params[key] = value;
 		}
-
+		
 		// 업데이트 적용
 		for(const [key, value] of Object.entries(updates)){
 			if(value === null){
@@ -104,47 +104,47 @@ const BoardListPage:React.FC = () => {
 				params[key] = value;
 			}
 		}
-
+		
 		// 필터 변경 시 페이지 초기화
 		if(!("page" in updates)){
 			delete params.page;
 		}
-
+		
 		setSearchParams(params);
 	};
-
+	
 	const handleSearch = (e:React.FormEvent) => {
 		e.preventDefault();
-		updateParams({keyword: keywordInput.trim() || null, page: null});
+		updateParams({keyword : keywordInput.trim() || null, page : null});
 	};
-
+	
 	const handlePostClick = (post:BoardPost) => {
 		if(post.sourceType !== "USER"){
 			// 외부 게시글은 state로 데이터 전달
-			navigate("/board/external", {state: {post}});
+			navigate("/board/external", {state : {post}});
 			return;
 		}
 		navigate(`/board/${post.postId}`);
 	};
-
+	
 	const formatDate = (dateString:string) => {
 		const date = new Date(dateString);
 		const now = new Date();
 		const diff = now.getTime() - date.getTime();
 		const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
+		
 		if(days < 1){
-			return date.toLocaleTimeString("ko-KR", {hour: "2-digit", minute: "2-digit"});
+			return date.toLocaleTimeString("ko-KR", {hour : "2-digit", minute : "2-digit"});
 		}
-		return date.toLocaleDateString("ko-KR", {month: "short", day: "numeric"});
+		return date.toLocaleDateString("ko-KR", {month : "short", day : "numeric"});
 	};
-
+	
 	const getSourceBadge = (sourceType:string) => {
 		if(sourceType === "NOTION") return <span className={`${styles.badge} ${styles.notion}`}>Notion</span>;
 		if(sourceType === "DISCORD") return <span className={`${styles.badge} ${styles.discord}`}>Discord</span>;
 		return null;
 	};
-
+	
 	return (
 		<div className={styles.boardPage}>
 			<div className={styles.container}>
@@ -156,12 +156,12 @@ const BoardListPage:React.FC = () => {
 						</button>
 					)}
 				</div>
-
+				
 				<div className={styles.filters}>
 					<div className={styles.categoryTabs}>
 						<button
 							className={`${styles.tab} ${selectedCategory === null && selectedSource === null ? styles.active : ""}`}
-							onClick={() => updateParams({category: null, source: null})}
+							onClick={() => updateParams({category : null, source : null})}
 						>
 							전체
 						</button>
@@ -169,25 +169,25 @@ const BoardListPage:React.FC = () => {
 							<button
 								key={cat.categoryId}
 								className={`${styles.tab} ${selectedCategory === cat.categoryId ? styles.active : ""}`}
-								onClick={() => updateParams({category: cat.categoryId.toString(), source: null})}
+								onClick={() => updateParams({category : cat.categoryId.toString(), source : null})}
 							>
 								{cat.categoryName}
 							</button>
 						))}
 						<button
 							className={`${styles.tab} ${styles.notionTab} ${selectedSource === "NOTION" ? styles.active : ""}`}
-							onClick={() => updateParams({source: "NOTION", category: null})}
+							onClick={() => updateParams({source : "NOTION", category : null})}
 						>
 							Notion
 						</button>
 						<button
 							className={`${styles.tab} ${styles.discordTab} ${selectedSource === "DISCORD" ? styles.active : ""}`}
-							onClick={() => updateParams({source: "DISCORD", category: null})}
+							onClick={() => updateParams({source : "DISCORD", category : null})}
 						>
 							Discord
 						</button>
 					</div>
-
+					
 					<form className={styles.searchForm} onSubmit={handleSearch}>
 						<input
 							type="text"
@@ -199,7 +199,7 @@ const BoardListPage:React.FC = () => {
 						<button type="submit" className={styles.searchBtn}>검색</button>
 					</form>
 				</div>
-
+				
 				{loading ? (
 					<div className={styles.loading}>로딩 중...</div>
 				) : posts.length === 0 ? (
@@ -237,12 +237,12 @@ const BoardListPage:React.FC = () => {
 								</div>
 							))}
 						</div>
-
+						
 						{totalPages > 1 && (
 							<div className={styles.pagination}>
 								<button
 									disabled={currentPage === 0}
-									onClick={() => updateParams({page: (currentPage - 1).toString()})}
+									onClick={() => updateParams({page : (currentPage - 1).toString()})}
 									className={styles.pageBtn}
 								>
 									이전
@@ -250,7 +250,7 @@ const BoardListPage:React.FC = () => {
 								<span className={styles.pageInfo}>{currentPage + 1} / {totalPages}</span>
 								<button
 									disabled={currentPage >= totalPages - 1}
-									onClick={() => updateParams({page: (currentPage + 1).toString()})}
+									onClick={() => updateParams({page : (currentPage + 1).toString()})}
 									className={styles.pageBtn}
 								>
 									다음

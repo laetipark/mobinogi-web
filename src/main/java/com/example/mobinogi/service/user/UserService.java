@@ -84,4 +84,15 @@ public class UserService{
 		user = userRepository.save(user);
 		return UserDto.fromEntity(user);
 	}
+
+	@Transactional(readOnly = true)
+	public User findById(Long userId){
+		return userRepository.findByUserIdAndDeletedAtIsNull(userId)
+			.orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+	}
+
+	@Transactional
+	public User save(User user){
+		return userRepository.save(user);
+	}
 }

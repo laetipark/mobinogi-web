@@ -1,5 +1,6 @@
 ﻿export interface User{
 	id:number;
+	userId?:number;
 	username:string;
 	email:string;
 	createdAt:string;
@@ -7,6 +8,9 @@
 	kakaoId?:string;
 	profileImage?:string;
 	nickname?:string;
+	discordId?:string;
+	discordUsername?:string;
+	discordAvatar?:string;
 }
 
 export interface AuthContextType{
@@ -249,12 +253,14 @@ export interface BoardPost{
 	userId:number | null;
 	authorNickname:string | null;
 	authorProfileImage:string | null;
+	authorDiscordId?:string | null;
 	title:string;
 	content:string;
 	viewCount:number;
 	sourceType:"USER" | "NOTION" | "DISCORD";
 	externalUrl:string | null;
 	externalAuthor:string | null;
+	images?:string[];
 	commentCount:number;
 	createdAt:string;
 	updatedAt:string;

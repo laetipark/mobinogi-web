@@ -1,19 +1,25 @@
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, useRef} from "react";
 import {useAuth} from "@/hooks/use-auth";
+import {useSearchParams} from "react-router-dom";
 import {UserCharacter, UserCharacterRequest} from "@/types";
 import characterService from "@/services/character-service";
 import profileService from "@/services/profile-service";
-import {User, Camera, Plus, Edit2, Trash2, Save, X, RefreshCw, Gamepad2} from "lucide-react";
+import {uploadService} from "@/services/upload-service";
+import {discordService} from "@/services/discord-service";
+import {User, Camera, Plus, Edit2, Trash2, Save, X, RefreshCw, Gamepad2, Link, Upload} from "lucide-react";
 import styles from "./profile.module.scss";
 
 const ProfilePage:React.FC = () => {
 	const {user, checkLoginStatus} = useAuth();
+	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	// 프로필 상태
 	const [nickname, setNickname] = useState("");
 	const [profileImage, setProfileImage] = useState("");
 	const [profileLoading, setProfileLoading] = useState(false);
 	const [profileMessage, setProfileMessage] = useState<{type:"success" | "error"; text:string} | null>(null);
+	const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+	const [useUrlInput, setUseUrlInput] = useState(false);
 
 	// 캐릭터 상태
 	const [characters, setCharacters] = useState<UserCharacter[]>([]);
@@ -27,6 +33,10 @@ const ProfilePage:React.FC = () => {
 		serverName: "",
 		className: ""
 	});
+
+	// Discord 연동 상태
+	const [discordLoading, setDiscordLoading] = useState(false);
+	const [discordMessage, setDiscordMessage] = useState<{type:"success" | "error"; text:string} | null>(null);
 
 	// 초기화
 	useEffect(() => {
@@ -47,6 +57,39 @@ const ProfilePage:React.FC = () => {
 			console.error("캐릭터 로드 실패:", error);
 		}finally{
 			setCharactersLoading(false);
+		}
+	};
+
+	// 프로필 이미지 업로드
+	const handleProfileImageUpload = async(file:File) => {
+		setUploadProgress(0);
+		setProfileMessage(null);
+		try{
+			const result = await uploadService.uploadImage(file, "profile", (progress) => {
+				setUploadProgress(progress);
+			});
+			if(result.success && result.url){
+				setProfileImage(result.url);
+				setProfileMessage({type: "success", text: "이미지가 업로드되었습니다. 프로필 저장을 눌러주세요."});
+			}else{
+				setProfileMessage({type: "error", text: result.message || "이미지 업로드에 실패했습니다."});
+			}
+		}catch(error:any){
+			setProfileMessage({type: "error", text: "이미지 업로드에 실패했습니다."});
+		}finally{
+			setUploadProgress(null);
+		}
+	};
+
+	const handleFileSelect = (e:React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if(file) handleProfileImageUpload(file);
+		e.target.value = "";
+	};
+
+	const handleImageClick = () => {
+		if(!useUrlInput){
+			fileInputRef.current?.click();
 		}
 	};
 
@@ -135,6 +178,41 @@ const ProfilePage:React.FC = () => {
 		setCharacterForm({characterName: "", serverName: "", className: ""});
 	};
 
+	// Discord 연동
+	const handleDiscordLink = async() => {
+		setDiscordLoading(true);
+		setDiscordMessage(null);
+		try{
+			const authUrl = await discordService.getAuthorizeUrl();
+			// Discord OAuth 페이지로 이동
+			window.location.href = authUrl;
+		}catch(error:any){
+			setDiscordMessage({type: "error", text: error.message || "Discord 연동 실패"});
+			setDiscordLoading(false);
+		}
+	};
+
+	// Discord 연동 해제
+	const handleDiscordUnlink = async() => {
+		if(!confirm("Discord 연동을 해제하시겠습니까?")){
+			return;
+		}
+		setDiscordLoading(true);
+		setDiscordMessage(null);
+		try{
+			const result = await discordService.unlinkDiscord();
+			setDiscordMessage({type: "success", text: result.message});
+			// 로그인 상태 갱신
+			if(checkLoginStatus){
+				await checkLoginStatus();
+			}
+		}catch(error:any){
+			setDiscordMessage({type: "error", text: error.message || "연동 해제 실패"});
+		}finally{
+			setDiscordLoading(false);
+		}
+	};
+
 	if(!user){
 		return (
 			<div className={styles.profilePage}>
@@ -159,7 +237,7 @@ const ProfilePage:React.FC = () => {
 
 					<div className={styles.profileForm}>
 						<div className={styles.profileImageSection}>
-							<div className={styles.profileImageWrapper}>
+							<div className={styles.profileImageWrapper} onClick={handleImageClick}>
 								{profileImage ? (
 									<img src={profileImage} alt="프로필" className={styles.profileImage}/>
 								) : (
@@ -171,6 +249,20 @@ const ProfilePage:React.FC = () => {
 									<Camera size={20}/>
 								</div>
 							</div>
+							<input
+								ref={fileInputRef}
+								type="file"
+								accept="image/jpeg,image/png,image/gif,image/webp"
+								onChange={handleFileSelect}
+								className={styles.fileInput}
+							/>
+							{uploadProgress !== null && (
+								<div className={styles.uploadProgress}>
+									<div className={styles.progressBar}>
+										<div className={styles.progressFill} style={{width: `${uploadProgress}%`}}/>
+									</div>
+								</div>
+							)}
 						</div>
 
 						<div className={styles.formFields}>
@@ -186,13 +278,38 @@ const ProfilePage:React.FC = () => {
 							</div>
 
 							<div className={styles.formGroup}>
-								<label>프로필 이미지 URL</label>
-								<input
-									type="text"
-									value={profileImage}
-									onChange={(e) => setProfileImage(e.target.value)}
-									placeholder="이미지 URL을 입력하세요"
-								/>
+								<div className={styles.imageInputHeader}>
+									<label>프로필 이미지</label>
+									<button
+										type="button"
+										className={styles.toggleInputBtn}
+										onClick={() => setUseUrlInput(!useUrlInput)}
+									>
+										{useUrlInput ? (
+											<><Upload size={13}/> 파일 업로드</>
+										) : (
+											<><Link size={13}/> URL 입력</>
+										)}
+									</button>
+								</div>
+								{useUrlInput ? (
+									<input
+										type="text"
+										value={profileImage}
+										onChange={(e) => setProfileImage(e.target.value)}
+										placeholder="이미지 URL을 입력하세요"
+									/>
+								) : (
+									<button
+										type="button"
+										className={styles.fileSelectBtn}
+										onClick={() => fileInputRef.current?.click()}
+										disabled={uploadProgress !== null}
+									>
+										<Upload size={14}/>
+										{uploadProgress !== null ? "업로드 중..." : "이미지 파일 선택"}
+									</button>
+								)}
 							</div>
 
 							{profileMessage && (
@@ -219,6 +336,56 @@ const ProfilePage:React.FC = () => {
 								)}
 							</button>
 						</div>
+					</div>
+				</section>
+
+				{/* Discord 연동 섹션 */}
+				<section className={styles.section}>
+					<h2 className={styles.sectionTitle}>
+						<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+							<path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"/>
+						</svg>
+						<span>Discord 연동</span>
+					</h2>
+
+					<div className={styles.discordSection}>
+						{user.discordId ? (
+							<div className={styles.discordLinked}>
+								<div className={styles.discordInfo}>
+									{user.discordAvatar && (
+										<img src={user.discordAvatar} alt="Discord" className={styles.discordAvatar}/>
+									)}
+									<div>
+										<div className={styles.discordUsername}>{user.discordUsername}</div>
+										<div className={styles.discordId}>ID: {user.discordId}</div>
+									</div>
+								</div>
+								<button
+									className={styles.unlinkBtn}
+									onClick={handleDiscordUnlink}
+									disabled={discordLoading}
+								>
+									{discordLoading ? "처리 중..." : "연동 해제"}
+								</button>
+							</div>
+						) : (
+							<div className={styles.discordUnlinked}>
+								<p>Discord 계정을 연동하면 Discord에서 작성한 게시물이 내 게시물로 표시됩니다.</p>
+								<button
+									className={styles.linkBtn}
+									onClick={handleDiscordLink}
+									disabled={discordLoading}
+								>
+									{discordLoading ? "처리 중..." : "Discord 연동하기"}
+								</button>
+							</div>
+						)}
+
+						{discordMessage && (
+							<div className={`${styles.message} ${styles[discordMessage.type]}`}>
+								{discordMessage.text}
+							</div>
+						)}
 					</div>
 				</section>
 

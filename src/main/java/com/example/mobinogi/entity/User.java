@@ -30,6 +30,15 @@ public class User{
 	@Column(name = "profile_image", length = 500)
 	private String profileImage;
 
+	@Column(name = "discord_id", unique = true, length = 20)
+	private String discordId;
+
+	@Column(name = "discord_username", length = 100)
+	private String discordUsername;
+
+	@Column(name = "discord_avatar", length = 500)
+	private String discordAvatar;
+
 	@Column(name = "created_at", updatable = false)
 	private LocalDateTime createdAt;
 

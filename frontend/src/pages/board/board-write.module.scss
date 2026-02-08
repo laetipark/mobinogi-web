@@ -75,6 +75,56 @@
 	align-items:center;
 }
 
+.contentActions{
+	display:flex;
+	align-items:center;
+	gap:8px;
+}
+
+.fileInput{
+	display:none;
+}
+
+.uploadBtn{
+	display:inline-flex;
+	align-items:center;
+	gap:6px;
+	padding:5px 12px;
+	background:var(--surface-hover);
+	border:1px solid var(--border);
+	border-radius:$border-radius;
+	color:var(--text);
+	font-size:13px;
+	cursor:pointer;
+	transition:all $transition-fast;
+
+	&:hover{
+		background:var(--primary);
+		color:white;
+		border-color:var(--primary);
+	}
+
+	&:disabled{
+		opacity:0.5;
+		cursor:not-allowed;
+	}
+}
+
+.progressBar{
+	height:3px;
+	background:var(--border);
+	border-radius:2px;
+	margin-top:8px;
+	overflow:hidden;
+}
+
+.progressFill{
+	height:100%;
+	background:var(--primary);
+	border-radius:2px;
+	transition:width 0.2s ease;
+}
+
 .tabToggle{
 	display:flex;
 	border:1px solid var(--border);
@@ -197,6 +247,13 @@
 	}
 }
 
+.editorWrap{
+	.textarea{
+		border-top-left-radius:0;
+		border-top-right-radius:0;
+	}
+}
+
 .textarea{
 	padding:14px;
 	border:1px solid var(--border);
@@ -208,6 +265,7 @@
 	resize:vertical;
 	line-height:1.7;
 	min-height:300px;
+	width:100%;
 
 	&:focus{
 		outline:none;

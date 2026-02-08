@@ -10,7 +10,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  */
 @Configuration
 public class WebConfig implements WebMvcConfigurer{
-	
+
 	/**
 	 * CORS 설정
 	 * 개발 중에는 localhost:3000에서의 요청을 허용합니다.

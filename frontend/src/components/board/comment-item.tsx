@@ -16,7 +16,7 @@ const CommentItem:React.FC<CommentItemProps> = ({comment, onReply, onEdit, onDel
 	const [isEditing, setIsEditing] = useState(false);
 	const [editContent, setEditContent] = useState(comment.content);
 
-	const isAuthor = user?.id === comment.userId;
+	const isAuthor = (user?.userId ?? user?.id) === comment.userId;
 
 	const handleSaveEdit = () => {
 		if(!editContent.trim()) return;

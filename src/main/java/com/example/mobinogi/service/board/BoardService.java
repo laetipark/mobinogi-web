@@ -23,23 +23,23 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 @Slf4j
 public class BoardService{
-
+	
 	private final BoardPostRepository postRepository;
 	private final BoardCategoryRepository categoryRepository;
 	private final BoardCommentRepository commentRepository;
 	private final DiscordWebhookService discordWebhookService;
-
+	
 	public List<BoardCategoryDto> getAllCategories(){
 		return categoryRepository.findByDeletedAtIsNullOrderByDisplayOrderAsc()
 			.stream()
 			.map(BoardCategoryDto::fromEntity)
 			.collect(Collectors.toList());
 	}
-
+	
 	public Page<BoardPostDto> getPosts(Long categoryId, String sourceType, int page, int size){
 		Pageable pageable = PageRequest.of(page, size);
 		Page<BoardPost> posts;
-
+		
 		if(categoryId != null && sourceType != null){
 			posts = postRepository.findByCategoryIdAndSourceTypeAndDeletedAtIsNullOrderByCreatedAtDesc(
 				categoryId, sourceType, pageable);
@@ -50,13 +50,13 @@ public class BoardService{
 		}else{
 			posts = postRepository.findByDeletedAtIsNullOrderByCreatedAtDesc(pageable);
 		}
-
+		
 		return posts.map(post -> {
 			long commentCount = commentRepository.countByPostIdAndDeletedAtIsNull(post.getPostId());
 			return BoardPostDto.fromEntity(post, commentCount);
 		});
 	}
-
+	
 	public Page<BoardPostDto> searchPosts(String keyword, int page, int size){
 		Pageable pageable = PageRequest.of(page, size);
 		Page<BoardPost> posts = postRepository.searchPosts(keyword, pageable);
@@ -65,19 +65,19 @@ public class BoardService{
 			return BoardPostDto.fromEntity(post, commentCount);
 		});
 	}
-
+	
 	@Transactional
 	public BoardPostDto getPost(Long postId){
 		BoardPost post = postRepository.findByPostIdAndDeletedAtIsNull(postId)
 			.orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
-
+		
 		post.setViewCount(post.getViewCount() + 1);
 		postRepository.save(post);
-
+		
 		long commentCount = commentRepository.countByPostIdAndDeletedAtIsNull(postId);
 		return BoardPostDto.fromEntity(post, commentCount);
 	}
-
+	
 	@Transactional
 	public BoardPostDto createPost(Long userId, BoardPostCreateRequest request){
 		BoardPost post = BoardPost.builder()
@@ -88,51 +88,51 @@ public class BoardService{
 			.sourceType("USER")
 			.viewCount(0)
 			.build();
-
+		
 		post = postRepository.save(post);
-
+		
 		// Discord webhook 알림 (비동기)
 		try{
 			discordWebhookService.sendNewPostNotification(post);
 		}catch(Exception e){
 			log.error("Discord 알림 전송 실패: {}", e.getMessage());
 		}
-
+		
 		long commentCount = commentRepository.countByPostIdAndDeletedAtIsNull(post.getPostId());
 		return BoardPostDto.fromEntity(post, commentCount);
 	}
-
+	
 	@Transactional
 	public BoardPostDto updatePost(Long postId, Long userId, BoardPostUpdateRequest request){
 		BoardPost post = postRepository.findByPostIdAndDeletedAtIsNull(postId)
 			.orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
-
+		
 		if(!post.getUserId().equals(userId)){
 			throw new RuntimeException("게시글 수정 권한이 없습니다.");
 		}
-
+		
 		if(!"USER".equals(post.getSourceType())){
 			throw new RuntimeException("외부 연동 게시글은 수정할 수 없습니다.");
 		}
-
+		
 		post.setCategoryId(request.getCategoryId());
 		post.setTitle(request.getTitle());
 		post.setContent(request.getContent());
 		post = postRepository.save(post);
-
+		
 		long commentCount = commentRepository.countByPostIdAndDeletedAtIsNull(postId);
 		return BoardPostDto.fromEntity(post, commentCount);
 	}
-
+	
 	@Transactional
 	public void deletePost(Long postId, Long userId){
 		BoardPost post = postRepository.findByPostIdAndDeletedAtIsNull(postId)
 			.orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
-
+		
 		if(!post.getUserId().equals(userId)){
 			throw new RuntimeException("게시글 삭제 권한이 없습니다.");
 		}
-
+		
 		post.setDeletedAt(LocalDateTime.now());
 		postRepository.save(post);
 	}
