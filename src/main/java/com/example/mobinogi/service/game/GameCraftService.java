@@ -18,7 +18,7 @@ import java.util.List;
 public class GameCraftService{
 	private final LifeCraftRepository lifeCraftRepository;
 
-	public List<LifeCraft> getCraftsByItemId(Integer itemId){
+	public List<LifeCraft> getCraftsByItemId(Long itemId){
 		return lifeCraftRepository.findByItemId(itemId);
 	}
 

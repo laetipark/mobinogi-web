@@ -15,7 +15,7 @@ public class NotionSyncLog{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "sync_id")
+	@Column(name = "sync_id", columnDefinition = "BIGINT UNSIGNED")
 	private Long syncId;
 
 	@Column(name = "last_sync_at", nullable = false)

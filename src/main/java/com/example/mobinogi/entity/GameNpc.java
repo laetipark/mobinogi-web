@@ -17,11 +17,11 @@ import java.time.LocalDateTime;
 public class GameNpc{
 
 	@Id
-	@Column(name = "npc_id", nullable = false)
-	private Integer npcId;
+	@Column(name = "npc_id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
+	private Long npcId;
 
-	@Column(name = "region_id")
-	private Integer regionId;
+	@Column(name = "region_id", columnDefinition = "BIGINT UNSIGNED")
+	private Long regionId;
 
 	@Column(name = "npc_name", length = 30)
 	private String npcName;

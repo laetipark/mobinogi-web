@@ -17,6 +17,7 @@ public class UserCharacterDto{
 	private String characterName;
 	private String serverName;
 	private String className;
+	private Integer displayOrder;
 	private LocalDateTime createdAt;
 
 	public static UserCharacterDto fromEntity(UserCharacter character){
@@ -24,8 +25,9 @@ public class UserCharacterDto{
 			.characterId(character.getCharacterId())
 			.userId(character.getUser().getUserId())
 			.characterName(character.getCharacterName())
-			.serverName(character.getServerName())
-			.className(character.getClassName())
+			.serverName(character.getCharacterServer())
+			.className(character.getCharacterClass())
+			.displayOrder(character.getCharacterOrder())
 			.createdAt(character.getCreatedAt())
 			.build();
 	}

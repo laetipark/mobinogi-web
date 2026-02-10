@@ -17,8 +17,8 @@ import java.time.LocalDateTime;
 public class GameItem{
 
 	@Id
-	@Column(name = "item_id")
-	private Integer itemId;
+	@Column(name = "item_id", columnDefinition = "BIGINT UNSIGNED")
+	private Long itemId;
 
 	@Column(name = "item_type", length = 30)
 	private String itemType;

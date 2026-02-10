@@ -3,10 +3,12 @@ import {useAuth} from "@/hooks/use-auth";
 import {useSearchParams} from "react-router-dom";
 import {UserCharacter, UserCharacterRequest} from "@/types";
 import characterService from "@/services/character-service";
+import {gameClassService, GameClassItem} from "@/services/game-class-service";
 import profileService from "@/services/profile-service";
 import {uploadService} from "@/services/upload-service";
 import {discordService} from "@/services/discord-service";
-import {User, Camera, Plus, Edit2, Trash2, Save, X, RefreshCw, Gamepad2, Link, Upload} from "lucide-react";
+import {User, Camera, Plus, Edit2, Trash2, Save, X, RefreshCw, Gamepad2, Link, Upload, ArrowUpDown, Check} from "lucide-react";
+import SortableCharacterList, {SortableCharacterItem} from "@/components/user/sortable-character-list";
 import styles from "./profile.module.scss";
 
 const ProfilePage:React.FC = () => {
@@ -27,12 +29,19 @@ const ProfilePage:React.FC = () => {
 	const [editingCharacter, setEditingCharacter] = useState<UserCharacter | null>(null);
 	const [showAddForm, setShowAddForm] = useState(false);
 
+	// 캐릭터 순서 변경 상태
+	const [reorderMode, setReorderMode] = useState(false);
+	const [reorderList, setReorderList] = useState<SortableCharacterItem[]>([]);
+	const [reorderSaving, setReorderSaving] = useState(false);
+
 	// 캐릭터 폼 상태
 	const [characterForm, setCharacterForm] = useState<UserCharacterRequest>({
 		characterName: "",
-		serverName: "",
+		serverName: "아이라",
 		className: ""
 	});
+	const [classes, setClasses] = useState<GameClassItem[]>([]);
+	const servers = ["데이안", "아이라", "던컨", "알리사", "메이븐", "라사", "칼릭스"];
 
 	// Discord 연동 상태
 	const [discordLoading, setDiscordLoading] = useState(false);
@@ -45,6 +54,7 @@ const ProfilePage:React.FC = () => {
 			setProfileImage(user.profileImage || "");
 			loadCharacters();
 		}
+		gameClassService.getClasses().then(setClasses).catch(() => {});
 	}, [user]);
 
 	// 캐릭터 로드
@@ -119,7 +129,7 @@ const ProfilePage:React.FC = () => {
 		try{
 			const newCharacter = await characterService.createCharacter(characterForm);
 			setCharacters(prev => [...prev, newCharacter]);
-			setCharacterForm({characterName: "", serverName: "", className: ""});
+			setCharacterForm({characterName: "", serverName: "아이라", className: ""});
 			setShowAddForm(false);
 		}catch(error:any){
 			console.error("캐릭터 추가 실패:", error);
@@ -135,7 +145,7 @@ const ProfilePage:React.FC = () => {
 			const updated = await characterService.updateCharacter(editingCharacter.characterId, characterForm);
 			setCharacters(prev => prev.map(c => c.characterId === updated.characterId ? updated : c));
 			setEditingCharacter(null);
-			setCharacterForm({characterName: "", serverName: "", className: ""});
+			setCharacterForm({characterName: "", serverName: "아이라", className: ""});
 		}catch(error:any){
 			console.error("캐릭터 수정 실패:", error);
 		}
@@ -168,14 +178,41 @@ const ProfilePage:React.FC = () => {
 	// 수정 모드 취소
 	const cancelEdit = () => {
 		setEditingCharacter(null);
-		setCharacterForm({characterName: "", serverName: "", className: ""});
+		setCharacterForm({characterName: "", serverName: "아이라", className: ""});
 	};
 
 	// 추가 모드 시작
 	const startAddCharacter = () => {
 		setShowAddForm(true);
 		setEditingCharacter(null);
-		setCharacterForm({characterName: "", serverName: "", className: ""});
+		setCharacterForm({characterName: "", serverName: "아이라", className: ""});
+	};
+
+	// 순서 변경 모드
+	const startReorderMode = () => {
+		setReorderList(characters.map(c => ({characterId: c.characterId, characterName: c.characterName, serverName: c.serverName})));
+		setReorderMode(true);
+		setShowAddForm(false);
+		setEditingCharacter(null);
+	};
+
+	const cancelReorderMode = () => {
+		setReorderMode(false);
+		setReorderList([]);
+	};
+
+	const handleReorderSave = async() => {
+		setReorderSaving(true);
+		try{
+			await characterService.reorderCharacters(reorderList.map(c => c.characterId));
+			await loadCharacters();
+			setReorderMode(false);
+			setReorderList([]);
+		}catch(error:any){
+			console.error("순서 변경 실패:", error);
+		}finally{
+			setReorderSaving(false);
+		}
 	};
 
 	// Discord 연동
@@ -397,11 +434,19 @@ const ProfilePage:React.FC = () => {
 							<span>내 캐릭터</span>
 							<span className={styles.count}>{characters.length}</span>
 						</h2>
-						{!showAddForm && !editingCharacter && (
-							<button className={styles.addBtn} onClick={startAddCharacter}>
-								<Plus size={16}/>
-								캐릭터 추가
-							</button>
+						{!showAddForm && !editingCharacter && !reorderMode && (
+							<div className={styles.headerActions}>
+								{characters.length >= 2 && (
+									<button className={styles.reorderToggleBtn} onClick={startReorderMode}>
+										<ArrowUpDown size={16}/>
+										순서 변경
+									</button>
+								)}
+								<button className={styles.addBtn} onClick={startAddCharacter}>
+									<Plus size={16}/>
+									캐릭터 추가
+								</button>
+							</div>
 						)}
 					</div>
 
@@ -421,21 +466,27 @@ const ProfilePage:React.FC = () => {
 								</div>
 								<div className={styles.formGroup}>
 									<label>서버</label>
-									<input
-										type="text"
+									<select
 										value={characterForm.serverName}
 										onChange={(e) => setCharacterForm(prev => ({...prev, serverName: e.target.value}))}
-										placeholder="서버 이름"
-									/>
+									>
+										<option value="">선택안함</option>
+										{servers.map(server => (
+											<option key={server} value={server}>{server}</option>
+										))}
+									</select>
 								</div>
 								<div className={styles.formGroup}>
 									<label>직업</label>
-									<input
-										type="text"
+									<select
 										value={characterForm.className}
 										onChange={(e) => setCharacterForm(prev => ({...prev, className: e.target.value}))}
-										placeholder="직업"
-									/>
+									>
+										<option value="">선택안함</option>
+										{classes.map(cls => (
+											<option key={cls.classId} value={cls.className}>{cls.className}</option>
+										))}
+									</select>
 								</div>
 							</div>
 							<div className={styles.formActions}>
@@ -476,6 +527,30 @@ const ProfilePage:React.FC = () => {
 								첫 캐릭터 추가하기
 							</button>
 						</div>
+					) : reorderMode ? (
+						<>
+							<SortableCharacterList
+								items={reorderList}
+								onReorder={setReorderList}
+							/>
+							<div className={styles.reorderActions}>
+								<button className={styles.cancelBtn} onClick={cancelReorderMode}>
+									<X size={16}/>
+									취소
+								</button>
+								<button
+									className={styles.confirmBtn}
+									onClick={handleReorderSave}
+									disabled={reorderSaving}
+								>
+									{reorderSaving ? (
+										<><RefreshCw size={16} className={styles.spinning}/> 저장 중...</>
+									) : (
+										<><Check size={16}/> 저장</>
+									)}
+								</button>
+							</div>
+						</>
 					) : (
 						<div className={styles.characterList}>
 							{characters.map((character) => (

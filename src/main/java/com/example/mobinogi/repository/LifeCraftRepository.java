@@ -10,12 +10,12 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface LifeCraftRepository extends JpaRepository<LifeCraft, Integer>{
-	List<LifeCraft> findByItemId(Integer itemId);
-
-	void deleteAllByItemId(Integer itemId);
-
-	void deleteByCraftIdGreaterThanEqual(int rowIndex);
-
+	List<LifeCraft> findByItemId(Long itemId);
+	
+	void deleteAllByItemId(Long itemId);
+	
+	void deleteByCraftIdGreaterThanEqual(Long rowIndex);
+	
 	// 페이지네이션 지원 메서드
 	@Query("SELECT c FROM LifeCraft c WHERE c.gameItem.itemName LIKE %:keyword% OR c.ingredientItem.itemName LIKE %:keyword%")
 	Page<LifeCraft> findByKeyword(@Param("keyword") String keyword, Pageable pageable);

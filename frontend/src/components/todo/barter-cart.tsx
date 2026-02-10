@@ -33,15 +33,21 @@ const BarterCart:React.FC<BarterCartProps> = ({characterId, cycle, cycleLabel}) 
 
 	const handleToggle = async(id:number) => {
 		try{
-			const updated = await todoService.toggleBarterComplete(characterId, id);
-			// 기존 아이템 정보 보존
-			setBarters(prev => prev.map(b => b.id === id ? {
-				...updated,
-				itemName: updated.itemName || b.itemName,
-				exchangeItemName: updated.exchangeItemName || b.exchangeItemName,
-				regionName: updated.regionName || b.regionName,
-				npcName: updated.npcName || b.npcName
-			} : b));
+			const updatedList = await todoService.toggleBarterComplete(characterId, id);
+			const updatedMap = new Map(updatedList.map(u => [u.id, u]));
+			setBarters(prev => prev.map(b => {
+				const updated = updatedMap.get(b.id);
+				if(updated){
+					return {
+						...updated,
+						itemName: updated.itemName || b.itemName,
+						exchangeItemName: updated.exchangeItemName || b.exchangeItemName,
+						regionName: updated.regionName || b.regionName,
+						npcName: updated.npcName || b.npcName
+					};
+				}
+				return b;
+			}));
 		}catch(err){
 			console.error("Failed to toggle barter:", err);
 		}
@@ -98,6 +104,13 @@ const BarterCart:React.FC<BarterCartProps> = ({characterId, cycle, cycleLabel}) 
 								)}
 								{barter.exchangeItemName && (
 									<span className={styles.barterDetail}>교환: {barter.exchangeItemName} x{barter.exchangeCost}</span>
+								)}
+								{(barter.barterServer || barter.barterNpc) && (
+									<span className={styles.barterDetail}>
+										{barter.barterServer && "서버 공유"}
+										{barter.barterServer && barter.barterNpc && " / "}
+										{barter.barterNpc && "NPC 공유"}
+									</span>
 								)}
 							</div>
 							<button className={styles.removeBtn} onClick={() => handleRemove(barter.id)}>&times;</button>

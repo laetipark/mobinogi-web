@@ -189,8 +189,12 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({characterId, cy
 										<span className={styles.barterCardQty}>x{barter.barterQty}</span>
 									</div>
 								</div>
-								{barter.barterEtc && (
-									<div className={styles.barterCardNote}>{barter.barterEtc}</div>
+								{(barter.barterServer || barter.barterNpc) && (
+									<div className={styles.barterCardNote}>
+										{barter.barterServer && <span>서버 공유</span>}
+										{barter.barterServer && barter.barterNpc && <span> / </span>}
+										{barter.barterNpc && <span>NPC 공유</span>}
+									</div>
 								)}
 							</div>
 						);

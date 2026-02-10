@@ -6,7 +6,8 @@ import type {
 	BoardPostCreateRequest,
 	BoardPostUpdateRequest,
 	BoardComment,
-	BoardCommentCreateRequest
+	BoardCommentCreateRequest,
+	BoardPostHistory
 } from "../types";
 
 interface CategoriesResponse{
@@ -42,6 +43,12 @@ interface CommentsResponse{
 interface CommentResponse{
 	success:boolean;
 	comment:BoardComment;
+	message?:string;
+}
+
+interface HistoryResponse{
+	success:boolean;
+	history:BoardPostHistory[];
 	message?:string;
 }
 
@@ -115,6 +122,13 @@ export const boardService = {
 	deletePost: async (postId:number):Promise<void> => {
 		const response = await apiService.delete<BaseResponse>(`/board/posts/${postId}`);
 		if(!response.success) throw new Error(response.message || "게시글 삭제에 실패했습니다.");
+	},
+
+	// 수정 내역
+	getPostHistory: async (postId:number):Promise<BoardPostHistory[]> => {
+		const response = await apiService.get<HistoryResponse>(`/board/posts/${postId}/history`);
+		if(response.success) return response.history;
+		throw new Error(response.message || "수정 내역을 불러오는데 실패했습니다.");
 	},
 
 	// 댓글 목록

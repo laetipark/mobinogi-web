@@ -15,17 +15,17 @@ import java.time.LocalDateTime;
 public class LifeCraft{
 
 	@Id
-	@Column(name = "craft_id")
-	private Integer craftId;
+	@Column(name = "craft_id", columnDefinition = "BIGINT UNSIGNED")
+	private Long craftId;
 
 	@Column(name = "craft_sub_id")
 	private Integer craftSubId;
 
-	@Column(name = "item_id", nullable = false)
-	private Integer itemId;
+	@Column(name = "item_id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
+	private Long itemId;
 
-	@Column(name = "ingredient_id", nullable = false)
-	private Integer craftIngredientId;
+	@Column(name = "ingredient_id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
+	private Long craftIngredientId;
 
 	@Column(name = "ingredient_cost", nullable = false)
 	private Integer craftIngredientCost;

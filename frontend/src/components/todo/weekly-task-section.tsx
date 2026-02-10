@@ -2,7 +2,6 @@ import React, {useState, useMemo} from "react";
 import styles from "./todo.module.scss";
 import {WeeklyTasks, GameMonster} from "../../types";
 import TaskCounter from "./task-counter";
-import PhantomTowerSelector from "./phantom-tower-selector";
 import BossChecklist from "./boss-checklist";
 import BossSettingsModal from "./boss-settings-modal";
 
@@ -14,7 +13,7 @@ interface WeeklyTaskSectionProps{
 }
 
 const SUMMONING_BARRIER_MAX = 7;
-const ABYSS_MAX = 3;
+const ABYSS_REWARD_DEFAULT_MAX = 4;
 
 function getBlackHoleMax():number{
 	const now = new Date();
@@ -36,8 +35,11 @@ function getBlackHoleMax():number{
 const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({weekly, fieldBossMonsters, raidMonsters, onChange}) => {
 	const [showFieldBossSettings, setShowFieldBossSettings] = useState(false);
 	const [showRaidSettings, setShowRaidSettings] = useState(false);
+	const [showAbyssRewardSettings, setShowAbyssRewardSettings] = useState(false);
+	const [abyssRewardMaxInput, setAbyssRewardMaxInput] = useState("");
 
 	const blackHoleMax = useMemo(() => getBlackHoleMax(), []);
+	const abyssRewardMax = weekly.abyssRewardMax ?? ABYSS_REWARD_DEFAULT_MAX;
 
 	const trackedFieldBossMonsters = useMemo(() => {
 		if(!weekly.fieldBoss.tracked || weekly.fieldBoss.tracked.length === 0) return [];
@@ -52,12 +54,11 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({weekly, fieldBossMo
 	const completedItems = [
 		weekly.summoningBarrier >= SUMMONING_BARRIER_MAX ? 1 : 0,
 		weekly.blackHole >= blackHoleMax ? 1 : 0,
-		weekly.phantomTower.floor >= 30 && weekly.phantomTower.stage >= 5 ? 1 : 0,
 		trackedFieldBossMonsters.length > 0 && weekly.fieldBoss.completed.length >= trackedFieldBossMonsters.length ? 1 : 0,
-		weekly.abyss >= ABYSS_MAX ? 1 : 0,
+		(weekly.abyssReward ?? 0) >= abyssRewardMax ? 1 : 0,
 		trackedRaidMonsters.length > 0 && weekly.raid.completed.length >= trackedRaidMonsters.length ? 1 : 0
 	];
-	const totalItems = 6;
+	const totalItems = 5;
 	const completedCount = completedItems.reduce((a, b) => a + b, 0);
 
 	return (
@@ -85,11 +86,6 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({weekly, fieldBossMo
 					onChange={(value) => onChange({...weekly, blackHole : value})}
 				/>
 
-				<PhantomTowerSelector
-					value={weekly.phantomTower}
-					onChange={(value) => onChange({...weekly, phantomTower : value})}
-				/>
-
 				<div className={styles.taskItemWithSettings}>
 					<BossChecklist
 						label="필드 보스"
@@ -106,12 +102,24 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({weekly, fieldBossMo
 					</button>
 				</div>
 
-				<TaskCounter
-					label="어비스"
-					current={weekly.abyss}
-					max={ABYSS_MAX}
-					onChange={(value) => onChange({...weekly, abyss : value})}
-				/>
+				<div className={styles.taskItemWithSettings}>
+					<TaskCounter
+						label="어비스 주간 보상"
+						current={weekly.abyssReward ?? 0}
+						max={abyssRewardMax}
+						onChange={(value) => onChange({...weekly, abyssReward : value})}
+					/>
+					<button
+						className={styles.settingsBtn}
+						onClick={() => {
+							setAbyssRewardMaxInput(abyssRewardMax.toString());
+							setShowAbyssRewardSettings(true);
+						}}
+						title="어비스 주간 보상 횟수 설정"
+					>
+						&#9881;
+					</button>
+				</div>
 
 				<div className={styles.taskItemWithSettings}>
 					<BossChecklist
@@ -156,6 +164,42 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({weekly, fieldBossMo
 					}}
 					onClose={() => setShowRaidSettings(false)}
 				/>
+			)}
+
+			{showAbyssRewardSettings && (
+				<div className={styles.modalOverlay} onClick={() => setShowAbyssRewardSettings(false)}>
+					<div className={styles.modal} onClick={(e) => e.stopPropagation()} style={{maxWidth : 360}}>
+						<div className={styles.modalHeader}>
+							<h3>어비스 주간 보상 설정</h3>
+							<button className={styles.modalClose} onClick={() => setShowAbyssRewardSettings(false)}>&times;</button>
+						</div>
+						<div className={styles.modalBody}>
+							<div style={{display : "flex", alignItems : "center", gap : 12}}>
+								<span style={{fontSize : 14, fontWeight : 500}}>주간 보상 횟수</span>
+								<input
+									type="number"
+									min={1}
+									max={99}
+									value={abyssRewardMaxInput}
+									onChange={(e) => setAbyssRewardMaxInput(e.target.value)}
+									style={{width : 60, padding : "6px 8px", borderRadius : 6, border : "1px solid var(--border-color, #ccc)", textAlign : "center", fontSize : 14}}
+									autoFocus
+								/>
+							</div>
+						</div>
+						<div className={styles.modalFooter}>
+							<button className={styles.modalCancelBtn} onClick={() => setShowAbyssRewardSettings(false)}>취소</button>
+							<button className={styles.modalSaveBtn} onClick={() => {
+								const num = parseInt(abyssRewardMaxInput, 10);
+								if(!isNaN(num) && num >= 1 && num <= 99){
+									const newReward = Math.min(weekly.abyssReward ?? 0, num);
+									onChange({...weekly, abyssRewardMax : num, abyssReward : newReward});
+								}
+								setShowAbyssRewardSettings(false);
+							}}>저장</button>
+						</div>
+					</div>
+				</div>
 			)}
 		</div>
 	);

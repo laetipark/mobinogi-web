@@ -17,8 +17,8 @@ import java.time.LocalDateTime;
 public class GameRegion{
 	
 	@Id
-	@Column(name = "region_id", nullable = false)
-	private Integer regionId;
+	@Column(name = "region_id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
+	private Long regionId;
 	
 	@Column(name = "region_name", length = 30)
 	private String regionName;

@@ -155,7 +155,7 @@ const ItemSearchPage:React.FC = () => {
 										</td>
 										<td>{barter.exchangeCost}</td>
 										<td>{barter.barterQty}</td>
-										<td>{barter.barterEtc || "-"}</td>
+										<td>{[barter.barterServer && "서버 공유", barter.barterNpc && "NPC 공유"].filter(Boolean).join(" / ") || "-"}</td>
 									</tr>
 								))}
 							</tbody>

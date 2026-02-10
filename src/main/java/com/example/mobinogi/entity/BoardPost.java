@@ -15,13 +15,13 @@ public class BoardPost{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "post_id")
+	@Column(name = "post_id", columnDefinition = "BIGINT UNSIGNED")
 	private Long postId;
 
-	@Column(name = "category_id")
+	@Column(name = "category_id", columnDefinition = "BIGINT UNSIGNED")
 	private Long categoryId;
 
-	@Column(name = "user_id")
+	@Column(name = "user_id", columnDefinition = "BIGINT UNSIGNED")
 	private Long userId;
 
 	@Column(name = "title", nullable = false, length = 200)
@@ -44,6 +44,9 @@ public class BoardPost{
 
 	@Column(name = "external_author", length = 100)
 	private String externalAuthor;
+
+	@Column(name = "is_wiki")
+	private Boolean isWiki;
 
 	@Column(name = "created_at", updatable = false)
 	private LocalDateTime createdAt;
@@ -68,6 +71,7 @@ public class BoardPost{
 		updatedAt = LocalDateTime.now();
 		if(viewCount == null) viewCount = 0;
 		if(sourceType == null) sourceType = "USER";
+		if(isWiki == null) isWiki = false;
 	}
 
 	@PreUpdate

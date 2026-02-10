@@ -11,4 +11,5 @@ public class BoardPostCreateRequest{
 	private Long categoryId;
 	private String title;
 	private String content;
+	private Boolean isWiki;
 }

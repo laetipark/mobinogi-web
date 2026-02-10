@@ -62,7 +62,9 @@ public class TodoDataDto{
 		private PhantomTower phantomTower;
 		private BossProgress fieldBoss;
 		@Builder.Default
-		private Integer abyss = 0;
+		private Integer abyssReward = 0;
+		@Builder.Default
+		private Integer abyssRewardMax = 4;
 		private BossProgress raid;
 	}
 
@@ -100,7 +102,8 @@ public class TodoDataDto{
 				.blackHole(0)
 				.phantomTower(PhantomTower.builder().floor(1).stage(1).build())
 				.fieldBoss(BossProgress.builder().completed(new ArrayList<>()).tracked(new ArrayList<>()).build())
-				.abyss(0)
+				.abyssReward(0)
+				.abyssRewardMax(4)
 				.raid(BossProgress.builder().completed(new ArrayList<>()).tracked(new ArrayList<>()).build())
 				.build())
 			.resources(Resources.builder()
@@ -122,15 +125,19 @@ public class TodoDataDto{
 
 	public static TodoDataDto createWeeklyReset(TodoDataDto existing){
 		Resources existingResources = existing != null ? existing.getResources() : null;
-		// tracked 보존
+		// tracked, 설정 보존
 		List<Integer> fieldBossTracked = new ArrayList<>();
 		List<Integer> raidTracked = new ArrayList<>();
+		Integer abyssRewardMax = 4;
 		if(existing != null && existing.getWeekly() != null){
 			if(existing.getWeekly().getFieldBoss() != null && existing.getWeekly().getFieldBoss().getTracked() != null){
 				fieldBossTracked = existing.getWeekly().getFieldBoss().getTracked();
 			}
 			if(existing.getWeekly().getRaid() != null && existing.getWeekly().getRaid().getTracked() != null){
 				raidTracked = existing.getWeekly().getRaid().getTracked();
+			}
+			if(existing.getWeekly().getAbyssRewardMax() != null){
+				abyssRewardMax = existing.getWeekly().getAbyssRewardMax();
 			}
 		}
 
@@ -143,7 +150,8 @@ public class TodoDataDto{
 				.blackHole(0)
 				.phantomTower(PhantomTower.builder().floor(1).stage(1).build())
 				.fieldBoss(BossProgress.builder().completed(new ArrayList<>()).tracked(fieldBossTracked).build())
-				.abyss(0)
+				.abyssReward(0)
+				.abyssRewardMax(abyssRewardMax)
 				.raid(BossProgress.builder().completed(new ArrayList<>()).tracked(raidTracked).build())
 				.build())
 			.resources(existingResources != null ? existingResources :

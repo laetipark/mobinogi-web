@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 public class GameClass{
 
 	@Id
-	@Column(name = "class_id", nullable = false)
+	@Column(name = "class_id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
 	private Long classId;
 
 	@Column(name = "class_code", nullable = false, length = 50)

@@ -8,6 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface BoardCategoryRepository extends JpaRepository<BoardCategory, Long>{
-	List<BoardCategory> findByDeletedAtIsNullOrderByDisplayOrderAsc();
+	List<BoardCategory> findByDeletedAtIsNullOrderByCategoryOrderAsc();
 	Optional<BoardCategory> findByCategoryNameAndDeletedAtIsNull(String categoryName);
 }

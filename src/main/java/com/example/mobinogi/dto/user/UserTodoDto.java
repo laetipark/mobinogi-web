@@ -13,9 +13,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class UserTodoDto{
-
+	
 	private static final ObjectMapper objectMapper = new ObjectMapper();
-
+	
 	private Long userId;
 	private Long characterId;
 	private String characterName;
@@ -24,7 +24,7 @@ public class UserTodoDto{
 	private TodoDataDto todoData;
 	private LocalDateTime lastDailyReset;
 	private LocalDateTime lastWeeklyReset;
-
+	
 	public static UserTodoDto fromEntity(UserTodo entity){
 		TodoDataDto todoData;
 		try{
@@ -36,16 +36,16 @@ public class UserTodoDto{
 		}catch(JsonProcessingException e){
 			todoData = TodoDataDto.createDefault();
 		}
-
+		
 		String characterName = null;
 		String serverName = null;
 		String className = null;
 		if(entity.getCharacter() != null){
 			characterName = entity.getCharacter().getCharacterName();
-			serverName = entity.getCharacter().getServerName();
-			className = entity.getCharacter().getClassName();
+			serverName = entity.getCharacter().getCharacterServer();
+			className = entity.getCharacter().getCharacterClass();
 		}
-
+		
 		return UserTodoDto.builder()
 			.userId(entity.getUserId())
 			.characterId(entity.getCharacterId())

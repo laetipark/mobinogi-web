@@ -21,6 +21,7 @@ const BoardWritePage:React.FC = () => {
 	const [categoryId, setCategoryId] = useState<number | null>(null);
 	const [title, setTitle] = useState("");
 	const [content, setContent] = useState("");
+	const [isWiki, setIsWiki] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [showPreview, setShowPreview] = useState(false);
@@ -53,7 +54,7 @@ const BoardWritePage:React.FC = () => {
 	const loadPost = async () => {
 		try{
 			const post = await boardService.getPost(parseInt(postId!));
-			if(post.userId !== (user?.userId ?? user?.id)){
+			if(!post.isWiki && post.userId !== (user?.userId ?? user?.id)){
 				alert("수정 권한이 없습니다.");
 				navigate("/board");
 				return;
@@ -64,6 +65,7 @@ const BoardWritePage:React.FC = () => {
 				return;
 			}
 			setCategoryId(post.categoryId);
+			setIsWiki(!!post.isWiki);
 			setTitle(post.title);
 			setContent(post.content);
 		}catch(err:any){
@@ -156,13 +158,13 @@ const BoardWritePage:React.FC = () => {
 
 			if(isEditMode){
 				const request:BoardPostUpdateRequest = {
-					categoryId, title: title.trim(), content: content.trim()
+					categoryId, title: title.trim(), content: content.trim(), isWiki
 				};
 				await boardService.updatePost(parseInt(postId!), request);
 				navigate(`/board/${postId}`);
 			}else{
 				const request:BoardPostCreateRequest = {
-					categoryId, title: title.trim(), content: content.trim()
+					categoryId, title: title.trim(), content: content.trim(), isWiki
 				};
 				const newPost = await boardService.createPost(request);
 				navigate(`/board/${newPost.postId}`);
@@ -198,6 +200,15 @@ const BoardWritePage:React.FC = () => {
 							))}
 						</select>
 					</div>
+
+					<label className={styles.wikiToggle}>
+						<input
+							type="checkbox"
+							checked={isWiki}
+							onChange={(e) => setIsWiki(e.target.checked)}
+						/>
+						<span>위키로 등록</span>
+					</label>
 
 					<div className={styles.formGroup}>
 						<label>제목</label>

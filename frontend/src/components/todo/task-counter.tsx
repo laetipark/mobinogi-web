@@ -11,7 +11,10 @@ interface TaskCounterProps{
 const TaskCounter:React.FC<TaskCounterProps> = ({label, current, max, onChange}) => {
 	return (
 		<div className={styles.taskItem}>
-			<span className={styles.taskLabel}>{label}</span>
+			<div className={styles.taskLabelRow}>
+				<span className={styles.taskLabel}>{label}</span>
+				<span className={styles.counterText}>{current}/{max}</span>
+			</div>
 			<div className={styles.checkCircles}>
 				{Array.from({length : max}, (_, i) => (
 					<button

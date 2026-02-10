@@ -2,8 +2,10 @@ package com.example.mobinogi.service.board;
 
 import com.example.mobinogi.dto.board.*;
 import com.example.mobinogi.entity.BoardPost;
+import com.example.mobinogi.entity.BoardPostHistory;
 import com.example.mobinogi.repository.BoardCategoryRepository;
 import com.example.mobinogi.repository.BoardCommentRepository;
+import com.example.mobinogi.repository.BoardPostHistoryRepository;
 import com.example.mobinogi.repository.BoardPostRepository;
 import com.example.mobinogi.service.discord.DiscordWebhookService;
 import lombok.RequiredArgsConstructor;
@@ -27,10 +29,11 @@ public class BoardService{
 	private final BoardPostRepository postRepository;
 	private final BoardCategoryRepository categoryRepository;
 	private final BoardCommentRepository commentRepository;
+	private final BoardPostHistoryRepository postHistoryRepository;
 	private final DiscordWebhookService discordWebhookService;
 	
 	public List<BoardCategoryDto> getAllCategories(){
-		return categoryRepository.findByDeletedAtIsNullOrderByDisplayOrderAsc()
+		return categoryRepository.findByDeletedAtIsNullOrderByCategoryOrderAsc()
 			.stream()
 			.map(BoardCategoryDto::fromEntity)
 			.collect(Collectors.toList());
@@ -87,6 +90,7 @@ public class BoardService{
 			.content(request.getContent())
 			.sourceType("USER")
 			.viewCount(0)
+			.isWiki(request.getIsWiki())
 			.build();
 		
 		post = postRepository.save(post);
@@ -107,23 +111,44 @@ public class BoardService{
 		BoardPost post = postRepository.findByPostIdAndDeletedAtIsNull(postId)
 			.orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
 		
-		if(!post.getUserId().equals(userId)){
+		if(!Boolean.TRUE.equals(post.getIsWiki()) && !post.getUserId().equals(userId)){
 			throw new RuntimeException("게시글 수정 권한이 없습니다.");
 		}
-		
+
 		if(!"USER".equals(post.getSourceType())){
 			throw new RuntimeException("외부 연동 게시글은 수정할 수 없습니다.");
 		}
-		
+
+		// 수정 전 기존 내용을 히스토리로 저장
+		BoardPostHistory history = BoardPostHistory.builder()
+			.postId(post.getPostId())
+			.userId(userId)
+			.title(post.getTitle())
+			.content(post.getContent())
+			.build();
+		postHistoryRepository.save(history);
+
 		post.setCategoryId(request.getCategoryId());
 		post.setTitle(request.getTitle());
 		post.setContent(request.getContent());
+
+		// 위키↔일반 전환은 원작성자만 가능
+		if(post.getUserId().equals(userId) && request.getIsWiki() != null){
+			post.setIsWiki(request.getIsWiki());
+		}
 		post = postRepository.save(post);
 		
 		long commentCount = commentRepository.countByPostIdAndDeletedAtIsNull(postId);
 		return BoardPostDto.fromEntity(post, commentCount);
 	}
 	
+	public List<BoardPostHistoryDto> getPostHistory(Long postId){
+		return postHistoryRepository.findByPostIdOrderByCreatedAtDesc(postId)
+			.stream()
+			.map(BoardPostHistoryDto::fromEntity)
+			.collect(Collectors.toList());
+	}
+
 	@Transactional
 	public void deletePost(Long postId, Long userId){
 		BoardPost post = postRepository.findByPostIdAndDeletedAtIsNull(postId)

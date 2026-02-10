@@ -95,8 +95,12 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 					<span className={styles.itemCount}>x{barter.barterQty}</span>
 				</div>
 			</div>
-			{barter.barterEtc && (
-				<div className={styles.barterNote}>{barter.barterEtc}</div>
+			{(barter.barterServer || barter.barterNpc) && (
+				<div className={styles.barterNote}>
+					{barter.barterServer && <span>서버 공유</span>}
+					{barter.barterServer && barter.barterNpc && <span> / </span>}
+					{barter.barterNpc && <span>NPC 공유</span>}
+				</div>
 			)}
 		</div>
 	);

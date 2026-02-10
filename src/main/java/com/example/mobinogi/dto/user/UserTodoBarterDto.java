@@ -13,7 +13,7 @@ public class UserTodoBarterDto{
 	private Long id;
 	private Long userId;
 	private Long characterId;
-	private Integer barterId;
+	private Long barterId;
 	private String barterCycle;
 	private Boolean completed;
 	private String itemName;
@@ -23,6 +23,8 @@ public class UserTodoBarterDto{
 	private Integer exchangeCost;
 	private Integer barterQty;
 	private Integer barterInitCycle;
+	private Integer barterServer;
+	private Integer barterNpc;
 
 	public static UserTodoBarterDto fromEntity(UserTodoBarter entity){
 		UserTodoBarterDtoBuilder builder = UserTodoBarterDto.builder()
@@ -38,6 +40,8 @@ public class UserTodoBarterDto{
 			builder.barterQty(barter.getBarterQty());
 			builder.exchangeCost(barter.getExchangeCost());
 			builder.barterInitCycle(barter.getBarterInitCycle());
+			builder.barterServer(barter.getBarterServer());
+			builder.barterNpc(barter.getBarterNpc());
 			if(barter.getGameItem() != null){
 				builder.itemName(barter.getGameItem().getItemName());
 			}

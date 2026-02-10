@@ -35,7 +35,7 @@ public class GameItemService{
 			.stream()
 			.findFirst()
 			.orElseThrow(() -> new IllegalArgumentException("Item not found"));
-		int itemId = item.getItemId();
+		Long itemId = item.getItemId();
 		String itemName = item.getItemName();
 		
 		List<LifeBarter> bartersByItemId = lifeBarterRepository.findByItemId(itemId);
@@ -54,7 +54,7 @@ public class GameItemService{
 		return dto;
 	}
 	
-	public void deleteGameItemSafely(int rowIndex){
+	public void deleteGameItemSafely(Long rowIndex){
 		// 1. 관련된 life_barter 삭제
 		lifeBarterRepository.deleteAllByItemId(rowIndex);
 		lifeBarterRepository.deleteAllByExchangeId(rowIndex);
@@ -70,27 +70,27 @@ public class GameItemService{
 	public Page<GameItemSummaryDto> getGameItemsWithSummary(int page, int size, String sortBy, String sortDir, String keyword){
 		log.info("🔍 GameItems 조회 시작 - page: {}, size: {}, sortBy: {}, sortDir: {}, keyword: {}",
 			page, size, sortBy, sortDir, keyword);
-
+		
 		Sort sort = sortDir.equalsIgnoreCase("desc") ?
 			Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-
+		
 		Pageable pageable = PageRequest.of(page, size, sort);
-
+		
 		Page<GameItem> result;
 		if(keyword != null && !keyword.trim().isEmpty()){
 			result = gameItemRepository.findByItemNameContaining(keyword, pageable);
 		}else{
 			result = gameItemRepository.findAll(pageable);
 		}
-
+		
 		// GameItem을 GameItemSummaryDto로 변환하면서 물물교환/제작 정보 추가
 		Page<GameItemSummaryDto> summaryPage = result.map(item -> {
 			GameItemSummaryDto dto = GameItemSummaryDto.fromEntity(item);
-
+			
 			// 물물교환 정보 조회 (이 아이템을 획득할 수 있는 물물교환)
 			List<LifeBarter> barters = lifeBarterRepository.findByItemId(item.getItemId());
 			dto.setHasBarterSource(!barters.isEmpty());
-
+			
 			if(!barters.isEmpty()){
 				List<GameItemSummaryDto.BarterSourceInfo> barterSources = new ArrayList<>();
 				for(LifeBarter barter : barters){
@@ -103,18 +103,18 @@ public class GameItemService{
 				}
 				dto.setBarterSources(barterSources);
 			}
-
+			
 			// 제작 정보 조회 (이 아이템을 제작할 수 있는지)
 			List<LifeCraft> crafts = lifeCraftRepository.findByItemId(item.getItemId());
 			dto.setHasCraftSource(!crafts.isEmpty());
 			dto.setCraftRecipeCount((int) crafts.stream().map(LifeCraft::getCraftSubId).distinct().count());
-
+			
 			return dto;
 		});
-
+		
 		log.info("📊 조회 결과: 총 {}개 아이템, 현재 페이지 {}개",
 			summaryPage.getTotalElements(), summaryPage.getNumberOfElements());
-
+		
 		return summaryPage;
 	}
 }

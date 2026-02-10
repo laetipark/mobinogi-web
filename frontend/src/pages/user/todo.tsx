@@ -2,11 +2,14 @@ import React, {useState, useEffect, useRef, useCallback} from "react";
 import {UserTodo, TodoData, GameMonster, Resources, UserCharacterRequest} from "../../types";
 import {todoService} from "../../services/todo-service";
 import {characterService} from "../../services/character-service";
+import {gameClassService, GameClassItem} from "../../services/game-class-service";
 import DailyTaskSection from "../../components/todo/daily-task-section";
 import WeeklyTaskSection from "../../components/todo/weekly-task-section";
 import ResourceDisplay from "../../components/todo/resource-display";
+import PhantomTowerSelector from "../../components/todo/phantom-tower-selector";
 import BarterCart from "../../components/todo/barter-cart";
-import {Plus, X, Save} from "lucide-react";
+import {Plus, X, Save, GripVertical} from "lucide-react";
+import SortableCharacterList from "../../components/user/sortable-character-list";
 import styles from "./todo.module.scss";
 
 const AUTO_SAVE_INTERVAL = 5 * 60 * 1000; // 5분
@@ -27,9 +30,16 @@ const TodoPage:React.FC = () => {
 	const [showAddCharacter, setShowAddCharacter] = useState(false);
 	const [characterForm, setCharacterForm] = useState<UserCharacterRequest>({
 		characterName: "",
-		serverName: "",
+		serverName: "아이라",
 		className: ""
 	});
+	const [classes, setClasses] = useState<GameClassItem[]>([]);
+	const servers = ["데이안", "아이라", "던컨", "알리사", "메이븐", "라사", "칼릭스"];
+
+	// 캐릭터 순서 변경 모달
+	const [showReorder, setShowReorder] = useState(false);
+	const [reorderList, setReorderList] = useState<{characterId:number; characterName:string; serverName?:string}[]>([]);
+	const [reorderSaving, setReorderSaving] = useState(false);
 
 	const [isDirty, setIsDirty] = useState(false);
 	const dirtyRef = useRef<Set<number>>(new Set());
@@ -42,6 +52,7 @@ const TodoPage:React.FC = () => {
 
 	useEffect(() => {
 		loadData();
+		gameClassService.getClasses().then(setClasses).catch(() => {});
 		return () => {
 			if(autoSaveTimer.current) clearInterval(autoSaveTimer.current);
 		};
@@ -176,7 +187,7 @@ const TodoPage:React.FC = () => {
 		if(!characterForm.characterName.trim()) return;
 		try{
 			const newChar = await characterService.createCharacter(characterForm);
-			setCharacterForm({characterName: "", serverName: "", className: ""});
+			setCharacterForm({characterName: "", serverName: "아이라", className: ""});
 			setShowAddCharacter(false);
 			// 데이터 새로고침하여 새 캐릭터의 todo를 가져옴
 			await loadData();
@@ -185,6 +196,25 @@ const TodoPage:React.FC = () => {
 		}catch(err:any){
 			console.error("캐릭터 추가 실패:", err);
 			showToast("캐릭터 추가에 실패했습니다");
+		}
+	};
+
+	const openReorderModal = () => {
+		setReorderList(todos.map(t => ({characterId: t.characterId, characterName: t.characterName, serverName: t.serverName})));
+		setShowReorder(true);
+	};
+
+	const handleReorderSave = async() => {
+		setReorderSaving(true);
+		try{
+			await characterService.reorderCharacters(reorderList.map(c => c.characterId));
+			setShowReorder(false);
+			await loadData();
+			showToast("캐릭터 순서가 변경되었습니다");
+		}catch(err:any){
+			showToast("순서 변경에 실패했습니다");
+		}finally{
+			setReorderSaving(false);
 		}
 	};
 
@@ -252,6 +282,15 @@ const TodoPage:React.FC = () => {
 							>
 								<Plus size={18}/>
 							</button>
+							{todos.length >= 2 && (
+								<button
+									className={styles.addCharTabBtn}
+									onClick={openReorderModal}
+									title="순서 변경"
+								>
+									<GripVertical size={18}/>
+								</button>
+							)}
 						</div>
 						<div className={styles.saveArea}>
 							{toastMessage && <span className={styles.toast}>{toastMessage}</span>}
@@ -269,7 +308,7 @@ const TodoPage:React.FC = () => {
 					{showAddCharacter && (
 						<div className={styles.addCharOverlay} onClick={() => {
 							setShowAddCharacter(false);
-							setCharacterForm({characterName: "", serverName: "", className: ""});
+							setCharacterForm({characterName: "", serverName: "아이라", className: ""});
 						}}>
 							<div className={styles.addCharacterPopup} onClick={(e) => e.stopPropagation()}>
 								<h3>새 캐릭터 추가</h3>
@@ -286,21 +325,27 @@ const TodoPage:React.FC = () => {
 									</div>
 									<div className={styles.addCharFormGroup}>
 										<label>서버</label>
-										<input
-											type="text"
-											placeholder="서버 이름"
+										<select
 											value={characterForm.serverName || ""}
 											onChange={(e) => setCharacterForm(prev => ({...prev, serverName: e.target.value}))}
-										/>
+										>
+											<option value="">선택안함</option>
+											{servers.map(server => (
+												<option key={server} value={server}>{server}</option>
+											))}
+										</select>
 									</div>
 									<div className={styles.addCharFormGroup}>
 										<label>직업</label>
-										<input
-											type="text"
-											placeholder="직업"
+										<select
 											value={characterForm.className || ""}
 											onChange={(e) => setCharacterForm(prev => ({...prev, className: e.target.value}))}
-										/>
+										>
+											<option value="">선택안함</option>
+											{classes.map(cls => (
+												<option key={cls.classId} value={cls.className}>{cls.className}</option>
+											))}
+										</select>
 									</div>
 								</div>
 								<div className={styles.addCharActions}>
@@ -308,7 +353,7 @@ const TodoPage:React.FC = () => {
 										className={styles.addCharCancelBtn}
 										onClick={() => {
 											setShowAddCharacter(false);
-											setCharacterForm({characterName: "", serverName: "", className: ""});
+											setCharacterForm({characterName: "", serverName: "아이라", className: ""});
 										}}
 									>
 										<X size={16}/>
@@ -327,6 +372,38 @@ const TodoPage:React.FC = () => {
 						</div>
 					)}
 
+					{/* 순서 변경 모달 */}
+					{showReorder && (
+						<div className={styles.addCharOverlay} onClick={() => setShowReorder(false)}>
+							<div className={styles.addCharacterPopup} onClick={(e) => e.stopPropagation()}>
+								<h3>캐릭터 순서 변경</h3>
+								<div className={styles.reorderList}>
+									<SortableCharacterList
+										items={reorderList}
+										onReorder={setReorderList}
+									/>
+								</div>
+								<div className={styles.addCharActions}>
+									<button
+										className={styles.addCharCancelBtn}
+										onClick={() => setShowReorder(false)}
+									>
+										<X size={16}/>
+										취소
+									</button>
+									<button
+										className={styles.addCharConfirmBtn}
+										onClick={handleReorderSave}
+										disabled={reorderSaving}
+									>
+										<Save size={16}/>
+										{reorderSaving ? "저장 중..." : "저장"}
+									</button>
+								</div>
+							</div>
+						</div>
+					)}
+
 					{selectedTodo && (
 						<div className={styles.characterView}>
 							{/* 캐릭터 정보 + 리소스 */}
@@ -336,10 +413,19 @@ const TodoPage:React.FC = () => {
 									{selectedTodo.serverName && <span className={styles.serverName}>{selectedTodo.serverName}</span>}
 									{selectedTodo.className && <span className={styles.className}>{selectedTodo.className}</span>}
 								</div>
+								<div className={styles.headerResources}>
 								<ResourceDisplay
 									resources={selectedTodo.todoData.resources || {}}
 									onChange={(resources:Resources) => handleTodoChange(selectedTodo.characterId, {...selectedTodo.todoData, resources})}
 								/>
+								<PhantomTowerSelector
+									value={selectedTodo.todoData.weekly.phantomTower}
+									onChange={(phantomTower) => handleTodoChange(selectedTodo.characterId, {
+										...selectedTodo.todoData,
+										weekly : {...selectedTodo.todoData.weekly, phantomTower}
+									})}
+								/>
+							</div>
 							</div>
 
 							{/* 2섹션 레이아웃 */}

@@ -24,6 +24,7 @@ public class BoardPostDto{
 	private String sourceType;
 	private String externalUrl;
 	private String externalAuthor;
+	private Boolean isWiki;
 	private Long commentCount;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
@@ -68,6 +69,7 @@ public class BoardPostDto{
 			.sourceType(entity.getSourceType())
 			.externalUrl(entity.getExternalUrl())
 			.externalAuthor(entity.getExternalAuthor())
+			.isWiki(entity.getIsWiki())
 			.commentCount(commentCount)
 			.createdAt(entity.getCreatedAt())
 			.updatedAt(entity.getUpdatedAt())

@@ -224,6 +224,7 @@ const BoardListPage:React.FC = () => {
 											<span className={styles.categoryTag}>[{post.categoryName}]</span>
 										)}
 										<span className={styles.title}>{post.title}</span>
+										{post.isWiki && <span className={`${styles.badge} ${styles.wiki}`}>위키</span>}
 										{getSourceBadge(post.sourceType)}
 										{post.commentCount > 0 && (
 											<span className={styles.commentCount}>[{post.commentCount}]</span>

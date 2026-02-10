@@ -18,23 +18,23 @@ import java.time.LocalDateTime;
 public class LifeBarter{
 	
 	@Id
-	@Column(name = "barter_id", nullable = false)
-	private Integer barterId;
-	
-	@Column(name = "region_id", nullable = false)
-	private Integer regionId;
-	
-	@Column(name = "npc_id", nullable = false)
-	private Integer npcId;
-	
-	@Column(name = "item_id", nullable = false)
-	private Integer itemId;
+	@Column(name = "barter_id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
+	private Long barterId;
+
+	@Column(name = "region_id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
+	private Long regionId;
+
+	@Column(name = "npc_id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
+	private Long npcId;
+
+	@Column(name = "item_id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
+	private Long itemId;
 	
 	@Column(name = "item_weight", nullable = false)
 	private Integer itemWeight;
 	
-	@Column(name = "exchange_id", nullable = false)
-	private Integer exchangeId;
+	@Column(name = "exchange_id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
+	private Long exchangeId;
 	
 	@Column(name = "exchange_cost", nullable = false)
 	private Integer exchangeCost;
@@ -51,30 +51,33 @@ public class LifeBarter{
 	@Column(name = "barter_init_day")
 	private Byte barterInitDay;
 	
-	@Column(name = "barter_etc", length = 100)
-	private String barterEtc;
+	@Column(name = "barter_server")
+	private Integer barterServer;
+
+	@Column(name = "barter_npc")
+	private Integer barterNpc;
 	
 	@Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
 	private LocalDateTime createdAt;
-
+	
 	@Column(name = "updated_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
 	private LocalDateTime updatedAt;
-
+	
 	@Column(name = "deleted_at", columnDefinition = "TIMESTAMP")
 	private LocalDateTime deletedAt;
 	
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "region_id", insertable = false, updatable = false)
 	private GameRegion gameRegion;
-
+	
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "npc_id", insertable = false, updatable = false)
 	private GameNpc gameNpc;
-
+	
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "item_id", insertable = false, updatable = false)
 	private GameItem gameItem;
-
+	
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "exchange_id", referencedColumnName = "item_id", insertable = false, updatable = false)
 	private GameItem exchangeItem;

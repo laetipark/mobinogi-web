@@ -15,10 +15,10 @@ public class User{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "user_id")
+	@Column(name = "user_id", columnDefinition = "BIGINT UNSIGNED")
 	private Long userId;
 
-	@Column(name = "kakao_id", unique = true, nullable = false)
+	@Column(name = "kakao_id", unique = true, nullable = false, columnDefinition = "BIGINT UNSIGNED")
 	private Long kakaoId;
 
 	@Column(name = "nickname", length = 100)

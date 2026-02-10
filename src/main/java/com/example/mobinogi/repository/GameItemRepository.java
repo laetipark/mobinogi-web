@@ -23,7 +23,7 @@ public interface GameItemRepository extends JpaRepository<GameItem, Integer>{
 	// 뒷부분 일치 (LIKE '%keyword')
 	List<GameItem> findByItemNameEndingWith(String suffix);
 	
-	void deleteByItemIdGreaterThanEqual(int itemId);
+	void deleteByItemIdGreaterThanEqual(Long itemId);
 	
 	// 페이지네이션을 위한 메소드
 	@NotNull Page<GameItem> findAll(@NotNull Pageable pageable);

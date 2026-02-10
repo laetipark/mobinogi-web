@@ -19,6 +19,31 @@ const ResourceItem:React.FC<ResourceItemProps> = ({label, max, chargeIntervalMin
 	const [fullChargeText, setFullChargeText] = useState("");
 	const current = value?.current ?? 0;
 
+	// 실시간 충전: lastChargeTime 기반으로 시간 경과 시 current 자동 증가
+	useEffect(() => {
+		if(current >= max || !value?.lastChargeTime) return;
+
+		const chargeMs = chargeIntervalMinutes * 60 * 1000;
+
+		const checkCharge = () => {
+			const lastCharge = new Date(value.lastChargeTime!).getTime();
+			const now = Date.now();
+			const elapsed = now - lastCharge;
+			const chargesEarned = Math.floor(elapsed / chargeMs);
+
+			if(chargesEarned > 0){
+				const newCurrent = Math.min(current + chargesEarned, max);
+				const newLastChargeTime = new Date(lastCharge + chargesEarned * chargeMs).toISOString();
+				onChange({current : newCurrent, lastChargeTime : newLastChargeTime});
+			}
+		};
+
+		checkCharge();
+		const interval = setInterval(checkCharge, 60000);
+		return () => clearInterval(interval);
+	}, [current, max, chargeIntervalMinutes, value?.lastChargeTime]);
+
+	// 완충까지 남은 시간 표시
 	useEffect(() => {
 		if(current <= 0 || current >= max){
 			setFullChargeText("");
@@ -26,25 +51,25 @@ const ResourceItem:React.FC<ResourceItemProps> = ({label, max, chargeIntervalMin
 		}
 
 		const remaining = max - current;
-		const totalMinutes = remaining * chargeIntervalMinutes;
+		const chargeMs = chargeIntervalMinutes * 60 * 1000;
 
 		const updateText = () => {
 			if(value?.lastChargeTime){
 				const lastCharge = new Date(value.lastChargeTime).getTime();
 				const now = Date.now();
 				const elapsed = now - lastCharge;
-				const chargeMs = chargeIntervalMinutes * 60 * 1000;
 				const nextChargeMs = chargeMs - (elapsed % chargeMs);
 				const remainingCharges = remaining - 1;
 				const totalMs = nextChargeMs + remainingCharges * chargeMs;
 
 				const hours = Math.floor(totalMs / 3600000);
 				const minutes = Math.floor((totalMs % 3600000) / 60000);
-				setFullChargeText(`만충 ${hours}시간 ${minutes}분`);
+				setFullChargeText(`모두 충전까지 ${hours}시간 ${minutes}분`);
 			}else{
+				const totalMinutes = remaining * chargeIntervalMinutes;
 				const hours = Math.floor(totalMinutes / 60);
 				const mins = totalMinutes % 60;
-				setFullChargeText(`만충 ${hours}시간 ${mins}분`);
+				setFullChargeText(`모두 충전까지 ${hours}시간 ${mins}분`);
 			}
 		};
 

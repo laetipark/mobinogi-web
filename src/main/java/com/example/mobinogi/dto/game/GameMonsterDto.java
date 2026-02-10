@@ -10,8 +10,8 @@ import lombok.*;
 @Builder
 public class GameMonsterDto{
 
-	private Integer monsterId;
-	private Integer regionId;
+	private Long monsterId;
+	private Long regionId;
 	private String regionName;
 	private String monsterType;
 	private String monsterDifficulty;

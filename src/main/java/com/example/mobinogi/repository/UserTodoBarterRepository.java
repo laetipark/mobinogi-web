@@ -21,4 +21,8 @@ public interface UserTodoBarterRepository extends JpaRepository<UserTodoBarter, 
 	@Modifying
 	@Query("UPDATE UserTodoBarter b SET b.completed = false WHERE b.deletedAt IS NULL AND b.barterCycle = :cycle")
 	void resetCompletedByCycle(String cycle);
+
+	List<UserTodoBarter> findByUserIdAndBarterIdInAndDeletedAtIsNull(Long userId, List<Long> barterIds);
+
+	List<UserTodoBarter> findByUserIdAndCharacterIdAndBarterIdInAndDeletedAtIsNull(Long userId, Long characterId, List<Long> barterIds);
 }

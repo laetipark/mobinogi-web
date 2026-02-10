@@ -48,6 +48,13 @@ export const characterService = {
 		if(!response.success){
 			throw new Error(response.message || "Failed to delete character");
 		}
+	},
+
+	reorderCharacters : async(characterIds:number[]):Promise<void> => {
+		const response = await apiService.put<DeleteResponse>("/user/characters/reorder", {characterIds});
+		if(!response.success){
+			throw new Error(response.message || "Failed to reorder characters");
+		}
 	}
 };
 

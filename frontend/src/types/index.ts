@@ -142,7 +142,8 @@ export interface LifeBarter{
 	barterInitCycle?:number;
 	barterInitDate?:string;
 	barterInitDay?:number;
-	barterEtc?:string;
+	barterServer?:number;
+	barterNpc?:number;
 	gameRegion?:GameRegion;
 	gameNpc?:GameNpc;
 	gameItem?:GameItem;
@@ -218,6 +219,7 @@ export interface UserCharacter{
 	characterId:number;
 	userId:number;
 	characterName:string;
+	displayOrder?:number;
 	serverName?:string;
 	className?:string;
 	createdAt:string;
@@ -261,6 +263,7 @@ export interface BoardPost{
 	externalUrl:string | null;
 	externalAuthor:string | null;
 	images?:string[];
+	isWiki?:boolean;
 	commentCount:number;
 	createdAt:string;
 	updatedAt:string;
@@ -270,12 +273,14 @@ export interface BoardPostCreateRequest{
 	categoryId:number | null;
 	title:string;
 	content:string;
+	isWiki?:boolean;
 }
 
 export interface BoardPostUpdateRequest{
 	categoryId:number | null;
 	title:string;
 	content:string;
+	isWiki?:boolean;
 }
 
 export interface BoardComment{
@@ -313,6 +318,16 @@ export interface BoardPostPage{
 	numberOfElements:number;
 }
 
+export interface BoardPostHistory{
+	historyId:number;
+	postId:number;
+	userId:number;
+	editorNickname:string | null;
+	title:string;
+	content:string;
+	createdAt:string;
+}
+
 // 숙제 관련 타입
 export interface CounterTask{
 	current:number;
@@ -343,7 +358,8 @@ export interface WeeklyTasks{
 	blackHole:number;
 	phantomTower:PhantomTower;
 	fieldBoss:BossProgress;
-	abyss:number;
+	abyssReward:number;
+	abyssRewardMax:number;
 	raid:BossProgress;
 }
 
@@ -378,4 +394,6 @@ export interface UserTodoBarter{
 	exchangeCost?:number;
 	barterQty?:number;
 	barterInitCycle?:number;
+	barterServer?:number;
+	barterNpc?:number;
 }

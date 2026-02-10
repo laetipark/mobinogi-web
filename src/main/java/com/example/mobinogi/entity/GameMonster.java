@@ -17,11 +17,11 @@ import java.time.LocalDateTime;
 public class GameMonster{
 
 	@Id
-	@Column(name = "monster_id", nullable = false)
-	private Integer monsterId;
+	@Column(name = "monster_id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
+	private Long monsterId;
 
-	@Column(name = "region_id")
-	private Integer regionId;
+	@Column(name = "region_id", columnDefinition = "BIGINT UNSIGNED")
+	private Long regionId;
 
 	@Column(name = "monster_type", length = 20)
 	private String monsterType;

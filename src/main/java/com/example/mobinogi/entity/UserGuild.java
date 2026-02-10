@@ -18,6 +18,7 @@ public class UserGuild{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(columnDefinition = "BIGINT UNSIGNED")
 	private Long id;
 
 	@Column(name = "member_name", nullable = false, length = 100)
@@ -52,6 +53,12 @@ public class UserGuild{
 
 	@Column(name = "text_info", length = 500)
 	private String textInfo; // 텍스트 정보
+	
+	@Column(name = "notion_page_id", length = 100)
+	private String notionPageId; // Notion 페이지 ID (중복 방지용)
+	
+	@Column(name = "last_edited_time")
+	private LocalDateTime lastEditedTime; // Notion에서 마지막으로 수정된 시간
 
 	@Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
 	private LocalDateTime createdAt;
@@ -61,12 +68,6 @@ public class UserGuild{
 
 	@Column(name = "deleted_at", columnDefinition = "TIMESTAMP")
 	private LocalDateTime deletedAt;
-
-	@Column(name = "notion_page_id", length = 100)
-	private String notionPageId; // Notion 페이지 ID (중복 방지용)
-
-	@Column(name = "last_edited_time")
-	private LocalDateTime lastEditedTime; // Notion에서 마지막으로 수정된 시간
 
 	@PrePersist
 	public void prePersist(){

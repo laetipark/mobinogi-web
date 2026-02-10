@@ -39,7 +39,8 @@ const BarterCard:React.FC<BarterCardProps> = ({barter, onClick}) => {
 
 			<div className={styles.barterInfo}>
 				<span>무게: {barter.itemWeight}</span>
-				{barter.barterEtc && <span className={styles.barterEtc}>{barter.barterEtc}</span>}
+				{barter.barterServer && <span className={styles.barterTag}>서버 공유</span>}
+				{barter.barterNpc && <span className={styles.barterTag}>NPC 공유</span>}
 			</div>
 
 			{onClick && barter.gameItem && (

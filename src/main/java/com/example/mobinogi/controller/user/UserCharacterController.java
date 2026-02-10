@@ -102,6 +102,34 @@ public class UserCharacterController{
 		}
 	}
 
+	@PutMapping("/reorder")
+	public ResponseEntity<?> reorderCharacters(
+		@RequestHeader(value = "Authorization", required = false) String authHeader,
+		@RequestBody Map<String, List<Long>> request
+	){
+		try{
+			Long userId = getUserIdFromToken(authHeader);
+			List<Long> characterIds = request.get("characterIds");
+			if(characterIds == null || characterIds.isEmpty()){
+				throw new RuntimeException("캐릭터 ID 목록이 필요합니다.");
+			}
+			userCharacterService.reorderCharacters(userId, characterIds);
+
+			Map<String, Object> response = new HashMap<>();
+			response.put("success", true);
+			response.put("message", "캐릭터 순서가 변경되었습니다.");
+
+			return ResponseEntity.ok(response);
+		}catch(Exception e){
+			Map<String, Object> errorResponse = new HashMap<>();
+			errorResponse.put("success", false);
+			errorResponse.put("message", e.getMessage());
+
+			int status = e.getMessage().contains("토큰") ? 401 : 400;
+			return ResponseEntity.status(status).body(errorResponse);
+		}
+	}
+
 	@DeleteMapping("/{characterId}")
 	public ResponseEntity<?> deleteCharacter(
 		@RequestHeader(value = "Authorization", required = false) String authHeader,

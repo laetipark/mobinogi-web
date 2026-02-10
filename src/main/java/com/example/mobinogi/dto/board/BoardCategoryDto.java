@@ -17,7 +17,7 @@ public class BoardCategoryDto{
 		return BoardCategoryDto.builder()
 			.categoryId(entity.getCategoryId())
 			.categoryName(entity.getCategoryName())
-			.displayOrder(entity.getDisplayOrder())
+			.displayOrder(entity.getCategoryOrder())
 			.build();
 	}
 }

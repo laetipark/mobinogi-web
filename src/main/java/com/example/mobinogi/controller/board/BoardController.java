@@ -212,6 +212,24 @@ public class BoardController{
 		}
 	}
 
+	// GET /api/board/posts/{postId}/history
+	@GetMapping("/posts/{postId}/history")
+	public ResponseEntity<?> getPostHistory(@PathVariable Long postId){
+		try{
+			List<BoardPostHistoryDto> history = boardService.getPostHistory(postId);
+
+			Map<String, Object> response = new HashMap<>();
+			response.put("success", true);
+			response.put("history", history);
+			return ResponseEntity.ok(response);
+		}catch(Exception e){
+			Map<String, Object> errorResponse = new HashMap<>();
+			errorResponse.put("success", false);
+			errorResponse.put("message", e.getMessage());
+			return ResponseEntity.badRequest().body(errorResponse);
+		}
+	}
+
 	// GET /api/board/posts/{postId}/comments
 	@GetMapping("/posts/{postId}/comments")
 	public ResponseEntity<?> getComments(@PathVariable Long postId){

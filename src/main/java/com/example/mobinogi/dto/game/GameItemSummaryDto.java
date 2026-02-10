@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GameItemSummaryDto{
-	private Integer itemId;
+	private Long itemId;
 	private String itemName;
 	private String itemType;
 	private String itemRarity;

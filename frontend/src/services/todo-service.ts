@@ -25,6 +25,12 @@ interface BarterResponse{
 	message?:string;
 }
 
+interface BarterListToggleResponse{
+	success:boolean;
+	barters:UserTodoBarter[];
+	message?:string;
+}
+
 interface DeleteResponse{
 	success:boolean;
 	message:string;
@@ -76,10 +82,10 @@ export const todoService = {
 		}
 	},
 
-	toggleBarterComplete : async(characterId:number, barterId:number):Promise<UserTodoBarter> => {
-		const response = await apiService.put<BarterResponse>(`/user/todo/barter/${characterId}/${barterId}/toggle`);
+	toggleBarterComplete : async(characterId:number, barterId:number):Promise<UserTodoBarter[]> => {
+		const response = await apiService.put<BarterListToggleResponse>(`/user/todo/barter/${characterId}/${barterId}/toggle`);
 		if(response.success){
-			return response.barter;
+			return response.barters;
 		}
 		throw new Error(response.message || "Failed to toggle barter");
 	},

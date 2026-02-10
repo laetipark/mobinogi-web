@@ -2,7 +2,7 @@ import React, {useState, useEffect} from "react";
 import {useParams, useNavigate, useLocation} from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import type {BoardPost, BoardComment, BoardCommentCreateRequest} from "@/types";
+import type {BoardPost, BoardComment, BoardCommentCreateRequest, BoardPostHistory} from "@/types";
 import {boardService} from "@/services/board-service";
 import {useAuth} from "@/hooks/use-auth";
 import CommentItem from "@/components/board/comment-item";
@@ -22,6 +22,10 @@ const BoardDetailPage:React.FC = () => {
 	const [commentContent, setCommentContent] = useState("");
 	const [replyToId, setReplyToId] = useState<number | null>(null);
 	const [submitting, setSubmitting] = useState(false);
+
+	const [history, setHistory] = useState<BoardPostHistory[]>([]);
+	const [historyOpen, setHistoryOpen] = useState(false);
+	const [selectedHistory, setSelectedHistory] = useState<BoardPostHistory | null>(null);
 
 	// 외부 게시글 여부 (location.state로 전달된 경우)
 	const externalPost = (location.state as any)?.post as BoardPost | undefined;
@@ -56,6 +60,23 @@ const BoardDetailPage:React.FC = () => {
 		}catch(err){
 			console.error("댓글 로드 실패:", err);
 		}
+	};
+
+	const loadHistory = async () => {
+		try{
+			const data = await boardService.getPostHistory(parseInt(postId!));
+			setHistory(data);
+		}catch(err){
+			console.error("히스토리 로드 실패:", err);
+		}
+	};
+
+	const handleToggleHistory = () => {
+		if(!historyOpen && history.length === 0){
+			loadHistory();
+		}
+		setHistoryOpen(!historyOpen);
+		setSelectedHistory(null);
 	};
 
 	const handleDeletePost = async () => {
@@ -137,17 +158,18 @@ const BoardDetailPage:React.FC = () => {
 	}
 
 	const isAuthor = (user?.userId ?? user?.id) === post.userId;
-	const canEdit = isAuthor && post.sourceType === "USER";
+	const canEdit = post.sourceType === "USER" && (isAuthor || (!!user && post.isWiki));
+	const canDelete = isAuthor && post.sourceType === "USER";
 
 	return (
 		<div className={styles.boardPage}>
 			<div className={styles.container}>
 				<div className={styles.topBar}>
 					<button onClick={() => navigate("/board")} className={styles.backBtn}>목록</button>
-					{canEdit && (
+					{(canEdit || canDelete) && (
 						<div className={styles.postActions}>
-							<button onClick={() => navigate(`/board/edit/${post.postId}`)} className={styles.editBtn}>수정</button>
-							<button onClick={handleDeletePost} className={styles.deleteBtn}>삭제</button>
+							{canEdit && <button onClick={() => navigate(`/board/edit/${post.postId}`)} className={styles.editBtn}>수정</button>}
+							{canDelete && <button onClick={handleDeletePost} className={styles.deleteBtn}>삭제</button>}
 						</div>
 					)}
 				</div>
@@ -192,6 +214,39 @@ const BoardDetailPage:React.FC = () => {
 						<ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
 					</div>
 				</article>
+
+				{!isExternal && post.isWiki && (
+					<section className={styles.historySection}>
+						<button className={styles.historyToggle} onClick={handleToggleHistory}>
+							수정 내역 {historyOpen ? "\u25B2" : "\u25BC"}
+						</button>
+						{historyOpen && (
+							<div className={styles.historyList}>
+								{history.length === 0 ? (
+									<p className={styles.noComments}>수정 내역이 없습니다.</p>
+								) : (
+									history.map(h => (
+										<div key={h.historyId}>
+											<div
+												className={`${styles.historyItem} ${selectedHistory?.historyId === h.historyId ? styles.active : ""}`}
+												onClick={() => setSelectedHistory(selectedHistory?.historyId === h.historyId ? null : h)}
+											>
+												<span>{formatDate(h.createdAt)}</span>
+												<span className={styles.historyEditor}>{h.editorNickname || "익명"}</span>
+											</div>
+											{selectedHistory?.historyId === h.historyId && (
+												<div className={styles.historyDetail}>
+													<h4>{h.title}</h4>
+													<ReactMarkdown remarkPlugins={[remarkGfm]}>{h.content}</ReactMarkdown>
+												</div>
+											)}
+										</div>
+									))
+								)}
+							</div>
+						)}
+					</section>
+				)}
 
 				{!isExternal && (
 					<section className={styles.commentsSection}>
