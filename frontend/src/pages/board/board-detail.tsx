@@ -211,7 +211,13 @@ const BoardDetailPage:React.FC = () => {
 					)}
 
 					<div className={styles.content}>
-						<ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
+						<ReactMarkdown remarkPlugins={[remarkGfm]} components={{
+							table: ({children, ...props}) => (
+								<div style={{overflowX:"auto"}}>
+									<table {...props}>{children}</table>
+								</div>
+							)
+						}}>{post.content}</ReactMarkdown>
 					</div>
 				</article>
 

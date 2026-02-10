@@ -404,6 +404,18 @@
 }
 
 @include mobile{
+	.pageHeader{
+		margin-bottom:20px;
+
+		h1{
+			font-size:1.5rem;
+		}
+
+		.pageDescription{
+			font-size:0.9rem;
+		}
+	}
+
 	.searchContainer{
 		.searchBtn,
 		.resetBtn{
@@ -414,6 +426,7 @@
 
 	.itemInfoHeader{
 		padding:16px;
+		flex-wrap:wrap;
 
 		h2{
 			font-size:1.25rem;

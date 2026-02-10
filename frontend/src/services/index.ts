@@ -6,3 +6,4 @@ export {boardService} from "./board-service";
 export {uploadService} from "./upload-service";
 export {discordService} from "./discord-service";
 export {gameClassService} from "./game-class-service";
+export {eventService} from "./event-service";

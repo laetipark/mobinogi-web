@@ -2,6 +2,9 @@ package com.example.mobinogi.controller.user;
 
 import com.example.mobinogi.dto.user.UserCharacterDto;
 import com.example.mobinogi.dto.user.UserCharacterRequest;
+import com.example.mobinogi.entity.UserRank;
+import com.example.mobinogi.repository.UserRankRepository;
+import com.example.mobinogi.service.rank.RankApiService;
 import com.example.mobinogi.service.user.UserCharacterService;
 import com.example.mobinogi.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +21,8 @@ import java.util.Map;
 public class UserCharacterController{
 
 	private final UserCharacterService userCharacterService;
+	private final RankApiService rankApiService;
+	private final UserRankRepository userRankRepository;
 	private final JwtUtil jwtUtil;
 
 	private Long getUserIdFromToken(String authHeader){
@@ -142,6 +147,55 @@ public class UserCharacterController{
 			Map<String, Object> response = new HashMap<>();
 			response.put("success", true);
 			response.put("message", "캐릭터가 삭제되었습니다.");
+
+			return ResponseEntity.ok(response);
+		}catch(Exception e){
+			Map<String, Object> errorResponse = new HashMap<>();
+			errorResponse.put("success", false);
+			errorResponse.put("message", e.getMessage());
+
+			int status = e.getMessage().contains("토큰") ? 401 : 400;
+			return ResponseEntity.status(status).body(errorResponse);
+		}
+	}
+
+	@GetMapping("/rank")
+	public ResponseEntity<?> fetchRank(
+		@RequestHeader(value = "Authorization", required = false) String authHeader,
+		@RequestParam String characterName,
+		@RequestParam Integer serverId
+	){
+		try{
+			getUserIdFromToken(authHeader);
+
+			var stats = rankApiService.fetchRankStats(characterName, serverId);
+
+			Map<String, Object> response = new HashMap<>();
+			response.put("success", true);
+
+			if(stats != null){
+				response.put("userPower", stats.getUserPower());
+				response.put("userVitality", stats.getUserVitality());
+				response.put("userAttractiveness", stats.getUserAttractiveness());
+
+				// DB에 저장 (다음 요청부터 빠르게 제공)
+				var rankOpt = userRankRepository.findByServerIdAndUserNameAndDeletedAtIsNull(serverId, characterName);
+				UserRank rank = rankOpt.orElseGet(() -> {
+					UserRank newRank = new UserRank();
+					newRank.setServerId(serverId);
+					newRank.setUserName(characterName);
+					newRank.setClassId(0);
+					return newRank;
+				});
+				rank.setUserPower(stats.getUserPower());
+				rank.setUserVitality(stats.getUserVitality());
+				rank.setUserAttractiveness(stats.getUserAttractiveness());
+				userRankRepository.save(rank);
+			}else{
+				response.put("userPower", null);
+				response.put("userVitality", null);
+				response.put("userAttractiveness", null);
+			}
 
 			return ResponseEntity.ok(response);
 		}catch(Exception e){

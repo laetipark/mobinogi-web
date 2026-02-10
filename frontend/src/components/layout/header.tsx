@@ -1,6 +1,6 @@
 ﻿import React from "react";
 import {useNavigate, useLocation} from "react-router-dom";
-import {Gamepad2, Shield, Package, LogOut, ClipboardCheck, MessageSquare} from "lucide-react";
+import {Gamepad2, Shield, Package, LogOut, ClipboardCheck, MessageSquare, CalendarDays} from "lucide-react";
 import {useAuth} from "@/hooks/use-auth";
 
 const Header:React.FC = () => {
@@ -41,6 +41,13 @@ const Header:React.FC = () => {
 						>
 							<Package size={16}/>
 							아이템
+						</button>
+						<button
+							className={`nav-btn ${isActive("/events") ? "active" : ""}`}
+							onClick={() => handleNavigation("/events")}
+						>
+							<CalendarDays size={16}/>
+							이벤트
 						</button>
 						<button
 							className={`nav-btn ${isActive("/board") ? "active" : ""}`}

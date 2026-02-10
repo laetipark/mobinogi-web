@@ -1,50 +1,9 @@
 import apiService from "./api";
-import {UserTodo, UserTodoBarter, TodoData, GameMonster} from "../types";
-
-interface TodoListResponse{
-	success:boolean;
-	todos:UserTodo[];
-	message?:string;
-}
-
-interface TodoResponse{
-	success:boolean;
-	todo:UserTodo;
-	message?:string;
-}
-
-interface BarterListResponse{
-	success:boolean;
-	barters:UserTodoBarter[];
-	message?:string;
-}
-
-interface BarterResponse{
-	success:boolean;
-	barter:UserTodoBarter;
-	message?:string;
-}
-
-interface BarterListToggleResponse{
-	success:boolean;
-	barters:UserTodoBarter[];
-	message?:string;
-}
-
-interface DeleteResponse{
-	success:boolean;
-	message:string;
-}
-
-interface MonsterListResponse{
-	success:boolean;
-	monsters:GameMonster[];
-	message?:string;
-}
+import type {ApiResponse, UserTodo, UserTodoBarter, TodoData, GameMonster} from "../types";
 
 export const todoService = {
 	getTodos : async():Promise<UserTodo[]> => {
-		const response = await apiService.get<TodoListResponse>("/user/todo");
+		const response = await apiService.get<ApiResponse & {todos:UserTodo[]}>("/user/todo");
 		if(response.success){
 			return response.todos;
 		}
@@ -52,7 +11,7 @@ export const todoService = {
 	},
 
 	updateTodo : async(characterId:number, todoData:TodoData):Promise<UserTodo> => {
-		const response = await apiService.put<TodoResponse>(`/user/todo/${characterId}`, {todoData});
+		const response = await apiService.put<ApiResponse & {todo:UserTodo}>(`/user/todo/${characterId}`, {todoData});
 		if(response.success){
 			return response.todo;
 		}
@@ -60,7 +19,7 @@ export const todoService = {
 	},
 
 	getBarterCart : async(characterId:number):Promise<UserTodoBarter[]> => {
-		const response = await apiService.get<BarterListResponse>(`/user/todo/barter/${characterId}`);
+		const response = await apiService.get<ApiResponse & {barters:UserTodoBarter[]}>(`/user/todo/barter/${characterId}`);
 		if(response.success){
 			return response.barters;
 		}
@@ -68,7 +27,7 @@ export const todoService = {
 	},
 
 	addBarterItem : async(characterId:number, barterId:number, barterCycle:string):Promise<UserTodoBarter> => {
-		const response = await apiService.post<BarterResponse>(`/user/todo/barter/${characterId}`, {barterId, barterCycle});
+		const response = await apiService.post<ApiResponse & {barter:UserTodoBarter}>(`/user/todo/barter/${characterId}`, {barterId, barterCycle});
 		if(response.success){
 			return response.barter;
 		}
@@ -76,14 +35,14 @@ export const todoService = {
 	},
 
 	removeBarterItem : async(characterId:number, barterId:number):Promise<void> => {
-		const response = await apiService.delete<DeleteResponse>(`/user/todo/barter/${characterId}/${barterId}`);
+		const response = await apiService.delete<ApiResponse>(`/user/todo/barter/${characterId}/${barterId}`);
 		if(!response.success){
 			throw new Error(response.message || "Failed to remove barter item");
 		}
 	},
 
 	toggleBarterComplete : async(characterId:number, barterId:number):Promise<UserTodoBarter[]> => {
-		const response = await apiService.put<BarterListToggleResponse>(`/user/todo/barter/${characterId}/${barterId}/toggle`);
+		const response = await apiService.put<ApiResponse & {barters:UserTodoBarter[]}>(`/user/todo/barter/${characterId}/${barterId}/toggle`);
 		if(response.success){
 			return response.barters;
 		}
@@ -92,7 +51,7 @@ export const todoService = {
 
 	getMonsters : async(type?:string):Promise<GameMonster[]> => {
 		const params = type ? {type} : undefined;
-		const response = await apiService.get<MonsterListResponse>("/monsters", params);
+		const response = await apiService.get<ApiResponse & {monsters:GameMonster[]}>("/monsters", params);
 		if(response.success){
 			return response.monsters;
 		}

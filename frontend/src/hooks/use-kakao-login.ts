@@ -1,15 +1,8 @@
 import {useState, useEffect} from "react";
 import axios from "axios";
 import {KakaoUser, KakaoLoginRequest, AuthResponse} from "../types/kakao";
-import {User} from "../types";
+import type {User, PendingKakaoUser} from "../types";
 import {config} from "../config/env";
-
-// 대기 중인 카카오 사용자 정보 타입
-export interface PendingKakaoUser{
-	kakaoId:number;
-	email?:string;
-	profileImage?:string;
-}
 
 export const useKakaoLogin = () => {
 	const [user, setUser] = useState<User | null>(null);

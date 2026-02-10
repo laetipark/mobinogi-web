@@ -1,17 +1,5 @@
 import apiService from "./api";
-
-export interface GameClassItem{
-	classId:number;
-	classCode:string;
-	className:string;
-	isApprentice:boolean;
-}
-
-interface GameClassResponse{
-	success:boolean;
-	classes:GameClassItem[];
-	message?:string;
-}
+import type {ApiResponse, GameClassItem} from "../types";
 
 let cachedClasses:GameClassItem[] | null = null;
 
@@ -21,7 +9,7 @@ export const gameClassService = {
 			return cachedClasses;
 		}
 
-		const response = await apiService.get<GameClassResponse>("/classes");
+		const response = await apiService.get<ApiResponse & {classes:GameClassItem[]}>("/classes");
 		if(response.success){
 			cachedClasses = response.classes.filter(cls => !cls.isApprentice);
 			return cachedClasses;

@@ -4,9 +4,13 @@ import com.example.mobinogi.dto.user.UserCharacterDto;
 import com.example.mobinogi.dto.user.UserCharacterRequest;
 import com.example.mobinogi.entity.User;
 import com.example.mobinogi.entity.UserCharacter;
+import com.example.mobinogi.entity.UserRank;
 import com.example.mobinogi.repository.UserCharacterRepository;
+import com.example.mobinogi.repository.UserRankRepository;
 import com.example.mobinogi.repository.UserRepository;
+
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,17 +19,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserCharacterService{
-	
+
 	private final UserCharacterRepository userCharacterRepository;
 	private final UserRepository userRepository;
-	
+	private final UserRankRepository userRankRepository;
+
+
 	@Transactional
 	public List<UserCharacterDto> getCharactersByUserId(Long userId){
 		List<UserCharacter> characters = userCharacterRepository.findByUser_UserIdAndDeletedAtIsNullOrderByCharacterOrderAsc(userId);
-		
+
 		// 마이그레이션: displayOrder가 null인 캐릭터가 있으면 createdAt 순으로 자동 할당
 		boolean needsMigration = characters.stream().anyMatch(c -> c.getCharacterOrder() == null);
 		if(needsMigration){
@@ -43,76 +50,88 @@ public class UserCharacterService{
 			}
 			userCharacterRepository.saveAll(characters);
 		}
-		
+
 		return characters.stream()
-			.map(UserCharacterDto::fromEntity)
+			.map(c -> {
+				UserCharacterDto dto = UserCharacterDto.fromEntity(c);
+				if(c.getCharacterServer() != null){
+					var rankOpt = userRankRepository.findByServerIdAndUserNameAndDeletedAtIsNull(c.getCharacterServer(), c.getCharacterName());
+					if(rankOpt.isPresent()){
+						var rank = rankOpt.get();
+						dto.setUserPower(rank.getUserPower());
+						dto.setUserVitality(rank.getUserVitality());
+						dto.setUserAttractiveness(rank.getUserAttractiveness());
+					}
+				}
+				return dto;
+			})
 			.collect(Collectors.toList());
 	}
-	
+
 	@Transactional
 	public UserCharacterDto createCharacter(Long userId, UserCharacterRequest request){
 		User user = userRepository.findByUserIdAndDeletedAtIsNull(userId)
 			.orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
-		
+
 		if(userCharacterRepository.existsByUser_UserIdAndCharacterNameAndDeletedAtIsNull(userId, request.getCharacterName())){
 			throw new RuntimeException("이미 등록된 캐릭터 이름입니다.");
 		}
-		
+
 		int maxOrder = userCharacterRepository.findMaxCharacterOrderByUserId(userId);
-		
+
 		UserCharacter character = UserCharacter.builder()
 			.user(user)
 			.characterName(request.getCharacterName())
-			.characterServer(request.getServerName())
-			.characterClass(request.getClassName())
+			.characterServer(request.getServerId())
+			.characterClass(request.getClassId())
 			.characterOrder(maxOrder + 1)
 			.build();
-		
+
 		character = userCharacterRepository.save(character);
 		return UserCharacterDto.fromEntity(character);
 	}
-	
+
 	@Transactional
 	public UserCharacterDto updateCharacter(Long userId, Long characterId, UserCharacterRequest request){
 		UserCharacter character = userCharacterRepository.findByCharacterIdAndUser_UserIdAndDeletedAtIsNull(characterId, userId)
 			.orElseThrow(() -> new RuntimeException("캐릭터를 찾을 수 없습니다."));
-		
+
 		if(!character.getCharacterName().equals(request.getCharacterName()) &&
 			userCharacterRepository.existsByUser_UserIdAndCharacterNameAndDeletedAtIsNull(userId, request.getCharacterName())){
 			throw new RuntimeException("이미 등록된 캐릭터 이름입니다.");
 		}
-		
+
 		character.setCharacterName(request.getCharacterName());
-		character.setCharacterServer(request.getServerName());
-		character.setCharacterClass(request.getClassName());
-		
+		character.setCharacterServer(request.getServerId());
+		character.setCharacterClass(request.getClassId());
+
 		character = userCharacterRepository.save(character);
 		return UserCharacterDto.fromEntity(character);
 	}
-	
+
 	@Transactional
 	public void deleteCharacter(Long userId, Long characterId){
 		UserCharacter character = userCharacterRepository.findByCharacterIdAndUser_UserIdAndDeletedAtIsNull(characterId, userId)
 			.orElseThrow(() -> new RuntimeException("캐릭터를 찾을 수 없습니다."));
-		
+
 		character.setDeletedAt(LocalDateTime.now());
 		userCharacterRepository.save(character);
 	}
-	
+
 	@Transactional
 	public void reorderCharacters(Long userId, List<Long> characterIds){
 		List<UserCharacter> characters = userCharacterRepository.findByUser_UserIdAndDeletedAtIsNullOrderByCharacterOrderAsc(userId);
-		
+
 		Map<Long, UserCharacter> characterMap = characters.stream()
 			.collect(Collectors.toMap(UserCharacter::getCharacterId, c -> c));
-		
+
 		for(int i = 0 ; i < characterIds.size() ; i++){
 			UserCharacter character = characterMap.get(characterIds.get(i));
 			if(character != null){
 				character.setCharacterOrder(i);
 			}
 		}
-		
+
 		userCharacterRepository.saveAll(characters);
 	}
 }

@@ -2,33 +2,7 @@
  * 환경 변수 설정
  * Vite의 환경 변수를 타입 안전하게 사용하기 위한 설정 파일
  */
-interface AppConfig{
-	app:{
-		title:string;
-		env:string;
-	};
-	api:{
-		baseUrl:string;
-		fullUrl:string;
-	};
-	kakao:{
-		jsKey:string;
-		redirectUri:string;
-	};
-	features:{
-		enableDevTools:boolean;
-		enableDebugLogs:boolean;
-		enableSourceMap:boolean;
-		secureMode:boolean;
-	};
-	websocket:{
-		url:string;
-	};
-	external:{
-		googleAnalyticsId:string;
-		sentryDsn:string;
-	};
-}
+import type {AppConfig} from "../types";
 
 // 환경변수에서 값 가져오기 (타입 안전성 보장)
 const getEnvVar = (name:string, defaultValue:string = ""):string => {

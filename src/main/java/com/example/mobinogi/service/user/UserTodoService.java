@@ -1,12 +1,16 @@
 package com.example.mobinogi.service.user;
 
 import com.example.mobinogi.dto.user.TodoDataDto;
+import com.example.mobinogi.dto.user.UserCharacterDto;
 import com.example.mobinogi.dto.user.UserTodoDto;
 import com.example.mobinogi.dto.user.UserTodoUpdateRequest;
 import com.example.mobinogi.entity.UserCharacter;
+
 import com.example.mobinogi.entity.UserTodo;
 import com.example.mobinogi.repository.UserCharacterRepository;
+import com.example.mobinogi.repository.UserRankRepository;
 import com.example.mobinogi.repository.UserTodoRepository;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -16,13 +20,16 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class UserTodoService{
-	
+
 	private final UserTodoRepository userTodoRepository;
 	private final UserCharacterRepository userCharacterRepository;
+	private final UserRankRepository userRankRepository;
+
 	private final ObjectMapper objectMapper;
 	
 	private static final ZoneId KST = ZoneId.of("Asia/Seoul");
@@ -40,25 +47,44 @@ public class UserTodoService{
 				.filter(t -> t.getCharacterId().equals(character.getCharacterId()))
 				.findFirst()
 				.orElse(null);
-			
+
+			UserTodoDto dto;
 			if(todo != null){
 				checkAndApplyLazyReset(todo);
 				migrateOldData(todo);
-				result.add(UserTodoDto.fromEntity(todo));
+				dto = UserTodoDto.fromEntity(todo);
 			}else{
 				// 캐릭터에 대한 todo가 없으면 기본값으로 DTO 생성
-				UserTodoDto dto = UserTodoDto.builder()
+				String className = null;
+				if(character.getGameClass() != null){
+					className = character.getGameClass().getClassName();
+				}
+				dto = UserTodoDto.builder()
 					.userId(userId)
 					.characterId(character.getCharacterId())
 					.characterName(character.getCharacterName())
-					.serverName(character.getCharacterServer())
-					.className(character.getCharacterClass())
+					.serverId(character.getCharacterServer())
+					.serverName(UserCharacterDto.resolveServerName(character.getCharacterServer()))
+					.classId(character.getCharacterClass())
+					.className(className)
 					.todoData(TodoDataDto.createDefault())
 					.build();
-				result.add(dto);
 			}
+
+			// rank 데이터 조회
+			if(character.getCharacterServer() != null){
+				var rankOpt = userRankRepository.findByServerIdAndUserNameAndDeletedAtIsNull(character.getCharacterServer(), character.getCharacterName());
+				if(rankOpt.isPresent()){
+					var rank = rankOpt.get();
+					dto.setUserPower(rank.getUserPower());
+					dto.setUserVitality(rank.getUserVitality());
+					dto.setUserAttractiveness(rank.getUserAttractiveness());
+				}
+			}
+
+			result.add(dto);
 		}
-		
+
 		return result;
 	}
 	

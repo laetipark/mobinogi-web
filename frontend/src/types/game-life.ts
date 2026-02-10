@@ -1,0 +1,46 @@
+import type {GameItem} from "./game-item";
+import type {PageResponse} from "./common";
+
+export interface GameRegion{
+	regionId:number;
+	regionName:string;
+}
+
+export interface GameNpc{
+	npcId:number;
+	npcName:string;
+	regionId:number;
+}
+
+export interface LifeBarter{
+	barterId:number;
+	regionId:number;
+	npcId:number;
+	itemId:number;
+	itemWeight:number;
+	exchangeId:number;
+	exchangeCost:number;
+	barterQty:number;
+	barterInitCycle?:number;
+	barterInitDate?:string;
+	barterInitDay?:number;
+	barterServer?:number;
+	barterNpc?:number;
+	gameRegion?:GameRegion;
+	gameNpc?:GameNpc;
+	gameItem?:GameItem;
+	exchangeItem?:GameItem;
+}
+
+export interface LifeCraft{
+	craftId:number;
+	craftSubId:number;
+	itemId:number;
+	craftIngredientId:number;
+	craftIngredientCost:number;
+	gameItem?:GameItem;
+	ingredientItem?:GameItem;
+}
+
+export type LifeBarterPage = PageResponse<LifeBarter>;
+export type LifeCraftPage = PageResponse<LifeCraft>;

@@ -1,88 +1,31 @@
 # Frontend Development Rules
 
-## Styling: SCSS Modules (NOT Tailwind)
-```tsx
-import styles from './example.module.scss';
+## Styling
+- SCSS Modules (`.module.scss`) — Tailwind, CSS-in-JS 금지
+- 컴포넌트마다 `.module.scss` 파일 생성
 
-const Example = () => (
-    <div className={styles.container}>
-        <h1 className={styles.title}>Title</h1>
-    </div>
-);
-```
-- Every component gets a `.module.scss` file
-- Use CSS Modules scoped class names
-- NO Tailwind, NO CSS-in-JS
+## Path Aliases
+- `@/components`, `@/pages`, `@/services`, `@/hooks`, `@/contexts`, `@/types`, `@/config`, `@/utils`, `@/styles`
+- 설정: `tsconfig.app.json` + `vite.config.ts`
 
-## Path Aliases (tsconfig.app.json + vite.config.ts)
-```typescript
-import { SomeComponent } from '@/components/common/SomeComponent';
-import { apiService } from '@/services';
-import { useAuth } from '@/hooks/use-auth';
-import type { User } from '@/types/user';
-```
-Available: `@/components`, `@/pages`, `@/services`, `@/hooks`, `@/contexts`, `@/types`, `@/config`, `@/utils`, `@/styles`
+## Types
+- 도메인별 분리: `types/common.ts`, `auth.ts`, `game-item.ts`, `board.ts` 등
+- `types/index.ts`가 barrel re-export → 항상 `@/types`에서 import
+- `PageResponse<T>` — 페이지네이션 제네릭
+- `ApiResponse` — `{success, message?}` 베이스
+- 새 타입 추가 시: 도메인 파일에 작성 → `index.ts` barrel에 export 추가
 
-## API Service Pattern
-```typescript
-// services/example-service.ts
-import { apiService } from './api';
-
-export const exampleService = {
-    getAll: () => apiService.get<ExampleDto[]>('/api/example'),
-    getById: (id: number) => apiService.get<ExampleDto>(`/api/example/${id}`),
-    create: (data: CreateDto) => apiService.post<ExampleDto>('/api/example', data),
-};
-```
-- Wrap all API calls with `apiService` (centralized axios wrapper)
-- Response shape: `{ success: boolean, data: T, message?: string }`
-- **Must export new services from `services/index.ts`**
-
-## Component Pattern
-```tsx
-interface ExampleProps {
-    data: ExampleDto;
-    onAction?: (id: number) => void;
-}
-
-const Example: React.FC<ExampleProps> = ({ data, onAction }) => {
-    // hooks first
-    const { user } = useAuth();
-    const [state, setState] = useState<string>('');
-
-    // handlers
-    const handleClick = () => { ... };
-
-    // render
-    return ( ... );
-};
-
-export default Example;
-```
+## API Service
+- `apiService` 래퍼 사용 (axios 직접 호출 금지)
+- 응답 타입: `ApiResponse & {data: T}` intersection
+- 새 서비스는 반드시 `services/index.ts`에서 export
 
 ## State Management
-- Global auth: `AuthContext` + `useAuth()` hook
-- Persistence: `localStorage` for JWT token and user data
-- No Redux/Zustand - Context API only
-
-## Auth Flow (Frontend Side)
-1. Kakao SDK login -> get Kakao user info
-2. Call `POST /api/auth/kakao` with user info
-3. Store JWT in `localStorage.setItem("accessToken", token)`
-4. Axios interceptor auto-attaches `Authorization: Bearer <token>`
-5. Route guards: `PublicRoute`, `PrivateRoute`, `RegisterNicknameRoute`
-
-## Build Commands
-```bash
-cd /d/Mobinogi/mobinogi-web/frontend
-npm install          # Install deps
-npm run dev          # Dev server on :3000
-npm run build        # Production build
-npx tsc --noEmit     # Type check
-```
+- `AuthContext` + `useAuth()` hook — 외부 상태 라이브러리 없음
+- JWT: `localStorage`에 저장, axios interceptor로 자동 첨부
 
 ## Conventions
-- File naming: kebab-case (e.g., `daily-task-section.tsx`, `game-item-card.module.scss`)
-- Icons: Lucide React (`lucide-react`)
-- Markdown rendering: `react-markdown`
-- Commit messages: Korean, prefixed (`feat:`, `fix:`, `update:`, `refactor:`)
+- 파일명: kebab-case (`daily-task-section.tsx`)
+- 아이콘: `lucide-react`
+- 마크다운: `react-markdown`
+- 커밋: 한국어, prefix (`feat:`, `fix:`, `update:`, `refactor:`)

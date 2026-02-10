@@ -1,23 +1,9 @@
 import React, {createContext, useState, useEffect, ReactNode} from "react";
-import {User, AuthContextType} from "../types";
+import {User, ExtendedAuthContextType} from "../types";
 import {storage} from "../utils/helpers";
-import {useKakaoLogin, PendingKakaoUser} from "../hooks/use-kakao-login";
+import {useKakaoLogin} from "../hooks/use-kakao-login";
 import axios from "axios";
 import {config} from "../config/env";
-
-// AuthContextType을 확장하여 카카오 로그인 기능 추가
-export interface ExtendedAuthContextType extends AuthContextType{
-	kakaoLogin:() => void;
-	kakaoLogout:() => void;
-	isKakaoLoggedIn:boolean;
-	kakaoLoading:boolean;
-	kakaoError:string | null;
-	isNewUser:boolean;
-	clearNewUserFlag:() => void;
-	pendingKakaoUser:PendingKakaoUser | null;
-	completeKakaoRegistration:(nickname:string) => Promise<void>;
-	checkLoginStatus:() => Promise<void>;
-}
 
 export const AuthContext = createContext<ExtendedAuthContextType | undefined>(undefined);
 

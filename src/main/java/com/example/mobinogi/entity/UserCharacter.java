@@ -6,7 +6,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "user_characters")
+@Table(name = "user_character")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,11 +26,15 @@ public class UserCharacter{
 	@Column(name = "character_name", length = 100, nullable = false)
 	private String characterName;
 	
-	@Column(name = "character_server", length = 50)
-	private String characterServer;
+	@Column(name = "character_server", columnDefinition = "INT UNSIGNED")
+	private Integer characterServer;
 	
-	@Column(name = "character_class", length = 50)
-	private String characterClass;
+	@Column(name = "character_class", columnDefinition = "BIGINT UNSIGNED")
+	private Long characterClass;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "character_class", referencedColumnName = "class_id", insertable = false, updatable = false)
+	private GameClass gameClass;
 	
 	@Column(name = "character_order")
 	private Integer characterOrder;

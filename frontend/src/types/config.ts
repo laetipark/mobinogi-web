@@ -1,0 +1,27 @@
+export interface AppConfig{
+	app:{
+		title:string;
+		env:string;
+	};
+	api:{
+		baseUrl:string;
+		fullUrl:string;
+	};
+	kakao:{
+		jsKey:string;
+		redirectUri:string;
+	};
+	features:{
+		enableDevTools:boolean;
+		enableDebugLogs:boolean;
+		enableSourceMap:boolean;
+		secureMode:boolean;
+	};
+	websocket:{
+		url:string;
+	};
+	external:{
+		googleAnalyticsId:string;
+		sentryDsn:string;
+	};
+}

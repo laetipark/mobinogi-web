@@ -229,11 +229,14 @@
 		width:100%;
 		border-collapse:collapse;
 		margin:0 0 12px;
+		display:block;
+		overflow-x:auto;
 
 		th, td{
 			border:1px solid var(--border);
 			padding:8px 12px;
 			text-align:left;
+			white-space:nowrap;
 		}
 		th{
 			background:var(--surface-hover);
@@ -323,5 +326,23 @@
 
 	.form{
 		padding:16px;
+	}
+
+	.contentHeader{
+		flex-wrap:wrap;
+		gap:8px;
+	}
+
+	.contentActions{
+		gap:4px;
+	}
+
+	.header{
+		flex-wrap:wrap;
+		gap:8px;
+	}
+
+	.pageTitle{
+		font-size:18px;
 	}
 }

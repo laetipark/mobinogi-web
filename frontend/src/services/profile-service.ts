@@ -1,20 +1,9 @@
 import apiService from "./api";
-import {User} from "../types";
-
-interface ProfileUpdateRequest{
-	nickname?:string;
-	profileImage?:string;
-}
-
-interface ProfileResponse{
-	success:boolean;
-	user:User;
-	message?:string;
-}
+import type {ApiResponse, User, ProfileUpdateRequest} from "../types";
 
 export const profileService = {
 	updateProfile: async(data:ProfileUpdateRequest):Promise<User> => {
-		const response = await apiService.put<ProfileResponse>("/auth/profile", data);
+		const response = await apiService.put<ApiResponse & {user:User}>("/auth/profile", data);
 		if(response.success){
 			return response.user;
 		}

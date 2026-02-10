@@ -848,3 +848,40 @@
 	border-top:1px solid var(--border-color, #e0e0e0);
 	margin-top:12px;
 }
+
+@media (max-width:480px){
+	.resourceSection{
+		flex-wrap:wrap;
+		gap:12px;
+	}
+
+	.resourceItem{
+		min-width:100px;
+	}
+
+	.bossGrid{
+		grid-template-columns:repeat(auto-fill, minmax(90px, 1fr));
+		gap:4px;
+	}
+
+	.bossItem{
+		padding:6px 4px;
+	}
+
+	.bossName{
+		font-size:11px;
+	}
+
+	.barterSettingsCard{
+		padding:10px;
+	}
+
+	.barterCardExchange{
+		flex-direction:column;
+		gap:6px;
+	}
+
+	.barterCardArrow{
+		transform:rotate(90deg);
+	}
+}

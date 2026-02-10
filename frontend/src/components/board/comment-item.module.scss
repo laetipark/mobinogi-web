@@ -144,3 +144,18 @@
 .replies{
 	margin-top:8px;
 }
+
+@include mobile{
+	.commentItem{
+		padding:12px;
+
+		&.reply{
+			margin-left:16px;
+		}
+	}
+
+	.commentHeader{
+		flex-wrap:wrap;
+		gap:4px;
+	}
+}

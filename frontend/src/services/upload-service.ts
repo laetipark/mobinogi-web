@@ -1,26 +1,21 @@
 import {apiService} from "./api";
-
-interface UploadResponse{
-	success:boolean;
-	url?:string;
-	message?:string;
-}
+import type {ApiResponse} from "../types";
 
 class UploadService{
 	async uploadImage(
 		file:File,
 		type:"profile" | "board" = "board",
 		onProgress?:(progress:number) => void
-	):Promise<UploadResponse>{
+	):Promise<ApiResponse & {url?:string}>{
 		const formData = new FormData();
 		formData.append("file", file);
 		formData.append("type", type);
 
-		return apiService.upload<UploadResponse>(`/upload/image?type=${type}`, file, onProgress);
+		return apiService.upload<ApiResponse & {url?:string}>(`/upload/image?type=${type}`, file, onProgress);
 	}
 
-	async deleteImage(url:string):Promise<UploadResponse>{
-		return apiService.delete<UploadResponse>(`/upload/image?url=${encodeURIComponent(url)}`);
+	async deleteImage(url:string):Promise<ApiResponse & {url?:string}>{
+		return apiService.delete<ApiResponse & {url?:string}>(`/upload/image?url=${encodeURIComponent(url)}`);
 	}
 }
 

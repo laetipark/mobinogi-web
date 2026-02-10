@@ -10,6 +10,6 @@ import lombok.*;
 public class UserCharacterRequest{
 
 	private String characterName;
-	private String serverName;
-	private String className;
+	private Integer serverId;
+	private Long classId;
 }

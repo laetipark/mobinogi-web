@@ -115,7 +115,7 @@ public class UserTodoController{
 	){
 		try{
 			Long userId = getUserIdFromToken(authHeader);
-			Long barterId = (Long) body.get("barterId");
+			Long barterId = ((Number) body.get("barterId")).longValue();
 			String barterCycle = (String) body.get("barterCycle");
 
 			UserTodoBarterDto barter = userTodoBarterService.addBarterItem(userId, characterId, barterId, barterCycle);

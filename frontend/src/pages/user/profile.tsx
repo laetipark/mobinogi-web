@@ -1,9 +1,9 @@
 import React, {useState, useEffect, useRef} from "react";
 import {useAuth} from "@/hooks/use-auth";
 import {useSearchParams} from "react-router-dom";
-import {UserCharacter, UserCharacterRequest} from "@/types";
+import {UserCharacter, UserCharacterRequest, GameClassItem} from "@/types";
 import characterService from "@/services/character-service";
-import {gameClassService, GameClassItem} from "@/services/game-class-service";
+import {gameClassService} from "@/services/game-class-service";
 import profileService from "@/services/profile-service";
 import {uploadService} from "@/services/upload-service";
 import {discordService} from "@/services/discord-service";
@@ -37,11 +37,17 @@ const ProfilePage:React.FC = () => {
 	// 캐릭터 폼 상태
 	const [characterForm, setCharacterForm] = useState<UserCharacterRequest>({
 		characterName: "",
-		serverName: "아이라",
-		className: ""
+		serverId: 2,
+		classId: undefined
 	});
 	const [classes, setClasses] = useState<GameClassItem[]>([]);
-	const servers = ["데이안", "아이라", "던컨", "알리사", "메이븐", "라사", "칼릭스"];
+	const servers:{id:number; name:string}[] = [
+		{id: 1, name: "데이안"}, {id: 2, name: "아이라"}, {id: 3, name: "던컨"}, {id: 4, name: "알리사"},
+		{id: 5, name: "메이븐"}, {id: 6, name: "라사"}, {id: 7, name: "칼릭스"}
+	];
+
+	// Rank 로딩 상태
+	const [rankLoading, setRankLoading] = useState<Set<number>>(new Set());
 
 	// Discord 연동 상태
 	const [discordLoading, setDiscordLoading] = useState(false);
@@ -63,11 +69,39 @@ const ProfilePage:React.FC = () => {
 		try{
 			const data = await characterService.getMyCharacters();
 			setCharacters(data);
+			fetchMissingRanks(data);
 		}catch(error){
 			console.error("캐릭터 로드 실패:", error);
 		}finally{
 			setCharactersLoading(false);
 		}
+	};
+
+	const fetchMissingRanks = (chars:UserCharacter[]) => {
+		const missing = chars.filter(c => c.serverId != null && c.userPower == null && c.userVitality == null && c.userAttractiveness == null);
+		if(missing.length === 0) return;
+
+		const loadingIds = new Set(missing.map(c => c.characterId));
+		setRankLoading(loadingIds);
+
+		missing.forEach(c => {
+			characterService.fetchRank(c.characterName, c.serverId!)
+				.then(rank => {
+					setCharacters(prev => prev.map(ch =>
+						ch.characterId === c.characterId
+							? {...ch, userPower: rank.userPower ?? undefined, userVitality: rank.userVitality ?? undefined, userAttractiveness: rank.userAttractiveness ?? undefined}
+							: ch
+					));
+				})
+				.catch(() => {})
+				.finally(() => {
+					setRankLoading(prev => {
+						const next = new Set(prev);
+						next.delete(c.characterId);
+						return next;
+					});
+				});
+		});
 	};
 
 	// 프로필 이미지 업로드
@@ -129,7 +163,7 @@ const ProfilePage:React.FC = () => {
 		try{
 			const newCharacter = await characterService.createCharacter(characterForm);
 			setCharacters(prev => [...prev, newCharacter]);
-			setCharacterForm({characterName: "", serverName: "아이라", className: ""});
+			setCharacterForm({characterName: "", serverId: 2, classId: undefined});
 			setShowAddForm(false);
 		}catch(error:any){
 			console.error("캐릭터 추가 실패:", error);
@@ -145,7 +179,7 @@ const ProfilePage:React.FC = () => {
 			const updated = await characterService.updateCharacter(editingCharacter.characterId, characterForm);
 			setCharacters(prev => prev.map(c => c.characterId === updated.characterId ? updated : c));
 			setEditingCharacter(null);
-			setCharacterForm({characterName: "", serverName: "아이라", className: ""});
+			setCharacterForm({characterName: "", serverId: 2, classId: undefined});
 		}catch(error:any){
 			console.error("캐릭터 수정 실패:", error);
 		}
@@ -169,8 +203,8 @@ const ProfilePage:React.FC = () => {
 		setEditingCharacter(character);
 		setCharacterForm({
 			characterName: character.characterName,
-			serverName: character.serverName || "",
-			className: character.className || ""
+			serverId: character.serverId || undefined,
+			classId: character.classId || undefined
 		});
 		setShowAddForm(false);
 	};
@@ -178,14 +212,14 @@ const ProfilePage:React.FC = () => {
 	// 수정 모드 취소
 	const cancelEdit = () => {
 		setEditingCharacter(null);
-		setCharacterForm({characterName: "", serverName: "아이라", className: ""});
+		setCharacterForm({characterName: "", serverId: 2, classId: undefined});
 	};
 
 	// 추가 모드 시작
 	const startAddCharacter = () => {
 		setShowAddForm(true);
 		setEditingCharacter(null);
-		setCharacterForm({characterName: "", serverName: "아이라", className: ""});
+		setCharacterForm({characterName: "", serverId: 2, classId: undefined});
 	};
 
 	// 순서 변경 모드
@@ -467,24 +501,24 @@ const ProfilePage:React.FC = () => {
 								<div className={styles.formGroup}>
 									<label>서버</label>
 									<select
-										value={characterForm.serverName}
-										onChange={(e) => setCharacterForm(prev => ({...prev, serverName: e.target.value}))}
+										value={characterForm.serverId ?? ""}
+										onChange={(e) => setCharacterForm(prev => ({...prev, serverId: e.target.value ? Number(e.target.value) : undefined}))}
 									>
 										<option value="">선택안함</option>
 										{servers.map(server => (
-											<option key={server} value={server}>{server}</option>
+											<option key={server.id} value={server.id}>{server.name}</option>
 										))}
 									</select>
 								</div>
 								<div className={styles.formGroup}>
 									<label>직업</label>
 									<select
-										value={characterForm.className}
-										onChange={(e) => setCharacterForm(prev => ({...prev, className: e.target.value}))}
+										value={characterForm.classId ?? ""}
+										onChange={(e) => setCharacterForm(prev => ({...prev, classId: e.target.value ? Number(e.target.value) : undefined}))}
 									>
 										<option value="">선택안함</option>
 										{classes.map(cls => (
-											<option key={cls.classId} value={cls.className}>{cls.className}</option>
+											<option key={cls.classId} value={cls.classId}>{cls.className}</option>
 										))}
 									</select>
 								</div>
@@ -562,6 +596,17 @@ const ProfilePage:React.FC = () => {
 										)}
 										{character.className && (
 											<span className={styles.characterMeta}>{character.className}</span>
+										)}
+										{rankLoading.has(character.characterId) ? (
+											<div className={styles.characterStats}>
+												<span className={styles.statLoading}>랭크 로딩중...</span>
+											</div>
+										) : (character.userPower != null || character.userVitality != null || character.userAttractiveness != null) && (
+											<div className={styles.characterStats}>
+												{character.userPower != null && <span className={styles.statPower}>전투력 {character.userPower.toLocaleString()}</span>}
+												{character.userVitality != null && <span className={styles.statVitality}>생활력 {character.userVitality.toLocaleString()}</span>}
+												{character.userAttractiveness != null && <span className={styles.statAttractiveness}>매력 {character.userAttractiveness.toLocaleString()}</span>}
+											</div>
 										)}
 									</div>
 									<div className={styles.characterActions}>

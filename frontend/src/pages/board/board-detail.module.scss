@@ -230,11 +230,14 @@
 		width:100%;
 		border-collapse:collapse;
 		margin:0 0 14px;
+		display:block;
+		overflow-x:auto;
 
 		th, td{
 			border:1px solid var(--border);
 			padding:8px 12px;
 			text-align:left;
+			white-space:nowrap;
 		}
 		th{
 			background:var(--surface-hover, rgba(0,0,0,0.05));
@@ -478,6 +481,22 @@
 	font-size:14px;
 }
 
+@include tablet{
+	.topBar{
+		gap:8px;
+	}
+
+	.backBtn{
+		padding:6px 12px;
+		font-size:13px;
+	}
+
+	.editBtn, .deleteBtn{
+		padding:6px 10px;
+		font-size:12px;
+	}
+}
+
 @include mobile{
 	.boardPage{
 		padding:20px 10px;
@@ -495,5 +514,26 @@
 		flex-direction:column;
 		align-items:flex-start;
 		gap:8px;
+	}
+
+	.content{
+		font-size:14px;
+		line-height:1.7;
+
+		h1{ font-size:22px; }
+		h2{ font-size:18px; }
+		h3{ font-size:16px; }
+	}
+
+	.commentsSection{
+		padding:16px;
+	}
+
+	.historySection{
+		padding:16px;
+	}
+
+	.postActions{
+		gap:4px;
 	}
 }

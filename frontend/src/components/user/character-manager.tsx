@@ -1,7 +1,6 @@
 import React, {useState, useEffect} from "react";
-import {UserCharacter, UserCharacterRequest} from "@/types";
+import {UserCharacter, UserCharacterRequest, GameClassItem} from "@/types";
 import {characterService, gameClassService} from "@/services";
-import {GameClassItem} from "@/services/game-class-service.ts";
 import styles from "./character-manager.module.scss";
 
 interface CharacterManagerProps{

@@ -25,7 +25,20 @@ pages/         # auth/, board/, game/, user/
 services/      # API service layer (must export from index.ts)
 contexts/      # AuthContext
 hooks/         # use-auth, use-kakao-login
-types/         # TypeScript definitions
+types/         # TypeScript definitions (domain-split)
+  ├── index.ts       # barrel re-export (import from @/types)
+  ├── common.ts      # PageResponse<T>, ApiResponse, ListSearchParams
+  ├── auth.ts        # User, AuthContextType, ExtendedAuthContextType, PendingKakaoUser, ProfileUpdateRequest
+  ├── game-item.ts   # GameItem, GameItemSummary, GameClassItem, GameItemSearchParams, GameItemData
+  ├── game-life.ts   # GameRegion, GameNpc, LifeBarter, LifeCraft
+  ├── character.ts   # UserCharacter, UserCharacterRequest, GameMonster
+  ├── board.ts       # BoardCategory, BoardPost, BoardComment, BoardPostHistory
+  ├── event.ts       # GameEvent
+  ├── todo.ts        # TodoData, UserTodo, UserTodoBarter
+  ├── config.ts      # AppConfig
+  ├── kakao.ts       # Kakao SDK types
+  ├── user-guild.ts  # Guild types
+  └── scss.d.ts      # SCSS module declarations
 config/        # env.ts
 utils/         # Helpers
 styles/        # Global SCSS

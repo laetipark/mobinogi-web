@@ -1,8 +1,8 @@
 import React, {useState, useEffect, useRef, useCallback} from "react";
-import {UserTodo, TodoData, GameMonster, Resources, UserCharacterRequest} from "../../types";
+import {UserTodo, TodoData, GameMonster, Resources, UserCharacterRequest, GameClassItem} from "../../types";
 import {todoService} from "../../services/todo-service";
 import {characterService} from "../../services/character-service";
-import {gameClassService, GameClassItem} from "../../services/game-class-service";
+import {gameClassService} from "../../services/game-class-service";
 import DailyTaskSection from "../../components/todo/daily-task-section";
 import WeeklyTaskSection from "../../components/todo/weekly-task-section";
 import ResourceDisplay from "../../components/todo/resource-display";
@@ -25,16 +25,20 @@ const TodoPage:React.FC = () => {
 	const [weeklyCountdown, setWeeklyCountdown] = useState("");
 	const [toastMessage, setToastMessage] = useState("");
 	const [saving, setSaving] = useState(false);
+	const [rankLoading, setRankLoading] = useState<Set<number>>(new Set());
 
 	// 캐릭터 추가 팝업
 	const [showAddCharacter, setShowAddCharacter] = useState(false);
 	const [characterForm, setCharacterForm] = useState<UserCharacterRequest>({
 		characterName: "",
-		serverName: "아이라",
-		className: ""
+		serverId: 2,
+		classId: undefined
 	});
 	const [classes, setClasses] = useState<GameClassItem[]>([]);
-	const servers = ["데이안", "아이라", "던컨", "알리사", "메이븐", "라사", "칼릭스"];
+	const servers:{id:number; name:string}[] = [
+		{id: 1, name: "데이안"}, {id: 2, name: "아이라"}, {id: 3, name: "던컨"}, {id: 4, name: "알리사"},
+		{id: 5, name: "메이븐"}, {id: 6, name: "라사"}, {id: 7, name: "칼릭스"}
+	];
 
 	// 캐릭터 순서 변경 모달
 	const [showReorder, setShowReorder] = useState(false);
@@ -117,6 +121,33 @@ const TodoPage:React.FC = () => {
 		return () => clearInterval(interval);
 	}, []);
 
+	const fetchMissingRanks = (todosData:UserTodo[]) => {
+		const missing = todosData.filter(t => t.serverId != null && t.userPower == null && t.userVitality == null && t.userAttractiveness == null);
+		if(missing.length === 0) return;
+
+		const loadingIds = new Set(missing.map(t => t.characterId));
+		setRankLoading(loadingIds);
+
+		missing.forEach(todo => {
+			characterService.fetchRank(todo.characterName, todo.serverId!)
+				.then(rank => {
+					setTodos(prev => prev.map(t =>
+						t.characterId === todo.characterId
+							? {...t, userPower: rank.userPower ?? undefined, userVitality: rank.userVitality ?? undefined, userAttractiveness: rank.userAttractiveness ?? undefined}
+							: t
+					));
+				})
+				.catch(() => {})
+				.finally(() => {
+					setRankLoading(prev => {
+						const next = new Set(prev);
+						next.delete(todo.characterId);
+						return next;
+					});
+				});
+		});
+	};
+
 	const loadData = async() => {
 		try{
 			setLoading(true);
@@ -132,6 +163,7 @@ const TodoPage:React.FC = () => {
 			if(todosData.length > 0 && !selectedCharacterId){
 				setSelectedCharacterId(todosData[0].characterId);
 			}
+			fetchMissingRanks(todosData);
 		}catch(err:any){
 			setError(err.message || "데이터를 불러오는데 실패했습니다.");
 		}finally{
@@ -187,7 +219,7 @@ const TodoPage:React.FC = () => {
 		if(!characterForm.characterName.trim()) return;
 		try{
 			const newChar = await characterService.createCharacter(characterForm);
-			setCharacterForm({characterName: "", serverName: "아이라", className: ""});
+			setCharacterForm({characterName: "", serverId: 2, classId: undefined});
 			setShowAddCharacter(false);
 			// 데이터 새로고침하여 새 캐릭터의 todo를 가져옴
 			await loadData();
@@ -308,7 +340,7 @@ const TodoPage:React.FC = () => {
 					{showAddCharacter && (
 						<div className={styles.addCharOverlay} onClick={() => {
 							setShowAddCharacter(false);
-							setCharacterForm({characterName: "", serverName: "아이라", className: ""});
+							setCharacterForm({characterName: "", serverId: 2, classId: undefined});
 						}}>
 							<div className={styles.addCharacterPopup} onClick={(e) => e.stopPropagation()}>
 								<h3>새 캐릭터 추가</h3>
@@ -326,24 +358,24 @@ const TodoPage:React.FC = () => {
 									<div className={styles.addCharFormGroup}>
 										<label>서버</label>
 										<select
-											value={characterForm.serverName || ""}
-											onChange={(e) => setCharacterForm(prev => ({...prev, serverName: e.target.value}))}
+											value={characterForm.serverId ?? ""}
+											onChange={(e) => setCharacterForm(prev => ({...prev, serverId: e.target.value ? Number(e.target.value) : undefined}))}
 										>
 											<option value="">선택안함</option>
 											{servers.map(server => (
-												<option key={server} value={server}>{server}</option>
+												<option key={server.id} value={server.id}>{server.name}</option>
 											))}
 										</select>
 									</div>
 									<div className={styles.addCharFormGroup}>
 										<label>직업</label>
 										<select
-											value={characterForm.className || ""}
-											onChange={(e) => setCharacterForm(prev => ({...prev, className: e.target.value}))}
+											value={characterForm.classId ?? ""}
+											onChange={(e) => setCharacterForm(prev => ({...prev, classId: e.target.value ? Number(e.target.value) : undefined}))}
 										>
 											<option value="">선택안함</option>
 											{classes.map(cls => (
-												<option key={cls.classId} value={cls.className}>{cls.className}</option>
+												<option key={cls.classId} value={cls.classId}>{cls.className}</option>
 											))}
 										</select>
 									</div>
@@ -353,7 +385,7 @@ const TodoPage:React.FC = () => {
 										className={styles.addCharCancelBtn}
 										onClick={() => {
 											setShowAddCharacter(false);
-											setCharacterForm({characterName: "", serverName: "아이라", className: ""});
+											setCharacterForm({characterName: "", serverId: 2, classId: undefined});
 										}}
 									>
 										<X size={16}/>
@@ -412,6 +444,17 @@ const TodoPage:React.FC = () => {
 									<h3>{selectedTodo.characterName}</h3>
 									{selectedTodo.serverName && <span className={styles.serverName}>{selectedTodo.serverName}</span>}
 									{selectedTodo.className && <span className={styles.className}>{selectedTodo.className}</span>}
+									{rankLoading.has(selectedTodo.characterId) ? (
+										<div className={styles.characterStats}>
+											<span className={styles.statLoading}>랭크 로딩중...</span>
+										</div>
+									) : (selectedTodo.userPower != null || selectedTodo.userVitality != null || selectedTodo.userAttractiveness != null) && (
+										<div className={styles.characterStats}>
+											{selectedTodo.userPower != null && <span className={styles.statPower}>전투력 {selectedTodo.userPower.toLocaleString()}</span>}
+											{selectedTodo.userVitality != null && <span className={styles.statVitality}>생활력 {selectedTodo.userVitality.toLocaleString()}</span>}
+											{selectedTodo.userAttractiveness != null && <span className={styles.statAttractiveness}>매력 {selectedTodo.userAttractiveness.toLocaleString()}</span>}
+										</div>
+									)}
 								</div>
 								<div className={styles.headerResources}>
 								<ResourceDisplay
