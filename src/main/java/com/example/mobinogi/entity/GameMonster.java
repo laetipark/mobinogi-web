@@ -42,7 +42,8 @@ public class GameMonster{
 	private LocalDateTime deletedAt;
 
 	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "region_id", insertable = false, updatable = false)
+	@JoinColumn(name = "region_id", insertable = false, updatable = false,
+		foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
 	private GameRegion gameRegion;
 
 	@PrePersist

@@ -1,4 +1,5 @@
 import React, {useState, useEffect, useCallback} from "react";
+import {useNavigate, useParams} from "react-router-dom";
 import {GameItem, GameItemSummary, LifeBarter, LifeCraft, ListSearchParams} from "@/types";
 import GameItemService from "@/services/game-item-service";
 import GameItemCard from "@/components/game/game-item-card";
@@ -11,8 +12,21 @@ import styles from "./game-items.module.scss";
 type TabType = "items" | "barter" | "craft";
 
 const GameItemsPage:React.FC = () => {
-	const [activeTab, setActiveTab] = useState<TabType>("items");
+	const navigate = useNavigate();
+	const {itemName: paramItemName} = useParams<{itemName:string}>();
+	const decodedItemName = paramItemName ? decodeURIComponent(paramItemName) : null;
 	const [selectedItem, setSelectedItem] = useState<GameItem | GameItemSummary | null>(null);
+
+	// URL 직접 접근 시 (리스트에서 클릭이 아닌 경우) 최소한의 아이템 객체 생성
+	useEffect(() => {
+		if(decodedItemName && !selectedItem){
+			setSelectedItem({itemName: decodedItemName} as GameItemSummary);
+		}
+		if(!decodedItemName){
+			setSelectedItem(null);
+		}
+	}, [decodedItemName]);
+	const [activeTab, setActiveTab] = useState<TabType>("items");
 
 	// 아이템 상태
 	const [items, setItems] = useState<GameItemSummary[]>([]);
@@ -27,6 +41,14 @@ const GameItemsPage:React.FC = () => {
 	const [searchInput, setSearchInput] = useState("");
 	const [sortBy, setSortBy] = useState<string>("itemId");
 	const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+
+	// 검색어 debounce
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			setKeyword(searchInput);
+		}, 300);
+		return () => clearTimeout(timer);
+	}, [searchInput]);
 
 	// 탭별 정렬 옵션
 	const getSortOptions = () => {
@@ -323,21 +345,34 @@ const GameItemsPage:React.FC = () => {
 					<GameItemCard
 						key={item.itemId}
 						item={item}
-						onClick={(item) => setSelectedItem(item)}
+						onClick={(item) => {
+							setSelectedItem(item);
+							navigate(`/items/${encodeURIComponent(item.itemName)}/detail`);
+						}}
 					/>
 				))}
 				{activeTab === "barter" && barters.map((barter) => (
 					<BarterCard
 						key={barter.barterId}
 						barter={barter}
-						onClick={(barter) => barter.gameItem && setSelectedItem(barter.gameItem)}
+						onClick={(barter) => {
+							if(barter.gameItem){
+								setSelectedItem(barter.gameItem);
+								navigate(`/items/${encodeURIComponent(barter.gameItem.itemName)}/detail`);
+							}
+						}}
 					/>
 				))}
 				{activeTab === "craft" && crafts.map((craft) => (
 					<CraftCard
 						key={`${craft.craftId}-${craft.craftSubId}`}
 						craft={craft}
-						onClick={(craft) => craft.gameItem && setSelectedItem(craft.gameItem)}
+						onClick={(craft) => {
+							if(craft.gameItem){
+								setSelectedItem(craft.gameItem);
+								navigate(`/items/${encodeURIComponent(craft.gameItem.itemName)}/detail`);
+							}
+						}}
 					/>
 				))}
 			</div>
@@ -364,11 +399,14 @@ const GameItemsPage:React.FC = () => {
 				</div>
 			)}
 
-			{/* 아이템 상세 모달 */}
+		{/* 아이템 상세 모달 */}
 			{selectedItem && (
 				<ItemDetailModal
 					item={selectedItem}
-					onClose={() => setSelectedItem(null)}
+					onClose={() => {
+						setSelectedItem(null);
+						navigate("/items");
+					}}
 				/>
 			)}
 		</div>

@@ -22,7 +22,11 @@ public interface UserTodoBarterRepository extends JpaRepository<UserTodoBarter, 
 	@Query("UPDATE UserTodoBarter b SET b.completed = false WHERE b.deletedAt IS NULL AND b.barterCycle = :cycle")
 	void resetCompletedByCycle(String cycle);
 
-	List<UserTodoBarter> findByUserIdAndBarterIdInAndDeletedAtIsNull(Long userId, List<Long> barterIds);
+	// 이름 기반: 같은 유저의 모든 캐릭터에서 매칭 (서버 공유용)
+	List<UserTodoBarter> findByUserIdAndItemNameAndExchangeItemNameAndNpcNameAndDeletedAtIsNull(
+		Long userId, String itemName, String exchangeItemName, String npcName);
 
-	List<UserTodoBarter> findByUserIdAndCharacterIdAndBarterIdInAndDeletedAtIsNull(Long userId, Long characterId, List<Long> barterIds);
+	// 이름 기반: 같은 캐릭터에서만 매칭 (NPC 공유용)
+	List<UserTodoBarter> findByUserIdAndCharacterIdAndItemNameAndExchangeItemNameAndNpcNameAndDeletedAtIsNull(
+		Long userId, Long characterId, String itemName, String exchangeItemName, String npcName);
 }

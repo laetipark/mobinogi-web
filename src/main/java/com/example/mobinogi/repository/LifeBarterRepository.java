@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface LifeBarterRepository extends JpaRepository<LifeBarter, Long>{
 	List<LifeBarter> findByItemId(Long itemId);
@@ -39,4 +40,7 @@ public interface LifeBarterRepository extends JpaRepository<LifeBarter, Long>{
 	List<LifeBarter> findByBarterServer(Integer barterServer);
 	
 	List<LifeBarter> findByBarterNpc(Integer barterNpc);
+
+	Optional<LifeBarter> findByGameItem_ItemNameAndExchangeItem_ItemNameAndGameNpc_NpcName(
+		String itemName, String exchangeItemName, String npcName);
 }

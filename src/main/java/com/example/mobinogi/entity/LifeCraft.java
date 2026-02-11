@@ -40,11 +40,13 @@ public class LifeCraft{
 	private LocalDateTime deletedAt;
 
 	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "item_id", insertable = false, updatable = false)
+	@JoinColumn(name = "item_id", insertable = false, updatable = false,
+		foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
 	private GameItem gameItem;
 
 	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "ingredient_id", referencedColumnName = "item_id", insertable = false, updatable = false)
+	@JoinColumn(name = "ingredient_id", referencedColumnName = "item_id", insertable = false, updatable = false,
+		foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
 	private GameItem ingredientItem;
 
 	@PrePersist

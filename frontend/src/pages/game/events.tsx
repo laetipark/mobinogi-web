@@ -9,7 +9,18 @@ const formatDate = (dateStr:string):string => {
 	return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
 };
 
-const EventCard:React.FC<{event:GameEvent; urgent?:boolean}> = ({event, urgent}) => {
+const formatTimeLeft = (endDate:string):string => {
+	const diff = new Date(endDate).getTime() - Date.now();
+	if(diff <= 0) return "종료";
+	const days = Math.floor(diff / 86400000);
+	const hours = Math.floor((diff % 86400000) / 3600000);
+	const minutes = Math.floor((diff % 3600000) / 60000);
+	if(days > 0) return `D-${days} ${hours}시간`;
+	if(hours > 0) return `${hours}시간 ${minutes}분`;
+	return `${minutes}분`;
+};
+
+const EventCard:React.FC<{event:GameEvent; urgent?:boolean; timeLeft?:string}> = ({event, urgent, timeLeft}) => {
 	const eventUrl = `https://mabinogimobile.nexon.com/News/Events/${event.eventId}`;
 
 	return (
@@ -31,7 +42,7 @@ const EventCard:React.FC<{event:GameEvent; urgent?:boolean}> = ({event, urgent})
 				<div className={styles.cardHeader}>
 					<h3 className={styles.eventTitle}>{event.title}</h3>
 					{event.endingSoon && (
-						<span className={`${styles.badge} ${styles.badgeUrgent}`}>D-{event.daysLeft}</span>
+						<span className={`${styles.badge} ${styles.badgeUrgent}`}>{timeLeft ?? `D-${event.daysLeft}`}</span>
 					)}
 					{event.permanent && (
 						<span className={`${styles.badge} ${styles.badgePermanent}`}>상시</span>
@@ -51,6 +62,7 @@ const EventCard:React.FC<{event:GameEvent; urgent?:boolean}> = ({event, urgent})
 const EventsPage:React.FC = () => {
 	const [events, setEvents] = useState<GameEvent[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [, setTick] = useState(0);
 
 	useEffect(() => {
 		const fetchEvents = async () => {
@@ -64,6 +76,12 @@ const EventsPage:React.FC = () => {
 			}
 		};
 		fetchEvents();
+	}, []);
+
+	// 1분마다 카운트다운 갱신
+	useEffect(() => {
+		const interval = setInterval(() => setTick(t => t + 1), 60000);
+		return () => clearInterval(interval);
 	}, []);
 
 	const urgentEvents = events.filter(e => e.endingSoon);
@@ -96,7 +114,7 @@ const EventsPage:React.FC = () => {
 						</h2>
 						<div className={styles.urgentGrid}>
 							{urgentEvents.map(event => (
-								<EventCard key={event.eventId} event={event} urgent/>
+								<EventCard key={event.eventId} event={event} urgent timeLeft={formatTimeLeft(event.endDate)}/>
 							))}
 						</div>
 					</section>

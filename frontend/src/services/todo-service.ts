@@ -26,8 +26,8 @@ export const todoService = {
 		throw new Error(response.message || "Failed to fetch barter cart");
 	},
 
-	addBarterItem : async(characterId:number, barterId:number, barterCycle:string):Promise<UserTodoBarter> => {
-		const response = await apiService.post<ApiResponse & {barter:UserTodoBarter}>(`/user/todo/barter/${characterId}`, {barterId, barterCycle});
+	addBarterItem : async(characterId:number, itemName:string, exchangeItemName:string, npcName:string, regionName:string, exchangeCost:number, barterCycle:string):Promise<UserTodoBarter> => {
+		const response = await apiService.post<ApiResponse & {barter:UserTodoBarter}>(`/user/todo/barter/${characterId}`, {itemName, exchangeItemName, npcName, regionName, exchangeCost, barterCycle});
 		if(response.success){
 			return response.barter;
 		}

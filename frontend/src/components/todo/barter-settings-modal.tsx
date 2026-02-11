@@ -14,6 +14,9 @@ interface BarterSettingsModalProps{
 	onClose:() => void;
 }
 
+const barterKey = (itemName:string, exchangeItemName:string, npcName:string) =>
+	`${itemName}|${exchangeItemName}|${npcName}`;
+
 const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({characterId, cycle, cycleLabel, existingBarters, onUpdate, onClose}) => {
 	const [searchInput, setSearchInput] = useState("");
 	const [keyword, setKeyword] = useState("");
@@ -24,7 +27,15 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({characterId, cy
 	const [totalElements, setTotalElements] = useState(0);
 	const listRef = useRef<HTMLDivElement>(null);
 
-	const existingBarterIds = new Set(existingBarters.map(b => b.barterId));
+	const existingKeys = new Set(existingBarters.map(b => barterKey(b.itemName, b.exchangeItemName, b.npcName)));
+
+	// 검색어 debounce
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			setKeyword(searchInput);
+		}, 300);
+		return () => clearTimeout(timer);
+	}, [searchInput]);
 
 	const loadData = useCallback(async(reset = false) => {
 		if(loading || (!hasMore && !reset)) return;
@@ -92,17 +103,15 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({characterId, cy
 	};
 
 	const handleAdd = async(barter:LifeBarter) => {
+		const iName = barter.gameItem?.itemName || "";
+		const eName = barter.exchangeItem?.itemName || "";
+		const nName = barter.gameNpc?.npcName || "";
+		const rName = barter.gameRegion?.regionName || "";
 		try{
 			const barterCycle = cycle === 1 ? "daily" : "weekly";
-			const added = await todoService.addBarterItem(characterId, barter.barterId, barterCycle);
-			// 백엔드 응답에 아이템명이 없을 경우 검색 결과에서 보충
+			const added = await todoService.addBarterItem(characterId, iName, eName, nName, rName, barter.exchangeCost, barterCycle);
 			const enriched:UserTodoBarter = {
 				...added,
-				itemName: added.itemName || barter.gameItem?.itemName,
-				exchangeItemName: added.exchangeItemName || barter.exchangeItem?.itemName,
-				regionName: added.regionName || barter.gameRegion?.regionName,
-				npcName: added.npcName || barter.gameNpc?.npcName,
-				exchangeCost: added.exchangeCost ?? barter.exchangeCost,
 				barterQty: added.barterQty ?? barter.barterQty,
 				barterInitCycle: added.barterInitCycle ?? cycle
 			};
@@ -112,12 +121,16 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({characterId, cy
 		}
 	};
 
-	const handleRemove = async(barterId:number) => {
-		const existing = existingBarters.find(b => b.barterId === barterId);
+	const handleRemove = async(barter:LifeBarter) => {
+		const iName = barter.gameItem?.itemName || "";
+		const eName = barter.exchangeItem?.itemName || "";
+		const nName = barter.gameNpc?.npcName || "";
+		const key = barterKey(iName, eName, nName);
+		const existing = existingBarters.find(b => barterKey(b.itemName, b.exchangeItemName, b.npcName) === key);
 		if(!existing) return;
 		try{
 			await todoService.removeBarterItem(characterId, existing.id);
-			onUpdate(existingBarters.filter(b => b.barterId !== barterId));
+			onUpdate(existingBarters.filter(b => b.id !== existing.id));
 		}catch(err){
 			console.error("Failed to remove barter:", err);
 		}
@@ -159,7 +172,10 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({characterId, cy
 				</div>
 				<div className={styles.barterCardList} ref={listRef}>
 					{searchResults.map(barter => {
-						const isAdded = existingBarterIds.has(barter.barterId);
+						const iName = barter.gameItem?.itemName || "";
+						const eName = barter.exchangeItem?.itemName || "";
+						const nName = barter.gameNpc?.npcName || "";
+						const isAdded = existingKeys.has(barterKey(iName, eName, nName));
 						return (
 							<div
 								key={barter.barterId}
@@ -171,7 +187,7 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({characterId, cy
 									</span>
 									<button
 										className={`${styles.barterToggleBtn} ${isAdded ? styles.remove : styles.add}`}
-										onClick={() => isAdded ? handleRemove(barter.barterId) : handleAdd(barter)}
+										onClick={() => isAdded ? handleRemove(barter) : handleAdd(barter)}
 									>
 										{isAdded ? "제거" : "추가"}
 									</button>

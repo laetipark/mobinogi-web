@@ -10,6 +10,7 @@ import PhantomTowerSelector from "../../components/todo/phantom-tower-selector";
 import BarterCart from "../../components/todo/barter-cart";
 import {Plus, X, Save, GripVertical} from "lucide-react";
 import SortableCharacterList from "../../components/user/sortable-character-list";
+import EventChecklist from "../../components/todo/event-checklist";
 import styles from "./todo.module.scss";
 
 const AUTO_SAVE_INTERVAL = 5 * 60 * 1000; // 5분
@@ -494,6 +495,8 @@ const TodoPage:React.FC = () => {
 							</div>
 						</div>
 					)}
+
+					<EventChecklist/>
 				</>
 			)}
 		</div>

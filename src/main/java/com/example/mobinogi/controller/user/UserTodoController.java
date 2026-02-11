@@ -115,10 +115,18 @@ public class UserTodoController{
 	){
 		try{
 			Long userId = getUserIdFromToken(authHeader);
-			Long barterId = ((Number) body.get("barterId")).longValue();
+			String itemName = (String) body.get("itemName");
+			String exchangeItemName = (String) body.get("exchangeItemName");
+			String npcName = (String) body.get("npcName");
+			String regionName = (String) body.get("regionName");
+			Integer exchangeCost = body.get("exchangeCost") != null ? ((Number) body.get("exchangeCost")).intValue() : null;
 			String barterCycle = (String) body.get("barterCycle");
 
-			UserTodoBarterDto barter = userTodoBarterService.addBarterItem(userId, characterId, barterId, barterCycle);
+			if(itemName == null || exchangeItemName == null || npcName == null){
+				throw new RuntimeException("아이템명, 교환 아이템명, NPC명은 필수입니다.");
+			}
+
+			UserTodoBarterDto barter = userTodoBarterService.addBarterItem(userId, characterId, itemName, exchangeItemName, npcName, regionName, exchangeCost, barterCycle);
 
 			Map<String, Object> response = new HashMap<>();
 			response.put("success", true);

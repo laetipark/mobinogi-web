@@ -58,13 +58,12 @@ export interface UserTodoBarter{
 	id:number;
 	userId:number;
 	characterId:number;
-	barterId:number;
+	itemName:string;
+	exchangeItemName:string;
+	npcName:string;
+	regionName:string;
 	barterCycle:string;
 	completed:boolean;
-	itemName?:string;
-	exchangeItemName?:string;
-	regionName?:string;
-	npcName?:string;
 	exchangeCost?:number;
 	barterQty?:number;
 	barterInitCycle?:number;

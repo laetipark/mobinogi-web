@@ -65,23 +65,27 @@ public class LifeBarter{
 	
 	@Column(name = "deleted_at", columnDefinition = "TIMESTAMP")
 	private LocalDateTime deletedAt;
-	
+
 	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "region_id", insertable = false, updatable = false)
+	@JoinColumn(name = "region_id", insertable = false, updatable = false,
+		foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
 	private GameRegion gameRegion;
-	
+
 	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "npc_id", insertable = false, updatable = false)
+	@JoinColumn(name = "npc_id", insertable = false, updatable = false,
+		foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
 	private GameNpc gameNpc;
-	
+
 	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "item_id", insertable = false, updatable = false)
+	@JoinColumn(name = "item_id", insertable = false, updatable = false,
+		foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
 	private GameItem gameItem;
-	
+
 	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "exchange_id", referencedColumnName = "item_id", insertable = false, updatable = false)
+	@JoinColumn(name = "exchange_id", referencedColumnName = "item_id", insertable = false, updatable = false,
+		foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
 	private GameItem exchangeItem;
-	
+
 	@PrePersist
 	public void prePersist(){
 		this.createdAt = LocalDateTime.now();

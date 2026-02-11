@@ -98,7 +98,7 @@ const BarterCart:React.FC<BarterCartProps> = ({characterId, cycle, cycleLabel}) 
 								onClick={() => handleToggle(barter.id)}
 							/>
 							<div className={styles.barterInfo}>
-								<span className={styles.barterItemName}>{barter.itemName || `물물교환 #${barter.barterId}`}</span>
+								<span className={styles.barterItemName}>{barter.itemName || "물물교환"}</span>
 								{barter.regionName && barter.npcName && (
 									<span className={styles.barterDetail}>{barter.regionName} - {barter.npcName}</span>
 								)}
