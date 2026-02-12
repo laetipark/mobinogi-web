@@ -122,14 +122,14 @@ const TodoPage:React.FC = () => {
 		return () => clearInterval(interval);
 	}, []);
 
-	const fetchMissingRanks = (todosData:UserTodo[]) => {
-		const missing = todosData.filter(t => t.serverId != null && t.userPower == null && t.userVitality == null && t.userAttractiveness == null);
-		if(missing.length === 0) return;
+	const fetchRanks = (todosData:UserTodo[]) => {
+		const targets = todosData.filter(t => t.serverId != null);
+		if(targets.length === 0) return;
 
-		const loadingIds = new Set(missing.map(t => t.characterId));
+		const loadingIds = new Set(targets.map(t => t.characterId));
 		setRankLoading(loadingIds);
 
-		missing.forEach(todo => {
+		targets.forEach(todo => {
 			characterService.fetchRank(todo.characterName, todo.serverId!)
 				.then(rank => {
 					setTodos(prev => prev.map(t =>
@@ -164,7 +164,7 @@ const TodoPage:React.FC = () => {
 			if(todosData.length > 0 && !selectedCharacterId){
 				setSelectedCharacterId(todosData[0].characterId);
 			}
-			fetchMissingRanks(todosData);
+			fetchRanks(todosData);
 		}catch(err:any){
 			setError(err.message || "데이터를 불러오는데 실패했습니다.");
 		}finally{

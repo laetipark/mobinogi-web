@@ -1,20 +1,33 @@
 import React, {useState, useEffect, useRef} from "react";
 import {useAuth} from "@/hooks/use-auth";
-import {useSearchParams} from "react-router-dom";
 import {UserCharacter, UserCharacterRequest, GameClassItem} from "@/types";
 import characterService from "@/services/character-service";
 import {gameClassService} from "@/services/game-class-service";
 import profileService from "@/services/profile-service";
 import {uploadService} from "@/services/upload-service";
 import {discordService} from "@/services/discord-service";
-import {User, Camera, Plus, Edit2, Trash2, Save, X, RefreshCw, Gamepad2, Link, Upload, ArrowUpDown, Check} from "lucide-react";
+import {
+	User,
+	Camera,
+	Plus,
+	Edit2,
+	Trash2,
+	Save,
+	X,
+	RefreshCw,
+	Gamepad2,
+	Link,
+	Upload,
+	ArrowUpDown,
+	Check
+} from "lucide-react";
 import SortableCharacterList, {SortableCharacterItem} from "@/components/user/sortable-character-list";
 import styles from "./profile.module.scss";
 
 const ProfilePage:React.FC = () => {
 	const {user, checkLoginStatus} = useAuth();
 	const fileInputRef = useRef<HTMLInputElement>(null);
-
+	
 	// 프로필 상태
 	const [nickname, setNickname] = useState("");
 	const [profileImage, setProfileImage] = useState("");
@@ -22,37 +35,37 @@ const ProfilePage:React.FC = () => {
 	const [profileMessage, setProfileMessage] = useState<{type:"success" | "error"; text:string} | null>(null);
 	const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 	const [useUrlInput, setUseUrlInput] = useState(false);
-
+	
 	// 캐릭터 상태
 	const [characters, setCharacters] = useState<UserCharacter[]>([]);
 	const [charactersLoading, setCharactersLoading] = useState(true);
 	const [editingCharacter, setEditingCharacter] = useState<UserCharacter | null>(null);
 	const [showAddForm, setShowAddForm] = useState(false);
-
+	
 	// 캐릭터 순서 변경 상태
 	const [reorderMode, setReorderMode] = useState(false);
 	const [reorderList, setReorderList] = useState<SortableCharacterItem[]>([]);
 	const [reorderSaving, setReorderSaving] = useState(false);
-
+	
 	// 캐릭터 폼 상태
 	const [characterForm, setCharacterForm] = useState<UserCharacterRequest>({
-		characterName: "",
-		serverId: 2,
-		classId: undefined
+		characterName : "",
+		serverId : 2,
+		classId : undefined
 	});
 	const [classes, setClasses] = useState<GameClassItem[]>([]);
 	const servers:{id:number; name:string}[] = [
-		{id: 1, name: "데이안"}, {id: 2, name: "아이라"}, {id: 3, name: "던컨"}, {id: 4, name: "알리사"},
-		{id: 5, name: "메이븐"}, {id: 6, name: "라사"}, {id: 7, name: "칼릭스"}
+		{id : 1, name : "데이안"}, {id : 2, name : "아이라"}, {id : 3, name : "던컨"}, {id : 4, name : "알리사"},
+		{id : 5, name : "메이븐"}, {id : 6, name : "라사"}, {id : 7, name : "칼릭스"}
 	];
-
+	
 	// Rank 로딩 상태
 	const [rankLoading, setRankLoading] = useState<Set<number>>(new Set());
-
+	
 	// Discord 연동 상태
 	const [discordLoading, setDiscordLoading] = useState(false);
 	const [discordMessage, setDiscordMessage] = useState<{type:"success" | "error"; text:string} | null>(null);
-
+	
 	// 초기화
 	useEffect(() => {
 		if(user){
@@ -60,50 +73,54 @@ const ProfilePage:React.FC = () => {
 			setProfileImage(user.profileImage || "");
 			loadCharacters();
 		}
-		gameClassService.getClasses().then(setClasses).catch(() => {});
+		gameClassService.getClasses().then(setClasses).catch(() => {
+		});
 	}, [user]);
-
+	
 	// 캐릭터 로드
 	const loadCharacters = async() => {
 		setCharactersLoading(true);
 		try{
 			const data = await characterService.getMyCharacters();
 			setCharacters(data);
-			fetchMissingRanks(data);
+			fetchRanks(data);
 		}catch(error){
 			console.error("캐릭터 로드 실패:", error);
 		}finally{
 			setCharactersLoading(false);
 		}
 	};
-
-	const fetchMissingRanks = (chars:UserCharacter[]) => {
-		const missing = chars.filter(c => c.serverId != null && c.userPower == null && c.userVitality == null && c.userAttractiveness == null);
-		if(missing.length === 0) return;
-
-		const loadingIds = new Set(missing.map(c => c.characterId));
+	
+	const fetchRanks = (chars:UserCharacter[]) => {
+		const targets = chars.filter(c => c.serverId != null);
+		if(targets.length === 0) return;
+		
+		const loadingIds = new Set(targets.map(c => c.characterId));
 		setRankLoading(loadingIds);
-
-		missing.forEach(c => {
-			characterService.fetchRank(c.characterName, c.serverId!)
-				.then(rank => {
-					setCharacters(prev => prev.map(ch =>
-						ch.characterId === c.characterId
-							? {...ch, userPower: rank.userPower ?? undefined, userVitality: rank.userVitality ?? undefined, userAttractiveness: rank.userAttractiveness ?? undefined}
-							: ch
-					));
-				})
-				.catch(() => {})
-				.finally(() => {
-					setRankLoading(prev => {
-						const next = new Set(prev);
-						next.delete(c.characterId);
-						return next;
-					});
+		
+		targets.forEach(c => {
+			characterService.fetchRank(c.characterName, c.serverId!).then(rank => {
+				setCharacters(prev => prev.map(ch =>
+					ch.characterId === c.characterId
+						? {
+							...ch,
+							userPower : rank.userPower ?? undefined,
+							userVitality : rank.userVitality ?? undefined,
+							userAttractiveness : rank.userAttractiveness ?? undefined
+						}
+						: ch
+				));
+			}).catch(() => {
+			}).finally(() => {
+				setRankLoading(prev => {
+					const next = new Set(prev);
+					next.delete(c.characterId);
+					return next;
 				});
+			});
 		});
 	};
-
+	
 	// 프로필 이미지 업로드
 	const handleProfileImageUpload = async(file:File) => {
 		setUploadProgress(0);
@@ -114,47 +131,47 @@ const ProfilePage:React.FC = () => {
 			});
 			if(result.success && result.url){
 				setProfileImage(result.url);
-				setProfileMessage({type: "success", text: "이미지가 업로드되었습니다. 프로필 저장을 눌러주세요."});
+				setProfileMessage({type : "success", text : "이미지가 업로드되었습니다. 프로필 저장을 눌러주세요."});
 			}else{
-				setProfileMessage({type: "error", text: result.message || "이미지 업로드에 실패했습니다."});
+				setProfileMessage({type : "error", text : result.message || "이미지 업로드에 실패했습니다."});
 			}
 		}catch(error:any){
-			setProfileMessage({type: "error", text: "이미지 업로드에 실패했습니다."});
+			setProfileMessage({type : "error", text : "이미지 업로드에 실패했습니다."});
 		}finally{
 			setUploadProgress(null);
 		}
 	};
-
+	
 	const handleFileSelect = (e:React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
 		if(file) handleProfileImageUpload(file);
 		e.target.value = "";
 	};
-
+	
 	const handleImageClick = () => {
 		if(!useUrlInput){
 			fileInputRef.current?.click();
 		}
 	};
-
+	
 	// 프로필 저장
 	const handleProfileSave = async() => {
 		setProfileLoading(true);
 		setProfileMessage(null);
 		try{
 			await profileService.updateProfile({nickname, profileImage});
-			setProfileMessage({type: "success", text: "프로필이 저장되었습니다."});
+			setProfileMessage({type : "success", text : "프로필이 저장되었습니다."});
 			// 로그인 상태 갱신
 			if(checkLoginStatus){
 				await checkLoginStatus();
 			}
 		}catch(error:any){
-			setProfileMessage({type: "error", text: error.message || "프로필 저장에 실패했습니다."});
+			setProfileMessage({type : "error", text : error.message || "프로필 저장에 실패했습니다."});
 		}finally{
 			setProfileLoading(false);
 		}
 	};
-
+	
 	// 캐릭터 추가
 	const handleAddCharacter = async() => {
 		if(!characterForm.characterName.trim()){
@@ -163,13 +180,13 @@ const ProfilePage:React.FC = () => {
 		try{
 			const newCharacter = await characterService.createCharacter(characterForm);
 			setCharacters(prev => [...prev, newCharacter]);
-			setCharacterForm({characterName: "", serverId: 2, classId: undefined});
+			setCharacterForm({characterName : "", serverId : 2, classId : undefined});
 			setShowAddForm(false);
 		}catch(error:any){
 			console.error("캐릭터 추가 실패:", error);
 		}
 	};
-
+	
 	// 캐릭터 수정
 	const handleEditCharacter = async() => {
 		if(!editingCharacter || !characterForm.characterName.trim()){
@@ -179,12 +196,12 @@ const ProfilePage:React.FC = () => {
 			const updated = await characterService.updateCharacter(editingCharacter.characterId, characterForm);
 			setCharacters(prev => prev.map(c => c.characterId === updated.characterId ? updated : c));
 			setEditingCharacter(null);
-			setCharacterForm({characterName: "", serverId: 2, classId: undefined});
+			setCharacterForm({characterName : "", serverId : 2, classId : undefined});
 		}catch(error:any){
 			console.error("캐릭터 수정 실패:", error);
 		}
 	};
-
+	
 	// 캐릭터 삭제
 	const handleDeleteCharacter = async(characterId:number) => {
 		if(!confirm("정말 이 캐릭터를 삭제하시겠습니까?")){
@@ -197,44 +214,48 @@ const ProfilePage:React.FC = () => {
 			console.error("캐릭터 삭제 실패:", error);
 		}
 	};
-
+	
 	// 수정 모드 시작
 	const startEditCharacter = (character:UserCharacter) => {
 		setEditingCharacter(character);
 		setCharacterForm({
-			characterName: character.characterName,
-			serverId: character.serverId || undefined,
-			classId: character.classId || undefined
+			characterName : character.characterName,
+			serverId : character.serverId || undefined,
+			classId : character.classId || undefined
 		});
 		setShowAddForm(false);
 	};
-
+	
 	// 수정 모드 취소
 	const cancelEdit = () => {
 		setEditingCharacter(null);
-		setCharacterForm({characterName: "", serverId: 2, classId: undefined});
+		setCharacterForm({characterName : "", serverId : 2, classId : undefined});
 	};
-
+	
 	// 추가 모드 시작
 	const startAddCharacter = () => {
 		setShowAddForm(true);
 		setEditingCharacter(null);
-		setCharacterForm({characterName: "", serverId: 2, classId: undefined});
+		setCharacterForm({characterName : "", serverId : 2, classId : undefined});
 	};
-
+	
 	// 순서 변경 모드
 	const startReorderMode = () => {
-		setReorderList(characters.map(c => ({characterId: c.characterId, characterName: c.characterName, serverName: c.serverName})));
+		setReorderList(characters.map(c => ({
+			characterId : c.characterId,
+			characterName : c.characterName,
+			serverName : c.serverName
+		})));
 		setReorderMode(true);
 		setShowAddForm(false);
 		setEditingCharacter(null);
 	};
-
+	
 	const cancelReorderMode = () => {
 		setReorderMode(false);
 		setReorderList([]);
 	};
-
+	
 	const handleReorderSave = async() => {
 		setReorderSaving(true);
 		try{
@@ -248,7 +269,7 @@ const ProfilePage:React.FC = () => {
 			setReorderSaving(false);
 		}
 	};
-
+	
 	// Discord 연동
 	const handleDiscordLink = async() => {
 		setDiscordLoading(true);
@@ -258,11 +279,11 @@ const ProfilePage:React.FC = () => {
 			// Discord OAuth 페이지로 이동
 			window.location.href = authUrl;
 		}catch(error:any){
-			setDiscordMessage({type: "error", text: error.message || "Discord 연동 실패"});
+			setDiscordMessage({type : "error", text : error.message || "Discord 연동 실패"});
 			setDiscordLoading(false);
 		}
 	};
-
+	
 	// Discord 연동 해제
 	const handleDiscordUnlink = async() => {
 		if(!confirm("Discord 연동을 해제하시겠습니까?")){
@@ -272,18 +293,18 @@ const ProfilePage:React.FC = () => {
 		setDiscordMessage(null);
 		try{
 			const result = await discordService.unlinkDiscord();
-			setDiscordMessage({type: "success", text: result.message});
+			setDiscordMessage({type : "success", text : result.message});
 			// 로그인 상태 갱신
 			if(checkLoginStatus){
 				await checkLoginStatus();
 			}
 		}catch(error:any){
-			setDiscordMessage({type: "error", text: error.message || "연동 해제 실패"});
+			setDiscordMessage({type : "error", text : error.message || "연동 해제 실패"});
 		}finally{
 			setDiscordLoading(false);
 		}
 	};
-
+	
 	if(!user){
 		return (
 			<div className={styles.profilePage}>
@@ -293,19 +314,19 @@ const ProfilePage:React.FC = () => {
 			</div>
 		);
 	}
-
+	
 	return (
 		<div className={styles.profilePage}>
 			<div className={styles.container}>
 				<h1 className={styles.pageTitle}>프로필 설정</h1>
-
+				
 				{/* 프로필 섹션 */}
 				<section className={styles.section}>
 					<h2 className={styles.sectionTitle}>
 						<User size={20}/>
 						<span>내 프로필</span>
 					</h2>
-
+					
 					<div className={styles.profileForm}>
 						<div className={styles.profileImageSection}>
 							<div className={styles.profileImageWrapper} onClick={handleImageClick}>
@@ -330,12 +351,12 @@ const ProfilePage:React.FC = () => {
 							{uploadProgress !== null && (
 								<div className={styles.uploadProgress}>
 									<div className={styles.progressBar}>
-										<div className={styles.progressFill} style={{width: `${uploadProgress}%`}}/>
+										<div className={styles.progressFill} style={{width : `${uploadProgress}%`}}/>
 									</div>
 								</div>
 							)}
 						</div>
-
+						
 						<div className={styles.formFields}>
 							<div className={styles.formGroup}>
 								<label>닉네임</label>
@@ -347,7 +368,7 @@ const ProfilePage:React.FC = () => {
 									maxLength={20}
 								/>
 							</div>
-
+							
 							<div className={styles.formGroup}>
 								<div className={styles.imageInputHeader}>
 									<label>프로필 이미지</label>
@@ -382,13 +403,13 @@ const ProfilePage:React.FC = () => {
 									</button>
 								)}
 							</div>
-
+							
 							{profileMessage && (
 								<div className={`${styles.message} ${styles[profileMessage.type]}`}>
 									{profileMessage.text}
 								</div>
 							)}
-
+							
 							<button
 								className={styles.saveBtn}
 								onClick={handleProfileSave}
@@ -409,16 +430,17 @@ const ProfilePage:React.FC = () => {
 						</div>
 					</div>
 				</section>
-
+				
 				{/* Discord 연동 섹션 */}
 				<section className={styles.section}>
 					<h2 className={styles.sectionTitle}>
 						<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-							<path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"/>
+							<path
+								d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"/>
 						</svg>
 						<span>Discord 연동</span>
 					</h2>
-
+					
 					<div className={styles.discordSection}>
 						{user.discordId ? (
 							<div className={styles.discordLinked}>
@@ -451,7 +473,7 @@ const ProfilePage:React.FC = () => {
 								</button>
 							</div>
 						)}
-
+						
 						{discordMessage && (
 							<div className={`${styles.message} ${styles[discordMessage.type]}`}>
 								{discordMessage.text}
@@ -459,7 +481,7 @@ const ProfilePage:React.FC = () => {
 						)}
 					</div>
 				</section>
-
+				
 				{/* 캐릭터 섹션 */}
 				<section className={styles.section}>
 					<div className={styles.sectionHeader}>
@@ -483,7 +505,7 @@ const ProfilePage:React.FC = () => {
 							</div>
 						)}
 					</div>
-
+					
 					{/* 캐릭터 추가/수정 폼 */}
 					{(showAddForm || editingCharacter) && (
 						<div className={styles.characterForm}>
@@ -494,7 +516,10 @@ const ProfilePage:React.FC = () => {
 									<input
 										type="text"
 										value={characterForm.characterName}
-										onChange={(e) => setCharacterForm(prev => ({...prev, characterName: e.target.value}))}
+										onChange={(e) => setCharacterForm(prev => ({
+											...prev,
+											characterName : e.target.value
+										}))}
 										placeholder="캐릭터 이름"
 									/>
 								</div>
@@ -502,7 +527,10 @@ const ProfilePage:React.FC = () => {
 									<label>서버</label>
 									<select
 										value={characterForm.serverId ?? ""}
-										onChange={(e) => setCharacterForm(prev => ({...prev, serverId: e.target.value ? Number(e.target.value) : undefined}))}
+										onChange={(e) => setCharacterForm(prev => ({
+											...prev,
+											serverId : e.target.value ? Number(e.target.value) : undefined
+										}))}
 									>
 										<option value="">선택안함</option>
 										{servers.map(server => (
@@ -514,7 +542,10 @@ const ProfilePage:React.FC = () => {
 									<label>직업</label>
 									<select
 										value={characterForm.classId ?? ""}
-										onChange={(e) => setCharacterForm(prev => ({...prev, classId: e.target.value ? Number(e.target.value) : undefined}))}
+										onChange={(e) => setCharacterForm(prev => ({
+											...prev,
+											classId : e.target.value ? Number(e.target.value) : undefined
+										}))}
 									>
 										<option value="">선택안함</option>
 										{classes.map(cls => (
@@ -545,7 +576,7 @@ const ProfilePage:React.FC = () => {
 							</div>
 						</div>
 					)}
-
+					
 					{/* 캐릭터 목록 */}
 					{charactersLoading ? (
 						<div className={styles.loading}>
@@ -603,9 +634,12 @@ const ProfilePage:React.FC = () => {
 											</div>
 										) : (character.userPower != null || character.userVitality != null || character.userAttractiveness != null) && (
 											<div className={styles.characterStats}>
-												{character.userPower != null && <span className={styles.statPower}>전투력 {character.userPower.toLocaleString()}</span>}
-												{character.userVitality != null && <span className={styles.statVitality}>생활력 {character.userVitality.toLocaleString()}</span>}
-												{character.userAttractiveness != null && <span className={styles.statAttractiveness}>매력 {character.userAttractiveness.toLocaleString()}</span>}
+												{character.userPower != null && <span
+													className={styles.statPower}>전투력 {character.userPower.toLocaleString()}</span>}
+												{character.userVitality != null && <span
+													className={styles.statVitality}>생활력 {character.userVitality.toLocaleString()}</span>}
+												{character.userAttractiveness != null && <span
+													className={styles.statAttractiveness}>매력 {character.userAttractiveness.toLocaleString()}</span>}
 											</div>
 										)}
 									</div>
