@@ -177,11 +177,11 @@ public class UserTodoController{
 	){
 		try{
 			Long userId = getUserIdFromToken(authHeader);
-			List<UserTodoBarterDto> barters = userTodoBarterService.toggleComplete(userId, characterId, barterId);
+			UserTodoBarterDto barter = userTodoBarterService.toggleComplete(userId, characterId, barterId);
 
 			Map<String, Object> response = new HashMap<>();
 			response.put("success", true);
-			response.put("barters", barters);
+			response.put("barter", barter);
 
 			return ResponseEntity.ok(response);
 		}catch(Exception e){

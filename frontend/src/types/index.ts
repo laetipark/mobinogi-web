@@ -15,7 +15,7 @@ export type {
 } from "./board";
 export type {GameEvent} from "./event";
 export type {
-	CounterTask, PhantomTower, BossProgress, DailyTasks, Resources,
-	WeeklyTasks, TodoData, UserTodo, UserTodoBarter
+	CounterTask, PhantomTower, BossProgress, Vanguard, DailyTasks, Resources,
+	WeeklyTasks, TodoSettings, TodoMemo, TodoData, UserTodo, UserTodoBarter
 } from "./todo";
 export type {AppConfig} from "./config";

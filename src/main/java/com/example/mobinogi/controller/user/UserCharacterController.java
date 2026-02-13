@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -168,18 +169,31 @@ public class UserCharacterController{
 		try{
 			getUserIdFromToken(authHeader);
 
-			var stats = rankApiService.fetchRankStats(characterName, serverId);
-
 			Map<String, Object> response = new HashMap<>();
 			response.put("success", true);
+
+			// 캐시 확인: updatedAt이 10분 이내면 캐시 데이터 반환
+			var rankOpt = userRankRepository.findByServerIdAndUserNameAndDeletedAtIsNull(serverId, characterName);
+			if(rankOpt.isPresent()){
+				var rank = rankOpt.get();
+				if(rank.getUpdatedAt() != null && rank.getUpdatedAt().isAfter(LocalDateTime.now().minusMinutes(10))){
+					response.put("userPower", rank.getUserPower());
+					response.put("userVitality", rank.getUserVitality());
+					response.put("userAttractiveness", rank.getUserAttractiveness());
+					response.put("cached", true);
+					return ResponseEntity.ok(response);
+				}
+			}
+
+			// 외부 API에서 최신 데이터 조회
+			var stats = rankApiService.fetchRankStats(characterName, serverId);
 
 			if(stats != null){
 				response.put("userPower", stats.getUserPower());
 				response.put("userVitality", stats.getUserVitality());
 				response.put("userAttractiveness", stats.getUserAttractiveness());
 
-				// DB에 저장 (다음 요청부터 빠르게 제공)
-				var rankOpt = userRankRepository.findByServerIdAndUserNameAndDeletedAtIsNull(serverId, characterName);
+				// DB 갱신
 				UserRank rank = rankOpt.orElseGet(() -> {
 					UserRank newRank = new UserRank();
 					newRank.setServerId(serverId);
@@ -191,6 +205,13 @@ public class UserCharacterController{
 				rank.setUserVitality(stats.getUserVitality());
 				rank.setUserAttractiveness(stats.getUserAttractiveness());
 				userRankRepository.save(rank);
+			}else if(rankOpt.isPresent()){
+				// 외부 API 실패 시 기존 캐시 데이터 반환
+				var rank = rankOpt.get();
+				response.put("userPower", rank.getUserPower());
+				response.put("userVitality", rank.getUserVitality());
+				response.put("userAttractiveness", rank.getUserAttractiveness());
+				response.put("cached", true);
 			}else{
 				response.put("userPower", null);
 				response.put("userVitality", null);

@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -13,12 +14,19 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Slf4j
 @Service
 public class RankApiService{
-	
+
 	@Value("${RANK_API_BASE:}")
 	private String rankApiBase;
-	
-	private final RestTemplate restTemplate = new RestTemplate();
+
+	private final RestTemplate restTemplate;
 	private final ObjectMapper objectMapper = new ObjectMapper();
+
+	public RankApiService(){
+		SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+		factory.setConnectTimeout(5000);
+		factory.setReadTimeout(60000);
+		this.restTemplate = new RestTemplate(factory);
+	}
 	
 	@Getter
 	@Builder

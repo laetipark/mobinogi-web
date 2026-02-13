@@ -507,8 +507,17 @@ html{
 		padding:12px;
 	}
 
+	.headerResources{
+		flex-direction:column;
+		width:100%;
+	}
+
+	.characterInfo{
+		width:100%;
+	}
+
 	.characterTab{
-		padding:8px 14px;
+		padding:8px 12px;
 	}
 
 	.section{

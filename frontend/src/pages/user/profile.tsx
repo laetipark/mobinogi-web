@@ -628,7 +628,7 @@ const ProfilePage:React.FC = () => {
 										{character.className && (
 											<span className={styles.characterMeta}>{character.className}</span>
 										)}
-										{rankLoading.has(character.characterId) ? (
+										{rankLoading.has(character.characterId) && character.userPower == null && character.userVitality == null && character.userAttractiveness == null ? (
 											<div className={styles.characterStats}>
 												<span className={styles.statLoading}>랭크 로딩중...</span>
 											</div>

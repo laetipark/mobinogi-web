@@ -32,6 +32,21 @@ public class GameMonster{
 	@Column(name = "monster_name", length = 100)
 	private String monsterName;
 
+	@Column(name = "required_level")
+	private Integer requiredLevel;
+
+	@Column(name = "power_required")
+	private Integer powerRequired;
+
+	@Column(name = "power_recommended")
+	private Integer powerRecommended;
+
+	@Column(name = "power_overwhelming")
+	private Integer powerOverwhelming;
+
+	@Column(name = "party_revives")
+	private Integer partyRevives;
+
 	@Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
 	private LocalDateTime createdAt;
 

@@ -649,18 +649,41 @@
 		margin-bottom:16px;
 	}
 
+	.sectionHeader{
+		flex-direction:column;
+		align-items:flex-start;
+		gap:10px;
+	}
+
+	.headerActions{
+		width:100%;
+		flex-wrap:wrap;
+
+		button{
+			flex:1;
+		}
+	}
+
+	.formRow{
+		grid-template-columns:1fr;
+	}
+
+	.formActions{
+		flex-wrap:wrap;
+	}
+
 	.characterCard{
 		flex-direction:column;
 		align-items:flex-start;
 		gap:12px;
 	}
 
-	.characterActions{
-		align-self:flex-end;
+	.characterStats{
+		gap:6px;
 	}
 
-	.headerActions{
-		flex-wrap:wrap;
+	.characterActions{
+		align-self:flex-end;
 	}
 
 	.sectionTitle{

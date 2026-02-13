@@ -353,6 +353,19 @@
 		}
 	}
 
+	.barterExchange{
+		flex-direction:column;
+		gap:8px;
+
+		.arrow{
+			transform:rotate(90deg);
+		}
+	}
+
+	.exchangeItem{
+		width:100%;
+	}
+
 	.tabs{
 		padding:0 12px;
 	}

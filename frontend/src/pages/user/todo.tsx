@@ -7,7 +7,6 @@ import DailyTaskSection from "../../components/todo/daily-task-section";
 import WeeklyTaskSection from "../../components/todo/weekly-task-section";
 import ResourceDisplay from "../../components/todo/resource-display";
 import PhantomTowerSelector from "../../components/todo/phantom-tower-selector";
-import BarterCart from "../../components/todo/barter-cart";
 import {Plus, X, Save, GripVertical} from "lucide-react";
 import SortableCharacterList from "../../components/user/sortable-character-list";
 import EventChecklist from "../../components/todo/event-checklist";
@@ -21,6 +20,7 @@ const TodoPage:React.FC = () => {
 	const [error, setError] = useState<string | null>(null);
 	const [fieldBossMonsters, setFieldBossMonsters] = useState<GameMonster[]>([]);
 	const [raidMonsters, setRaidMonsters] = useState<GameMonster[]>([]);
+	const [abyssBossMonsters, setAbyssBossMonsters] = useState<GameMonster[]>([]);
 	const [selectedCharacterId, setSelectedCharacterId] = useState<number | null>(null);
 	const [dailyCountdown, setDailyCountdown] = useState("");
 	const [weeklyCountdown, setWeeklyCountdown] = useState("");
@@ -153,14 +153,16 @@ const TodoPage:React.FC = () => {
 		try{
 			setLoading(true);
 			setError(null);
-			const [todosData, fieldBoss, raid] = await Promise.all([
+			const [todosData, fieldBoss, raid, abyssBoss] = await Promise.all([
 				todoService.getTodos(),
 				todoService.getMonsters("fieldBoss"),
-				todoService.getMonsters("raidBoss")
+				todoService.getMonsters("raidBoss"),
+				todoService.getMonsters("abyssBoss")
 			]);
 			setTodos(todosData);
 			setFieldBossMonsters(fieldBoss);
 			setRaidMonsters(raid);
+			setAbyssBossMonsters(abyssBoss);
 			if(todosData.length > 0 && !selectedCharacterId){
 				setSelectedCharacterId(todosData[0].characterId);
 			}
@@ -208,7 +210,27 @@ const TodoPage:React.FC = () => {
 		setTimeout(() => setToastMessage(""), 3000);
 	};
 
-	const handleTodoChange = (characterId:number, todoData:TodoData) => {
+	const SERVER_SHARED_DAILY = ["freeShopPurchase", "gemTreasureChest"];
+
+	const handleTodoChange = (characterId:number, todoData:TodoData, changedField?:string) => {
+		if(changedField && SERVER_SHARED_DAILY.includes(changedField)){
+			const serverId = todos.find(t => t.characterId === characterId)?.serverId;
+			if(serverId != null){
+				const fieldValue = (todoData.daily as Record<string, unknown>)[changedField];
+				setTodos(prev => prev.map(t => {
+					if(t.serverId === serverId){
+						if(t.characterId === characterId){
+							return {...t, todoData};
+						}
+						return {...t, todoData: {...t.todoData, daily: {...t.todoData.daily, [changedField]: fieldValue}}};
+					}
+					return t;
+				}));
+				todos.filter(t => t.serverId === serverId).forEach(t => dirtyRef.current.add(t.characterId));
+				setIsDirty(true);
+				return;
+			}
+		}
 		setTodos(prev => prev.map(t =>
 			t.characterId === characterId ? {...t, todoData} : t
 		));
@@ -445,7 +467,7 @@ const TodoPage:React.FC = () => {
 									<h3>{selectedTodo.characterName}</h3>
 									{selectedTodo.serverName && <span className={styles.serverName}>{selectedTodo.serverName}</span>}
 									{selectedTodo.className && <span className={styles.className}>{selectedTodo.className}</span>}
-									{rankLoading.has(selectedTodo.characterId) ? (
+									{rankLoading.has(selectedTodo.characterId) && selectedTodo.userPower == null && selectedTodo.userVitality == null && selectedTodo.userAttractiveness == null ? (
 										<div className={styles.characterStats}>
 											<span className={styles.statLoading}>랭크 로딩중...</span>
 										</div>
@@ -475,22 +497,29 @@ const TodoPage:React.FC = () => {
 							{/* 2섹션 레이아웃 */}
 							<div className={styles.sectionsGrid}>
 								<div className={styles.section}>
-									<h4 className={styles.sectionTitle}>일일</h4>
 									<DailyTaskSection
 										daily={selectedTodo.todoData.daily}
-										onChange={(daily) => handleTodoChange(selectedTodo.characterId, {...selectedTodo.todoData, daily})}
+										settings={selectedTodo.todoData.settings}
+										characterId={selectedTodo.characterId}
+										dailyMemos={selectedTodo.todoData.dailyMemos}
+										onChange={(daily, changedField) => handleTodoChange(selectedTodo.characterId, {...selectedTodo.todoData, daily}, changedField)}
+										onSettingsChange={(settings) => handleTodoChange(selectedTodo.characterId, {...selectedTodo.todoData, settings})}
+										onMemosChange={(memos) => handleTodoChange(selectedTodo.characterId, {...selectedTodo.todoData, dailyMemos: memos})}
 									/>
-									<BarterCart characterId={selectedTodo.characterId} cycle={1} cycleLabel="일일"/>
 								</div>
 								<div className={styles.section}>
-									<h4 className={styles.sectionTitle}>주간</h4>
 									<WeeklyTaskSection
 										weekly={selectedTodo.todoData.weekly}
 										fieldBossMonsters={fieldBossMonsters}
 										raidMonsters={raidMonsters}
+										abyssBossMonsters={abyssBossMonsters}
+										settings={selectedTodo.todoData.settings}
+										characterId={selectedTodo.characterId}
+										weeklyMemos={selectedTodo.todoData.weeklyMemos}
 										onChange={(weekly) => handleTodoChange(selectedTodo.characterId, {...selectedTodo.todoData, weekly})}
+										onSettingsChange={(settings) => handleTodoChange(selectedTodo.characterId, {...selectedTodo.todoData, settings})}
+										onMemosChange={(memos) => handleTodoChange(selectedTodo.characterId, {...selectedTodo.todoData, weeklyMemos: memos})}
 									/>
-									<BarterCart characterId={selectedTodo.characterId} cycle={7} cycleLabel="주간"/>
 								</div>
 							</div>
 						</div>

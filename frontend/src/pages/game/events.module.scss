@@ -139,7 +139,21 @@
 		margin-bottom:20px;
 	}
 
+	.urgentSection{
+		margin-bottom:20px;
+	}
+
 	.urgentGrid, .eventGrid{
 		grid-template-columns:1fr;
+	}
+
+	.eventCard{
+		&:hover{
+			transform:none;
+		}
+	}
+
+	.cardBody{
+		padding:12px;
 	}
 }

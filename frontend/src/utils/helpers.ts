@@ -31,6 +31,31 @@ export const calculatePasswordStrength = (password:string):PasswordStrengthResul
 /**
  * Local storage utilities with error handling
  */
+const DIFFICULTY_LABELS: Record<string, string> = {
+	'1': '입문',
+	'2': '어려움',
+	'3': '매우 어려움',
+	'4': '지옥1',
+	'5': '지옥2',
+	'6': '지옥3',
+	'7': '지옥4',
+	'8': '지옥5',
+	'9': '지옥6',
+	'10': '지옥7',
+	'11': '지옥8',
+	'12': '지옥9',
+	'13': '지옥10',
+	'14': '지옥11',
+	'15': '지옥12',
+	'16': '지옥13',
+	'17': '지옥14',
+	'18': '지옥15',
+};
+
+export const getDifficultyLabel = (difficulty: string): string => {
+	return DIFFICULTY_LABELS[difficulty] || difficulty;
+};
+
 export const storage = {
 	get : <T>(key:string):T | null => {
 		try{

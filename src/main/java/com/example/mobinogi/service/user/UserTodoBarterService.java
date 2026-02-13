@@ -20,14 +20,45 @@ public class UserTodoBarterService{
 	private final UserTodoBarterRepository userTodoBarterRepository;
 	private final LifeBarterRepository lifeBarterRepository;
 
-	private LifeBarter findLifeBarter(String itemName, String exchangeItemName, String npcName){
-		return lifeBarterRepository.findByGameItem_ItemNameAndExchangeItem_ItemNameAndGameNpc_NpcName(
+	private Integer toBarterInitCycle(String barterCycle){
+		if(barterCycle == null){
+			return null;
+		}
+		return switch(barterCycle.toLowerCase()){
+			case "daily" -> 1;
+			case "weekly" -> 2;
+			default -> null;
+		};
+	}
+
+	private LifeBarter findLifeBarter(String itemName, String exchangeItemName, String npcName, String barterCycle){
+		List<LifeBarter> matches = lifeBarterRepository.findByGameItem_ItemNameAndExchangeItem_ItemNameAndGameNpc_NpcName(
 			itemName, exchangeItemName, npcName
-		).orElse(null);
+		);
+		if(matches.isEmpty()){
+			return null;
+		}
+
+		Integer targetCycle = toBarterInitCycle(barterCycle);
+		if(targetCycle != null){
+			Optional<LifeBarter> cycleMatched = matches.stream()
+				.filter(lb -> Objects.equals(lb.getBarterInitCycle(), targetCycle))
+				.min(Comparator.comparing(LifeBarter::getBarterId));
+			if(cycleMatched.isPresent()){
+				return cycleMatched.get();
+			}
+		}
+
+		return matches.stream().min(Comparator.comparing(LifeBarter::getBarterId)).orElse(null);
 	}
 
 	private UserTodoBarterDto toDto(UserTodoBarter entity){
-		LifeBarter lb = findLifeBarter(entity.getItemName(), entity.getExchangeItemName(), entity.getNpcName());
+		LifeBarter lb = findLifeBarter(
+			entity.getItemName(),
+			entity.getExchangeItemName(),
+			entity.getNpcName(),
+			entity.getBarterCycle()
+		);
 		return UserTodoBarterDto.fromEntity(entity, lb);
 	}
 
@@ -67,66 +98,13 @@ public class UserTodoBarterService{
 	}
 
 	@Transactional
-	public List<UserTodoBarterDto> toggleComplete(Long userId, Long characterId, Long id){
+	public UserTodoBarterDto toggleComplete(Long userId, Long characterId, Long id){
 		UserTodoBarter barter = userTodoBarterRepository.findByIdAndUserIdAndDeletedAtIsNull(id, userId)
 			.orElseThrow(() -> new RuntimeException("물물교환 아이템을 찾을 수 없습니다."));
 
-		boolean newCompleted = !barter.getCompleted();
-		barter.setCompleted(newCompleted);
+		barter.setCompleted(!barter.getCompleted());
 		userTodoBarterRepository.save(barter);
-
-		List<UserTodoBarter> affected = new ArrayList<>();
-		affected.add(barter);
-
-		LifeBarter lifeBarter = findLifeBarter(barter.getItemName(), barter.getExchangeItemName(), barter.getNpcName());
-
-		if(lifeBarter != null){
-			// barter_server 공유: 같은 유저의 모든 캐릭터
-			if(lifeBarter.getBarterServer() != null){
-				List<LifeBarter> sharedBarters = lifeBarterRepository.findByBarterServer(lifeBarter.getBarterServer());
-				for(LifeBarter shared : sharedBarters){
-					String sItemName = shared.getGameItem() != null ? shared.getGameItem().getItemName() : null;
-					String sExchangeName = shared.getExchangeItem() != null ? shared.getExchangeItem().getItemName() : null;
-					String sNpcName = shared.getGameNpc() != null ? shared.getGameNpc().getNpcName() : null;
-					if(sItemName == null || sExchangeName == null || sNpcName == null) continue;
-
-					List<UserTodoBarter> matches = userTodoBarterRepository
-						.findByUserIdAndItemNameAndExchangeItemNameAndNpcNameAndDeletedAtIsNull(
-							userId, sItemName, sExchangeName, sNpcName);
-					for(UserTodoBarter b : matches){
-						if(!b.getId().equals(barter.getId())){
-							b.setCompleted(newCompleted);
-							userTodoBarterRepository.save(b);
-							affected.add(b);
-						}
-					}
-				}
-			}
-
-			// barter_npc 공유: 같은 캐릭터만
-			if(lifeBarter.getBarterNpc() != null){
-				List<LifeBarter> npcBarters = lifeBarterRepository.findByBarterNpc(lifeBarter.getBarterNpc());
-				for(LifeBarter shared : npcBarters){
-					String sItemName = shared.getGameItem() != null ? shared.getGameItem().getItemName() : null;
-					String sExchangeName = shared.getExchangeItem() != null ? shared.getExchangeItem().getItemName() : null;
-					String sNpcName = shared.getGameNpc() != null ? shared.getGameNpc().getNpcName() : null;
-					if(sItemName == null || sExchangeName == null || sNpcName == null) continue;
-
-					List<UserTodoBarter> matches = userTodoBarterRepository
-						.findByUserIdAndCharacterIdAndItemNameAndExchangeItemNameAndNpcNameAndDeletedAtIsNull(
-							userId, characterId, sItemName, sExchangeName, sNpcName);
-					for(UserTodoBarter b : matches){
-						if(!b.getId().equals(barter.getId()) && affected.stream().noneMatch(a -> a.getId().equals(b.getId()))){
-							b.setCompleted(newCompleted);
-							userTodoBarterRepository.save(b);
-							affected.add(b);
-						}
-					}
-				}
-			}
-		}
-
-		return affected.stream().map(this::toDto).collect(Collectors.toList());
+		return UserTodoBarterDto.fromEntity(barter);
 	}
 
 	@Transactional

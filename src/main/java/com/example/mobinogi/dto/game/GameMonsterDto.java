@@ -16,6 +16,11 @@ public class GameMonsterDto{
 	private String monsterType;
 	private String monsterDifficulty;
 	private String monsterName;
+	private Integer requiredLevel;
+	private Integer powerRequired;
+	private Integer powerRecommended;
+	private Integer powerOverwhelming;
+	private Integer partyRevives;
 
 	public static GameMonsterDto fromEntity(GameMonster monster){
 		return GameMonsterDto.builder()
@@ -25,6 +30,11 @@ public class GameMonsterDto{
 			.monsterType(monster.getMonsterType())
 			.monsterDifficulty(monster.getMonsterDifficulty())
 			.monsterName(monster.getMonsterName())
+			.requiredLevel(monster.getRequiredLevel())
+			.powerRequired(monster.getPowerRequired())
+			.powerRecommended(monster.getPowerRecommended())
+			.powerOverwhelming(monster.getPowerOverwhelming())
+			.partyRevives(monster.getPartyRevives())
 			.build();
 	}
 }

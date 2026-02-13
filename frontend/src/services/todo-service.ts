@@ -41,10 +41,10 @@ export const todoService = {
 		}
 	},
 
-	toggleBarterComplete : async(characterId:number, barterId:number):Promise<UserTodoBarter[]> => {
-		const response = await apiService.put<ApiResponse & {barters:UserTodoBarter[]}>(`/user/todo/barter/${characterId}/${barterId}/toggle`);
+	toggleBarterComplete : async(characterId:number, barterId:number):Promise<UserTodoBarter> => {
+		const response = await apiService.put<ApiResponse & {barter:UserTodoBarter}>(`/user/todo/barter/${characterId}/${barterId}/toggle`);
 		if(response.success){
-			return response.barters;
+			return response.barter;
 		}
 		throw new Error(response.message || "Failed to toggle barter");
 	},

@@ -15,6 +15,8 @@ export interface BossProgress{
 
 export interface DailyTasks{
 	dayDungeon:boolean;
+	freeShopPurchase?:boolean;
+	gemTreasureChest?:boolean;
 }
 
 export interface Resources{
@@ -22,20 +24,43 @@ export interface Resources{
 	demonTribute?:CounterTask;
 }
 
+export interface Vanguard{
+	reward:number;
+	emergency:number;
+	quest:boolean;
+}
+
 export interface WeeklyTasks{
 	summoningBarrier:number;
 	blackHole:number;
 	phantomTower:PhantomTower;
 	fieldBoss:BossProgress;
+	abyss:BossProgress;
 	abyssReward:number;
 	abyssRewardMax:number;
 	raid:BossProgress;
+	vanguard?:Vanguard;
+}
+
+export interface TodoSettings{
+	dailyOrder?:string[];
+	weeklyOrder?:string[];
+	hiddenTasks?:string[];
+}
+
+export interface TodoMemo{
+	id:string;
+	label:string;
+	completed:boolean;
 }
 
 export interface TodoData{
 	daily:DailyTasks;
 	weekly:WeeklyTasks;
 	resources?:Resources;
+	settings?:TodoSettings;
+	dailyMemos?:TodoMemo[];
+	weeklyMemos?:TodoMemo[];
 }
 
 export interface UserTodo{

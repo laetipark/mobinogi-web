@@ -1,1 +1,1 @@
-export {validateEmail, calculatePasswordStrength, storage} from "./helpers";
+export {validateEmail, calculatePasswordStrength, storage, getDifficultyLabel} from "./helpers";

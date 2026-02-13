@@ -26,4 +26,9 @@ export interface GameMonster{
 	monsterType:string;
 	monsterDifficulty:string;
 	monsterName:string;
+	requiredLevel?:number;
+	powerRequired?:number;
+	powerRecommended?:number;
+	powerOverwhelming?:number;
+	partyRevives?:number;
 }

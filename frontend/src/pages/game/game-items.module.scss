@@ -508,6 +508,16 @@
 }
 
 @include mobile{
+	.pageHeader{
+		h1{
+			font-size:1.5rem;
+		}
+
+		.pageDescription{
+			font-size:0.9rem;
+		}
+	}
+
 	.tabContainer{
 		flex-wrap:wrap;
 	}
@@ -515,10 +525,19 @@
 	.tabButton{
 		flex:1;
 		justify-content:center;
-		padding:10px 12px;
+		padding:8px 10px;
+		gap:4px;
 
 		span{
 			display:none;
+		}
+	}
+
+	.searchContainer{
+		.searchBtn,
+		.resetBtn{
+			width:100%;
+			justify-content:center;
 		}
 	}
 
@@ -533,6 +552,16 @@
 
 		.sortSelect{
 			width:100%;
+		}
+	}
+
+	.barterCard{
+		.barterExchange{
+			.barterItem{
+				.barterValue{
+					font-size:13px;
+				}
+			}
 		}
 	}
 

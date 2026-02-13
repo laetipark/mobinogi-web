@@ -1,162 +1,404 @@
-import React, {useState, useMemo} from "react";
+import React, {useMemo, useState} from "react";
 import styles from "./todo.module.scss";
-import {WeeklyTasks, GameMonster} from "../../types";
+import {GameMonster, TodoMemo, TodoSettings, WeeklyTasks} from "../../types";
 import TaskCounter from "./task-counter";
 import BossChecklist from "./boss-checklist";
 import BossSettingsModal from "./boss-settings-modal";
+import TaskSettingsModal from "./task-settings-modal";
+import MemoTaskModal from "./memo-task-modal";
+import BarterCart from "./barter-cart";
 
 interface WeeklyTaskSectionProps{
 	weekly:WeeklyTasks;
 	fieldBossMonsters:GameMonster[];
 	raidMonsters:GameMonster[];
+	abyssBossMonsters:GameMonster[];
+	settings?:TodoSettings;
+	characterId:number;
+	weeklyMemos?:TodoMemo[];
 	onChange:(weekly:WeeklyTasks) => void;
+	onSettingsChange:(settings:TodoSettings) => void;
+	onMemosChange:(memos:TodoMemo[]) => void;
 }
+
+const TXT = {
+	summoningBarrier : "\uC18C\uD658\uC758 \uACB0\uACC4",
+	blackHole : "\uAC80\uC740 \uAD6C\uBA4D",
+	fieldBoss : "\uD544\uB4DC \uBCF4\uC2A4",
+	abyssReward : "\uC5B4\uBE44\uC2A4 \uC8FC\uAC04 \uBCF4\uC0C1",
+	raid : "\uB808\uC774\uB4DC",
+	vanguard : "\uBC45\uAC00\uB4DC",
+	barter : "\uBB3C\uBB3C\uAD50\uD658",
+	emergencyQuest : "\uAE34\uAE09 \uC758\uB8B0",
+	weeklyTitle : "\uC8FC\uAC04 \uC219\uC81C",
+	memoManage : "\uBA54\uBAA8 \uAD00\uB9AC",
+	settings : "\uC124\uC815",
+	weeklySettings : "\uC8FC\uAC04 \uC219\uC81C \uC124\uC815",
+	weeklyMemoManage : "\uC8FC\uAC04 \uBA54\uBAA8 \uAD00\uB9AC"
+} as const;
 
 const SUMMONING_BARRIER_MAX = 7;
 const ABYSS_REWARD_DEFAULT_MAX = 4;
+const BLACK_HOLE_TOTAL = 14;
+const VANGUARD_REWARD_MAX = 3;
 
-function getBlackHoleMax():number{
+const WEEKLY_TASK_DEFS:{key:string; label:string}[] = [
+	{key : "summoningBarrier", label : TXT.summoningBarrier},
+	{key : "blackHole", label : TXT.blackHole},
+	{key : "fieldBoss", label : TXT.fieldBoss},
+	{key : "abyssReward", label : TXT.abyssReward},
+	{key : "raid", label : TXT.raid},
+	{key : "vanguard", label : TXT.vanguard},
+	{key : "barter", label : TXT.barter}
+];
+
+function getBlackHoleInfo(totalDone:number):{maxForWeek:number; available:number}{
 	const now = new Date();
 	const kstOffset = 9 * 60;
 	const utc = now.getTime() + now.getTimezoneOffset() * 60000;
 	const kst = new Date(utc + kstOffset * 60000);
-
-	// 현재 KST 기준 요일 (0=일, 1=월, ..., 6=토)
+	
 	let day = kst.getDay();
-	// 06:00 이전이면 전날로 취급
 	if(kst.getHours() < 6){
 		day = (day + 6) % 7;
 	}
-	// 월요일 이후 경과 일수 (월=0, 화=1, ..., 일=6)
 	const daysSinceMonday = day === 0 ? 6 : day - 1;
-	return 14 - daysSinceMonday;
+	const maxForWeek = BLACK_HOLE_TOTAL - daysSinceMonday;
+	const available = Math.max(0, maxForWeek - totalDone);
+	return {maxForWeek, available};
 }
 
-const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({weekly, fieldBossMonsters, raidMonsters, onChange}) => {
+const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
+	weekly,
+	fieldBossMonsters,
+	raidMonsters,
+	abyssBossMonsters,
+	settings,
+	characterId,
+	weeklyMemos,
+	onChange,
+	onSettingsChange,
+	onMemosChange
+}) => {
 	const [showFieldBossSettings, setShowFieldBossSettings] = useState(false);
 	const [showRaidSettings, setShowRaidSettings] = useState(false);
-	const [showAbyssRewardSettings, setShowAbyssRewardSettings] = useState(false);
-	const [abyssRewardMaxInput, setAbyssRewardMaxInput] = useState("");
-
-	const blackHoleMax = useMemo(() => getBlackHoleMax(), []);
+	const [showAbyssSettings, setShowAbyssSettings] = useState(false);
+	const [showTaskSettings, setShowTaskSettings] = useState(false);
+	const [showMemo, setShowMemo] = useState(false);
+	
+	const abyss = weekly.abyss ?? {completed : [], tracked : []};
 	const abyssRewardMax = weekly.abyssRewardMax ?? ABYSS_REWARD_DEFAULT_MAX;
-
+	
+	const trackedAbyssMonsters = useMemo(() => {
+		if(!abyss.tracked || abyss.tracked.length === 0) return [];
+		const uniqueIds = [...new Set(abyss.tracked)];
+		return uniqueIds.map(id => abyssBossMonsters.find(m => m.monsterId === id)).filter((m):m is GameMonster => !!m);
+	}, [abyssBossMonsters, abyss.tracked]);
+	
 	const trackedFieldBossMonsters = useMemo(() => {
 		if(!weekly.fieldBoss.tracked || weekly.fieldBoss.tracked.length === 0) return [];
 		return fieldBossMonsters.filter(m => weekly.fieldBoss.tracked.includes(m.monsterId));
 	}, [fieldBossMonsters, weekly.fieldBoss.tracked]);
-
+	
 	const trackedRaidMonsters = useMemo(() => {
 		if(!weekly.raid.tracked || weekly.raid.tracked.length === 0) return [];
 		return raidMonsters.filter(m => weekly.raid.tracked.includes(m.monsterId));
 	}, [raidMonsters, weekly.raid.tracked]);
-
-	const completedItems = [
-		weekly.summoningBarrier >= SUMMONING_BARRIER_MAX ? 1 : 0,
-		weekly.blackHole >= blackHoleMax ? 1 : 0,
-		trackedFieldBossMonsters.length > 0 && weekly.fieldBoss.completed.length >= trackedFieldBossMonsters.length ? 1 : 0,
-		(weekly.abyssReward ?? 0) >= abyssRewardMax ? 1 : 0,
-		trackedRaidMonsters.length > 0 && weekly.raid.completed.length >= trackedRaidMonsters.length ? 1 : 0
-	];
-	const totalItems = 5;
-	const completedCount = completedItems.reduce((a, b) => a + b, 0);
-
+	
+	const blackHole = useMemo(() => getBlackHoleInfo(weekly.blackHole), [weekly.blackHole]);
+	const hidden = useMemo(() => new Set(settings?.hiddenTasks || []), [settings]);
+	
+	const allDefs = useMemo(() => {
+		const defs:{key:string; label:string; isMemo?:boolean}[] = [
+			...WEEKLY_TASK_DEFS,
+			...(weeklyMemos || []).map(m => ({key : `memo_${m.id}`, label : m.label, isMemo : true}))
+		];
+		return defs;
+	}, [weeklyMemos]);
+	
+	const visibleItems = useMemo(() => {
+		let items = allDefs.filter(t => !hidden.has(t.key));
+		if(settings?.weeklyOrder && settings.weeklyOrder.length > 0){
+			const orderMap = new Map(settings.weeklyOrder.map((k, i) => [k, i]));
+			items = [...items].sort((a, b) => {
+				const aIdx = orderMap.get(a.key) ?? 999;
+				const bIdx = orderMap.get(b.key) ?? 999;
+				return aIdx - bIdx;
+			});
+		}
+		return items;
+	}, [allDefs, settings, hidden]);
+	
+	const getCompletedCount = () => {
+		let completed = 0;
+		let total = 0;
+		visibleItems.forEach(item => {
+			switch(item.key){
+				case "summoningBarrier":
+					total++;
+					if(weekly.summoningBarrier >= SUMMONING_BARRIER_MAX) completed++;
+					break;
+				case "blackHole":
+					total++;
+					if(weekly.blackHole >= blackHole.maxForWeek) completed++;
+					break;
+				case "fieldBoss":
+					total++;
+					if(trackedFieldBossMonsters.length > 0){
+						const targetCount = Math.min(trackedFieldBossMonsters.length, abyssRewardMax);
+						if(weekly.fieldBoss.completed.length >= targetCount) completed++;
+					}
+					break;
+				case "abyssReward":
+					total++;
+					if(abyss.tracked.length > 0){
+						if(abyss.completed.length >= abyssRewardMax) completed++;
+					}else if((weekly.abyssReward ?? 0) >= abyssRewardMax){
+						completed++;
+					}
+					break;
+				case "raid":
+					total++;
+					if(trackedRaidMonsters.length > 0){
+						const uniqueRaidNames = new Set(trackedRaidMonsters.map(m => m.monsterName)).size;
+						if(weekly.raid.completed.length >= uniqueRaidNames) completed++;
+					}
+					break;
+				case "vanguard":
+					total++;
+					if((weekly.vanguard?.reward ?? 0) >= VANGUARD_REWARD_MAX) completed++;
+					break;
+				case "barter":
+					break;
+				default:
+					if(item.isMemo){
+						const memoId = item.key.replace("memo_", "");
+						const memo = (weeklyMemos || []).find(m => m.id === memoId);
+						if(memo){
+							total++;
+							if(memo.completed) completed++;
+						}
+					}
+			}
+		});
+		return {completed, total};
+	};
+	
+	const {completed : completedCount, total : totalItems} = getCompletedCount();
+	
+	const toggleMemo = (id:string) => {
+		const updated = (weeklyMemos || []).map(m => (m.id === id ? {...m, completed : !m.completed} : m));
+		onMemosChange(updated);
+	};
+	
+	const renderBlackHole = () => {
+		const totalDone = weekly.blackHole;
+		const {maxForWeek, available} = blackHole;
+		return (
+			<div className={styles.blackHoleContainer}>
+				<div className={styles.taskLabelRow}>
+					<span className={styles.taskLabel}>{TXT.blackHole}</span>
+					<span className={styles.counterText}>{totalDone}/{maxForWeek}</span>
+				</div>
+				<div className={styles.blackHoleDots}>
+					{Array.from({length : BLACK_HOLE_TOTAL}, (_, i) => {
+						let cls = styles.blackHoleDot;
+						let disabled = true;
+						if(i < totalDone){
+							cls += ` ${styles.completed}`;
+							disabled = false;
+						}else if(i < totalDone + available){
+							cls += ` ${styles.available}`;
+							disabled = false;
+						}else if(i >= maxForWeek){
+							cls += ` ${styles.expired}`;
+						}else{
+							cls += ` ${styles.unavailable}`;
+						}
+						return (
+							<button
+								key={i}
+								className={cls}
+								onClick={() => {
+									if(i < totalDone){
+										onChange({...weekly, blackHole : i});
+									}else if(i < totalDone + available){
+										onChange({...weekly, blackHole : i + 1});
+									}
+								}}
+								disabled={disabled}
+							/>
+						);
+					})}
+				</div>
+				<div
+					className={styles.blackHoleInfo}>{`\uC624\uB298 \uAC00\uB2A5 ${available}\uAC1C | \uC774\uBC88 \uC8FC ${totalDone}/${maxForWeek}`}</div>
+			</div>
+		);
+	};
+	
+	const renderItem = (item:{key:string; label:string; isMemo?:boolean}) => {
+		switch(item.key){
+			case "summoningBarrier":
+				return <TaskCounter key={item.key} label={TXT.summoningBarrier} current={weekly.summoningBarrier}
+									max={SUMMONING_BARRIER_MAX}
+									onChange={(value) => onChange({...weekly, summoningBarrier : value})}/>;
+			case "blackHole":
+				return <React.Fragment key={item.key}>{renderBlackHole()}</React.Fragment>;
+			case "fieldBoss":
+				return (
+					<div key={item.key} className={styles.taskItemWithSettings}>
+						<BossChecklist label={TXT.fieldBoss} monsters={trackedFieldBossMonsters}
+									   completedIds={weekly.fieldBoss.completed} onChange={(completed) => onChange({
+							...weekly,
+							fieldBoss : {...weekly.fieldBoss, completed}
+						})} visualGroup/>
+						<button className={styles.settingsBtn} onClick={() => setShowFieldBossSettings(true)}
+								title={`${TXT.fieldBoss} ${TXT.settings}`}>&#9881;</button>
+					</div>
+				);
+			case "abyssReward":
+				return (
+					<div key={item.key} className={styles.taskItemWithSettings}>
+						<BossChecklist label={TXT.abyssReward} monsters={trackedAbyssMonsters}
+									   completedIds={abyss.completed} onChange={(completed) => onChange({
+							...weekly,
+							abyss : {...abyss, completed},
+							abyssReward : completed.length
+						})} allowDuplicates trackedIds={abyss.tracked} maxCompleted={abyssRewardMax}/>
+						<button className={styles.settingsBtn} onClick={() => setShowAbyssSettings(true)}
+								title={`\uC5B4\uBE44\uC2A4 \uBCF4\uC2A4 ${TXT.settings}`}>&#9881;</button>
+					</div>
+				);
+			case "raid":
+				return (
+					<div key={item.key} className={styles.taskItemWithSettings}>
+						<BossChecklist label={TXT.raid} monsters={trackedRaidMonsters}
+									   completedIds={weekly.raid.completed} onChange={(completed) => onChange({
+							...weekly,
+							raid : {...weekly.raid, completed}
+						})} groupByName/>
+						<button className={styles.settingsBtn} onClick={() => setShowRaidSettings(true)}
+								title={`${TXT.raid} ${TXT.settings}`}>&#9881;</button>
+					</div>
+				);
+			case "vanguard":
+				return (
+					<div key={item.key} className={styles.taskItem}>
+						<div className={styles.taskLabelRow}>
+							<span className={styles.taskLabel}>
+								{TXT.vanguard}
+								<span className={styles.vanguardEmergencyInline}>
+									<span className={styles.vanguardSubLabel}>{TXT.emergencyQuest}</span>
+									<button
+										className={`${styles.checkCircle} ${styles.small} ${weekly.vanguard?.quest ? styles.completed : ""}`}
+										onClick={(e) => {
+											e.stopPropagation();
+											onChange({
+												...weekly,
+												vanguard : {
+													...(weekly.vanguard ?? {
+														reward : 0,
+														emergency : 0,
+														quest : false
+													}), quest : !(weekly.vanguard?.quest ?? false)
+												}
+											});
+										}}
+										title={TXT.emergencyQuest}
+									/>
+								</span>
+							</span>
+							<span
+								className={styles.counterText}>{weekly.vanguard?.reward ?? 0}/{VANGUARD_REWARD_MAX}</span>
+						</div>
+						<div className={styles.checkCircles}>
+							{Array.from({length : VANGUARD_REWARD_MAX}, (_, i) => (
+								<button
+									key={i}
+									className={`${styles.checkCircle} ${i < (weekly.vanguard?.reward ?? 0) ? styles.completed : ""}`}
+									onClick={() => {
+										const cur = weekly.vanguard?.reward ?? 0;
+										const val = i < cur ? i : i + 1;
+										onChange({
+											...weekly,
+											vanguard : {
+												...(weekly.vanguard ?? {
+													reward : 0,
+													emergency : 0,
+													quest : false
+												}), reward : val
+											}
+										});
+									}}
+								/>
+							))}
+						</div>
+					</div>
+				);
+			case "barter":
+				return <BarterCart key={item.key} characterId={characterId} cycle={7} cycleLabel={TXT.barter}/>;
+			default:
+				if(item.isMemo){
+					const memoId = item.key.replace("memo_", "");
+					const memo = (weeklyMemos || []).find(m => m.id === memoId);
+					if(!memo) return null;
+					return (
+						<div key={item.key} className={styles.taskItem}>
+							<span className={styles.taskLabel}>{memo.label}</span>
+							<div className={styles.checkCircles}>
+								<button className={`${styles.checkCircle} ${memo.completed ? styles.completed : ""}`}
+										onClick={() => toggleMemo(memo.id)}/>
+							</div>
+						</div>
+					);
+				}
+				return null;
+		}
+	};
+	
 	return (
 		<div className={styles.taskSection}>
 			<div className={styles.sectionHeader}>
-				<h4>주간 숙제</h4>
-				<span className={styles.progressText}>{completedCount}/{totalItems}</span>
+				<h4>{TXT.weeklyTitle}</h4>
+				<div className={styles.sectionHeaderRight}>
+					<span className={styles.progressText}>{completedCount}/{totalItems}</span>
+					<button className={styles.headerSettingsBtn} onClick={() => setShowMemo(true)}
+							title={TXT.memoManage}>&#9998;</button>
+					<button className={styles.headerSettingsBtn} onClick={() => setShowTaskSettings(true)}
+							title={TXT.settings}>&#9881;</button>
+				</div>
 			</div>
 			<div className={styles.progressBar}>
-				<div className={styles.progressFill} style={{width : `${(completedCount / totalItems) * 100}%`}}/>
+				<div className={styles.progressFill}
+					 style={{width : `${totalItems > 0 ? (completedCount / totalItems) * 100 : 0}%`}}/>
 			</div>
-
-			<div className={styles.taskList}>
-				<TaskCounter
-					label="소환의 결계"
-					current={weekly.summoningBarrier}
-					max={SUMMONING_BARRIER_MAX}
-					onChange={(value) => onChange({...weekly, summoningBarrier : value})}
-				/>
-
-				<TaskCounter
-					label="검은 구멍"
-					current={weekly.blackHole}
-					max={blackHoleMax}
-					onChange={(value) => onChange({...weekly, blackHole : value})}
-				/>
-
-				<div className={styles.taskItemWithSettings}>
-					<BossChecklist
-						label="필드 보스"
-						monsters={trackedFieldBossMonsters}
-						completedIds={weekly.fieldBoss.completed}
-						onChange={(completed) => onChange({...weekly, fieldBoss : {...weekly.fieldBoss, completed}})}
-					/>
-					<button
-						className={styles.settingsBtn}
-						onClick={() => setShowFieldBossSettings(true)}
-						title="필드 보스 설정"
-					>
-						&#9881;
-					</button>
-				</div>
-
-				<div className={styles.taskItemWithSettings}>
-					<TaskCounter
-						label="어비스 주간 보상"
-						current={weekly.abyssReward ?? 0}
-						max={abyssRewardMax}
-						onChange={(value) => onChange({...weekly, abyssReward : value})}
-					/>
-					<button
-						className={styles.settingsBtn}
-						onClick={() => {
-							setAbyssRewardMaxInput(abyssRewardMax.toString());
-							setShowAbyssRewardSettings(true);
-						}}
-						title="어비스 주간 보상 횟수 설정"
-					>
-						&#9881;
-					</button>
-				</div>
-
-				<div className={styles.taskItemWithSettings}>
-					<BossChecklist
-						label="레이드"
-						monsters={trackedRaidMonsters}
-						completedIds={weekly.raid.completed}
-						onChange={(completed) => onChange({...weekly, raid : {...weekly.raid, completed}})}
-					/>
-					<button
-						className={styles.settingsBtn}
-						onClick={() => setShowRaidSettings(true)}
-						title="레이드 설정"
-					>
-						&#9881;
-					</button>
-				</div>
-			</div>
-
+			
+			<div className={styles.taskList}>{visibleItems.map(item => renderItem(item))}</div>
+			
 			{showFieldBossSettings && (
 				<BossSettingsModal
-					title="필드 보스"
+					title={TXT.fieldBoss}
 					monsters={fieldBossMonsters}
 					trackedIds={weekly.fieldBoss.tracked || []}
+					groupByName
+					maxSelections={abyssRewardMax}
 					onSave={(tracked) => {
-						const newCompleted = weekly.fieldBoss.completed.filter(id => tracked.includes(id));
-						onChange({...weekly, fieldBoss : {completed : newCompleted, tracked}});
+						const limitedTracked = tracked.slice(0, abyssRewardMax);
+						const newCompleted = weekly.fieldBoss.completed.filter(id => limitedTracked.includes(id)).slice(0, abyssRewardMax);
+						onChange({...weekly, fieldBoss : {completed : newCompleted, tracked : limitedTracked}});
 						setShowFieldBossSettings(false);
 					}}
 					onClose={() => setShowFieldBossSettings(false)}
 				/>
 			)}
-
+			
 			{showRaidSettings && (
 				<BossSettingsModal
-					title="레이드"
+					title={TXT.raid}
 					monsters={raidMonsters}
 					trackedIds={weekly.raid.tracked || []}
+					exclusiveByName
 					onSave={(tracked) => {
 						const newCompleted = weekly.raid.completed.filter(id => tracked.includes(id));
 						onChange({...weekly, raid : {completed : newCompleted, tracked}});
@@ -165,41 +407,69 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({weekly, fieldBossMo
 					onClose={() => setShowRaidSettings(false)}
 				/>
 			)}
-
-			{showAbyssRewardSettings && (
-				<div className={styles.modalOverlay} onClick={() => setShowAbyssRewardSettings(false)}>
-					<div className={styles.modal} onClick={(e) => e.stopPropagation()} style={{maxWidth : 360}}>
-						<div className={styles.modalHeader}>
-							<h3>어비스 주간 보상 설정</h3>
-							<button className={styles.modalClose} onClick={() => setShowAbyssRewardSettings(false)}>&times;</button>
-						</div>
-						<div className={styles.modalBody}>
-							<div style={{display : "flex", alignItems : "center", gap : 12}}>
-								<span style={{fontSize : 14, fontWeight : 500}}>주간 보상 횟수</span>
-								<input
-									type="number"
-									min={1}
-									max={99}
-									value={abyssRewardMaxInput}
-									onChange={(e) => setAbyssRewardMaxInput(e.target.value)}
-									style={{width : 60, padding : "6px 8px", borderRadius : 6, border : "1px solid var(--border-color, #ccc)", textAlign : "center", fontSize : 14}}
-									autoFocus
-								/>
-							</div>
-						</div>
-						<div className={styles.modalFooter}>
-							<button className={styles.modalCancelBtn} onClick={() => setShowAbyssRewardSettings(false)}>취소</button>
-							<button className={styles.modalSaveBtn} onClick={() => {
-								const num = parseInt(abyssRewardMaxInput, 10);
-								if(!isNaN(num) && num >= 1 && num <= 99){
-									const newReward = Math.min(weekly.abyssReward ?? 0, num);
-									onChange({...weekly, abyssRewardMax : num, abyssReward : newReward});
-								}
-								setShowAbyssRewardSettings(false);
-							}}>저장</button>
-						</div>
-					</div>
-				</div>
+			
+			{showAbyssSettings && (
+				<BossSettingsModal
+					title="\uC5B4\uBE44\uC2A4 \uBCF4\uC2A4"
+					monsters={abyssBossMonsters}
+					trackedIds={abyss.tracked || []}
+					allowMultiple
+					rewardMax={abyssRewardMax}
+					onRewardMaxChange={(max) => {
+						onChange({...weekly, abyssRewardMax : max});
+					}}
+					onSave={(tracked) => {
+						const trackedSet = new Set(tracked);
+						const newCompleted = abyss.completed.filter(id => trackedSet.has(id));
+						const trackedCounts = new Map<number, number>();
+						for(const id of tracked) trackedCounts.set(id, (trackedCounts.get(id) || 0) + 1);
+						const completedCounts = new Map<number, number>();
+						const finalCompleted:number[] = [];
+						for(const id of newCompleted){
+							const cur = completedCounts.get(id) || 0;
+							const max = trackedCounts.get(id) || 0;
+							if(cur < max){
+								finalCompleted.push(id);
+								completedCounts.set(id, cur + 1);
+							}
+						}
+						onChange({...weekly, abyss : {completed : finalCompleted, tracked}});
+						setShowAbyssSettings(false);
+					}}
+					onClose={() => setShowAbyssSettings(false)}
+				/>
+			)}
+			
+			{showTaskSettings && (
+				<TaskSettingsModal
+					title={TXT.weeklySettings}
+					taskDefs={allDefs.map(t => ({key : t.key, label : t.label}))}
+					order={settings?.weeklyOrder}
+					hiddenTasks={(settings?.hiddenTasks || []).filter(k => allDefs.some(t => t.key === k))}
+					onSave={(order, weeklyHidden) => {
+						const weeklyKeys = new Set(allDefs.map(t => t.key));
+						const otherHidden = (settings?.hiddenTasks || []).filter(k => !weeklyKeys.has(k));
+						onSettingsChange({
+							...settings,
+							weeklyOrder : order,
+							hiddenTasks : [...otherHidden, ...weeklyHidden]
+						});
+						setShowTaskSettings(false);
+					}}
+					onClose={() => setShowTaskSettings(false)}
+				/>
+			)}
+			
+			{showMemo && (
+				<MemoTaskModal
+					title={TXT.weeklyMemoManage}
+					memos={weeklyMemos || []}
+					onSave={(memos) => {
+						onMemosChange(memos);
+						setShowMemo(false);
+					}}
+					onClose={() => setShowMemo(false)}
+				/>
 			)}
 		</div>
 	);

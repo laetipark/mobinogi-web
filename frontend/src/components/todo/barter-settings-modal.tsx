@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef, useCallback} from "react";
+import React, {useState, useEffect, useRef, useCallback, useMemo} from "react";
 import styles from "./todo.module.scss";
 import {LifeBarter, UserTodoBarter} from "../../types";
 import {GameItemService} from "../../services/game-item-service";
@@ -17,7 +17,14 @@ interface BarterSettingsModalProps{
 const barterKey = (itemName:string, exchangeItemName:string, npcName:string) =>
 	`${itemName}|${exchangeItemName}|${npcName}`;
 
-const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({characterId, cycle, cycleLabel, existingBarters, onUpdate, onClose}) => {
+const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({
+	characterId,
+	cycle,
+	cycleLabel,
+	existingBarters,
+	onUpdate,
+	onClose
+}) => {
 	const [searchInput, setSearchInput] = useState("");
 	const [keyword, setKeyword] = useState("");
 	const [searchResults, setSearchResults] = useState<LifeBarter[]>([]);
@@ -26,9 +33,12 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({characterId, cy
 	const [hasMore, setHasMore] = useState(true);
 	const [totalElements, setTotalElements] = useState(0);
 	const listRef = useRef<HTMLDivElement>(null);
-
-	const existingKeys = new Set(existingBarters.map(b => barterKey(b.itemName, b.exchangeItemName, b.npcName)));
-
+	
+	const existingKeys = useMemo(
+		() => new Set(existingBarters.map(b => barterKey(b.itemName, b.exchangeItemName, b.npcName))),
+		[existingBarters]
+	);
+	
 	// 검색어 debounce
 	useEffect(() => {
 		const timer = setTimeout(() => {
@@ -36,21 +46,21 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({characterId, cy
 		}, 300);
 		return () => clearTimeout(timer);
 	}, [searchInput]);
-
+	
 	const loadData = useCallback(async(reset = false) => {
 		if(loading || (!hasMore && !reset)) return;
-
+		
 		setLoading(true);
 		try{
 			const page = reset ? 0 : currentPage;
 			const result = await GameItemService.getBarters({
-				keyword: keyword.trim() || undefined,
+				keyword : keyword.trim() || undefined,
 				page,
-				size: 20,
-				searchMode: "obtained",
+				size : 20,
+				searchMode : "obtained",
 				cycle
 			});
-
+			
 			if(reset){
 				setSearchResults(result.content);
 				setCurrentPage(1);
@@ -66,14 +76,14 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({characterId, cy
 			setLoading(false);
 		}
 	}, [loading, hasMore, currentPage, keyword, cycle]);
-
+	
 	useEffect(() => {
 		setSearchResults([]);
 		setCurrentPage(0);
 		setHasMore(true);
 		loadData(true);
 	}, [keyword]);
-
+	
 	const handleScroll = useCallback(() => {
 		const el = listRef.current;
 		if(!el) return;
@@ -81,27 +91,27 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({characterId, cy
 			loadData();
 		}
 	}, [loadData]);
-
+	
 	useEffect(() => {
 		const el = listRef.current;
 		if(!el) return;
 		el.addEventListener("scroll", handleScroll);
 		return () => el.removeEventListener("scroll", handleScroll);
 	}, [handleScroll]);
-
+	
 	const handleSearch = () => {
 		setKeyword(searchInput);
 	};
-
+	
 	const handleReset = () => {
 		setSearchInput("");
 		setKeyword("");
 	};
-
+	
 	const handleKeyPress = (e:React.KeyboardEvent) => {
 		if(e.key === "Enter") handleSearch();
 	};
-
+	
 	const handleAdd = async(barter:LifeBarter) => {
 		const iName = barter.gameItem?.itemName || "";
 		const eName = barter.exchangeItem?.itemName || "";
@@ -112,15 +122,15 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({characterId, cy
 			const added = await todoService.addBarterItem(characterId, iName, eName, nName, rName, barter.exchangeCost, barterCycle);
 			const enriched:UserTodoBarter = {
 				...added,
-				barterQty: added.barterQty ?? barter.barterQty,
-				barterInitCycle: added.barterInitCycle ?? cycle
+				barterQty : added.barterQty ?? barter.barterQty,
+				barterInitCycle : added.barterInitCycle ?? cycle
 			};
 			onUpdate([...existingBarters, enriched]);
 		}catch(err){
 			console.error("Failed to add barter:", err);
 		}
 	};
-
+	
 	const handleRemove = async(barter:LifeBarter) => {
 		const iName = barter.gameItem?.itemName || "";
 		const eName = barter.exchangeItem?.itemName || "";
@@ -136,11 +146,20 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({characterId, cy
 		}
 	};
 
+	const handleRemoveAddedBarter = async(barterId:number) => {
+		try{
+			await todoService.removeBarterItem(characterId, barterId);
+			onUpdate(existingBarters.filter(b => b.id !== barterId));
+		}catch(err){
+			console.error("Failed to remove barter:", err);
+		}
+	};
+	
 	return (
 		<div className={styles.modalOverlay} onClick={onClose}>
 			<div className={styles.barterSettingsModal} onClick={(e) => e.stopPropagation()}>
 				<div className={styles.modalHeader}>
-					<h3>{cycleLabel} 물물교환 설정</h3>
+					<h3>{cycleLabel} 설정</h3>
 					<button className={styles.modalClose} onClick={onClose}>&times;</button>
 				</div>
 				<div className={styles.barterSearchBar}>
@@ -195,13 +214,15 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({characterId, cy
 								<div className={styles.barterCardExchange}>
 									<div className={styles.barterCardItem}>
 										<span className={styles.barterCardLabel}>교환</span>
-										<span className={styles.barterCardValue}>{barter.exchangeItem?.itemName || "N/A"}</span>
+										<span
+											className={styles.barterCardValue}>{barter.exchangeItem?.itemName || "N/A"}</span>
 										<span className={styles.barterCardQty}>x{barter.exchangeCost}</span>
 									</div>
 									<ArrowRight size={20} className={styles.barterCardArrow}/>
 									<div className={styles.barterCardItem}>
 										<span className={styles.barterCardLabel}>획득</span>
-										<span className={styles.barterCardValue}>{barter.gameItem?.itemName || "N/A"}</span>
+										<span
+											className={styles.barterCardValue}>{barter.gameItem?.itemName || "N/A"}</span>
 										<span className={styles.barterCardQty}>x{barter.barterQty}</span>
 									</div>
 								</div>
@@ -215,24 +236,46 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({characterId, cy
 							</div>
 						);
 					})}
-
+					
 					{loading && (
 						<div className={styles.barterLoadingMore}>
 							<RefreshCw className={styles.spinning} size={18}/>
 							<span>불러오는 중...</span>
 						</div>
 					)}
-
+					
 					{!loading && !hasMore && searchResults.length > 0 && (
 						<div className={styles.barterEndMessage}>더 이상 데이터가 없습니다.</div>
 					)}
-
+					
 					{!loading && searchResults.length === 0 && (
 						<div className={styles.emptyMessage}>
 							{keyword ? "검색 결과가 없습니다." : "물물교환 데이터가 없습니다."}
 						</div>
 					)}
 				</div>
+				{existingBarters.length > 0 && (
+					<div className={styles.abyssPreview}>
+						<div className={styles.abyssPreviewGrid}>
+							{existingBarters.map(barter => (
+								<div key={barter.id} className={styles.abyssPreviewCard}>
+									<div className={styles.abyssPreviewInfo}>
+										<span className={styles.abyssPreviewName}>{barter.itemName}</span>
+										<span className={styles.abyssPreviewRegion}>
+											{barter.regionName || "N/A"} - {barter.npcName || "N/A"}
+										</span>
+										<span className={styles.abyssPreviewDiff}>
+											{barter.exchangeItemName} x{barter.exchangeCost}
+										</span>
+									</div>
+									<button className={styles.abyssPreviewRemove} onClick={() => handleRemoveAddedBarter(barter.id)}>
+										&times;
+									</button>
+								</div>
+							))}
+						</div>
+					</div>
+				)}
 				<div className={styles.modalFooter}>
 					<button className={styles.modalSaveBtn} onClick={onClose}>닫기</button>
 				</div>
