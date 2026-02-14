@@ -14,7 +14,6 @@ const BoardListPage:React.FC = () => {
 	const [posts, setPosts] = useState<BoardPost[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [totalPages, setTotalPages] = useState(0);
-	const [totalElements, setTotalElements] = useState(0);
 	
 	const selectedCategory = searchParams.get("category") ? parseInt(searchParams.get("category")!) : null;
 	const selectedSource = searchParams.get("source") || null;
@@ -49,13 +48,6 @@ const BoardListPage:React.FC = () => {
 				const discordPosts = await boardService.getDiscordPosts();
 				setPosts(discordPosts);
 				setTotalPages(1);
-				setTotalElements(discordPosts.length);
-			}else if(selectedSource === "NOTION"){
-				// Notion 캐시에서 로드
-				const notionPosts = await boardService.getNotionPosts();
-				setPosts(notionPosts);
-				setTotalPages(1);
-				setTotalElements(notionPosts.length);
 			}else if(selectedCategory || searchKeyword){
 				// 카테고리 필터 또는 검색 → DB만
 				const data = await boardService.getPosts(
@@ -63,22 +55,19 @@ const BoardListPage:React.FC = () => {
 				);
 				setPosts(data.content);
 				setTotalPages(data.totalPages);
-				setTotalElements(data.totalElements);
 			}else{
-				// 전체: DB(USER) + Discord 캐시 + Notion 캐시 병합
-				const [dbData, discordPosts, notionPosts] = await Promise.all([
+				// 전체: DB(USER) + Discord 캐시 병합
+				const [dbData, discordPosts] = await Promise.all([
 					boardService.getPosts(currentPage, 20),
-					boardService.getDiscordPosts(),
-					boardService.getNotionPosts()
+					boardService.getDiscordPosts()
 				]);
 				
 				// DB 게시글 + 외부 캐시 병합 후 작성일 내림차순 정렬
-				const allPosts = [...dbData.content, ...discordPosts, ...notionPosts];
+				const allPosts = [...dbData.content, ...discordPosts];
 				allPosts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 				
 				setPosts(allPosts);
 				setTotalPages(1);
-				setTotalElements(allPosts.length);
 			}
 		}catch(err){
 			console.error("게시글 로드 실패:", err);
@@ -140,7 +129,6 @@ const BoardListPage:React.FC = () => {
 	};
 	
 	const getSourceBadge = (sourceType:string) => {
-		if(sourceType === "NOTION") return <span className={`${styles.badge} ${styles.notion}`}>Notion</span>;
 		if(sourceType === "DISCORD") return <span className={`${styles.badge} ${styles.discord}`}>Discord</span>;
 		return null;
 	};
@@ -174,12 +162,6 @@ const BoardListPage:React.FC = () => {
 								{cat.categoryName}
 							</button>
 						))}
-						<button
-							className={`${styles.tab} ${styles.notionTab} ${selectedSource === "NOTION" ? styles.active : ""}`}
-							onClick={() => updateParams({source : "NOTION", category : null})}
-						>
-							Notion
-						</button>
 						<button
 							className={`${styles.tab} ${styles.discordTab} ${selectedSource === "DISCORD" ? styles.active : ""}`}
 							onClick={() => updateParams({source : "DISCORD", category : null})}

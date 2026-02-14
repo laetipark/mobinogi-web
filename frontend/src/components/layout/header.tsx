@@ -1,24 +1,29 @@
 ﻿import React from "react";
 import {useNavigate, useLocation} from "react-router-dom";
-import {Gamepad2, Shield, Package, LogOut, ClipboardCheck, MessageSquare, CalendarDays} from "lucide-react";
+import {Gamepad2, Shield, Package, LogOut, ClipboardCheck, MessageSquare, CalendarDays, Image} from "lucide-react";
 import {useAuth} from "@/hooks/use-auth";
 
 const Header:React.FC = () => {
 	const {user, logout} = useAuth();
 	const navigate = useNavigate();
 	const location = useLocation();
-
+	
 	const handleNavigation = (path:string):void => {
 		navigate(path);
 	};
-
+	
 	const handleLogout = ():void => {
 		logout();
 		navigate("/");
 	};
-
-	const isActive = (path:string):boolean => location.pathname === path;
-
+	
+	const isActive = (path:string):boolean => {
+		if(path === "/"){
+			return location.pathname === "/";
+		}
+		return location.pathname === path || location.pathname.startsWith(`${path}/`);
+	};
+	
 	return (
 		<header className="header">
 			<div className="container">
@@ -27,7 +32,7 @@ const Header:React.FC = () => {
 						<Gamepad2 className="logo-icon"/>
 						<span>MobiNogi</span>
 					</div>
-
+					
 					<nav className="nav">
 						<button
 							className={`nav-btn ${isActive("/") ? "active" : ""}`}
@@ -36,7 +41,7 @@ const Header:React.FC = () => {
 							홈
 						</button>
 						<button
-							className={`nav-btn ${isActive("/items") ? "active" : ""}`}
+							className={`nav-btn ${(isActive("/items") || isActive("/item")) ? "active" : ""}`}
 							onClick={() => handleNavigation("/items")}
 						>
 							<Package size={16}/>
@@ -55,6 +60,13 @@ const Header:React.FC = () => {
 						>
 							<MessageSquare size={16}/>
 							게시판
+						</button>
+						<button
+							className={`nav-btn ${(isActive("/gallery") || isActive("/photo-board")) ? "active" : ""}`}
+							onClick={() => handleNavigation("/gallery")}
+						>
+							<Image size={16}/>
+							갤러리
 						</button>
 						{user && (
 							<button

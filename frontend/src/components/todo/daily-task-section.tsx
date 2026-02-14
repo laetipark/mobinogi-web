@@ -1,6 +1,6 @@
 import React, {useState, useMemo} from "react";
 import styles from "./todo.module.scss";
-import {DailyTasks, TodoSettings, TodoMemo} from "../../types";
+import {DailyTasks, TodoSettings, TodoMemo} from "@/types";
 import TaskSettingsModal from "./task-settings-modal";
 import MemoTaskModal from "./memo-task-modal";
 import BarterCart from "./barter-cart";

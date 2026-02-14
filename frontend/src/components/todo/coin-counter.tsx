@@ -10,17 +10,24 @@ interface CoinCounterProps{
 	onChange:(value:number) => void;
 }
 
-const CoinCounter:React.FC<CoinCounterProps> = ({label, current, max, chargeIntervalMinutes, lastChargeTime, onChange}) => {
+const CoinCounter:React.FC<CoinCounterProps> = ({
+	label,
+	current,
+	max,
+	chargeIntervalMinutes,
+	lastChargeTime,
+	onChange
+}) => {
 	const [displayCurrent, setDisplayCurrent] = useState(current);
 	const [nextChargeIn, setNextChargeIn] = useState<string>("");
-
+	
 	useEffect(() => {
 		if(!lastChargeTime || current >= max){
 			setDisplayCurrent(current);
 			setNextChargeIn("");
 			return;
 		}
-
+		
 		const calculateCharge = () => {
 			const lastCharge = new Date(lastChargeTime).getTime();
 			const now = Date.now();
@@ -29,7 +36,7 @@ const CoinCounter:React.FC<CoinCounterProps> = ({label, current, max, chargeInte
 			const newCharges = Math.floor(elapsed / chargeMs);
 			const computed = Math.min(current + newCharges, max);
 			setDisplayCurrent(computed);
-
+			
 			if(computed < max){
 				const nextChargeMs = chargeMs - (elapsed % chargeMs);
 				const minutes = Math.floor(nextChargeMs / 60000);
@@ -39,12 +46,12 @@ const CoinCounter:React.FC<CoinCounterProps> = ({label, current, max, chargeInte
 				setNextChargeIn("");
 			}
 		};
-
+		
 		calculateCharge();
 		const interval = setInterval(calculateCharge, 1000);
 		return () => clearInterval(interval);
 	}, [current, max, chargeIntervalMinutes, lastChargeTime]);
-
+	
 	return (
 		<div className={styles.taskItem}>
 			<div className={styles.taskLabelRow}>

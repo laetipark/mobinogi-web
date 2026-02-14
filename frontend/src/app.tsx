@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import {BrowserRouter as Router, Routes, Route, Navigate} from "react-router-dom";
 import {AuthProvider} from "./contexts/auth-context";
 import {useAuth} from "./hooks/use-auth";
@@ -7,7 +7,6 @@ import HomePage from "./pages/home";
 import LoginPage from "./pages/auth/login";
 import RegisterNicknamePage from "./pages/auth/register-nickname";
 import GameItemsPage from "./pages/game/game-items";
-import ItemDetailPage from "./pages/game/item-detail";
 import EventsPage from "./pages/game/events";
 import CharactersPage from "./pages/user/characters";
 import ProfilePage from "./pages/user/profile";
@@ -15,6 +14,7 @@ import TodoPage from "./pages/user/todo";
 import BoardListPage from "./pages/board/board-list";
 import BoardDetailPage from "./pages/board/board-detail";
 import BoardWritePage from "./pages/board/board-write";
+import PhotoBoardPage from "./pages/photo/photo-board";
 import DiscordCallbackPage from "./pages/auth/discord-callback";
 import LoadingScreen from "./components/common/loading-screen";
 import DarkModeToggle from "./components/common/dark-mode-toggle";
@@ -56,24 +56,30 @@ const AppContent:React.FC = () => {
 	return (
 		<>
 			<Header/>
-			<Routes>
-				<Route path="/" element={<HomePage/>}/>
-				<Route path="/login" element={<PublicRoute><LoginPage/></PublicRoute>}/>
-				<Route path="/register/nickname"
-					   element={<RegisterNicknameRoute><RegisterNicknamePage/></RegisterNicknameRoute>}/>
-				<Route path="/discord-callback" element={<DiscordCallbackPage/>}/>
-				<Route path="/items" element={<GameItemsPage/>}/>
-				<Route path="/items/:itemName/detail" element={<GameItemsPage/>}/>
-				<Route path="/events" element={<EventsPage/>}/>
-				<Route path="/profile" element={<PrivateRoute><ProfilePage/></PrivateRoute>}/>
-				<Route path="/characters" element={<CharactersPage/>}/>
-				<Route path="/todo" element={<PrivateRoute><TodoPage/></PrivateRoute>}/>
-				<Route path="/board" element={<BoardListPage/>}/>
-				<Route path="/board/external" element={<BoardDetailPage/>}/>
-				<Route path="/board/write" element={<PrivateRoute><BoardWritePage/></PrivateRoute>}/>
-				<Route path="/board/edit/:postId" element={<PrivateRoute><BoardWritePage/></PrivateRoute>}/>
-				<Route path="/board/:postId" element={<BoardDetailPage/>}/>
-			</Routes>
+			<div className="page-bg-shell">
+				<Routes>
+					<Route path="/" element={<HomePage/>}/>
+					<Route path="/login" element={<PublicRoute><LoginPage/></PublicRoute>}/>
+					<Route path="/register/nickname"
+						   element={<RegisterNicknameRoute><RegisterNicknamePage/></RegisterNicknameRoute>}/>
+					<Route path="/discord-callback" element={<DiscordCallbackPage/>}/>
+					<Route path="/items" element={<GameItemsPage/>}/>
+					<Route path="/items/:itemName/detail" element={<GameItemsPage/>}/>
+					<Route path="/item" element={<GameItemsPage/>}/>
+					<Route path="/item/:itemName/detail" element={<GameItemsPage/>}/>
+					<Route path="/events" element={<EventsPage/>}/>
+					<Route path="/profile" element={<PrivateRoute><ProfilePage/></PrivateRoute>}/>
+					<Route path="/characters" element={<CharactersPage/>}/>
+					<Route path="/todo" element={<PrivateRoute><TodoPage/></PrivateRoute>}/>
+					<Route path="/board" element={<BoardListPage/>}/>
+					<Route path="/board/external" element={<BoardDetailPage/>}/>
+					<Route path="/board/write" element={<PrivateRoute><BoardWritePage/></PrivateRoute>}/>
+					<Route path="/board/edit/:postId" element={<PrivateRoute><BoardWritePage/></PrivateRoute>}/>
+					<Route path="/board/:postId" element={<BoardDetailPage/>}/>
+					<Route path="/gallery" element={<PhotoBoardPage/>}/>
+					<Route path="/photo-board" element={<Navigate to="/gallery" replace/>}/>
+				</Routes>
+			</div>
 			<DarkModeToggle/>
 		</>
 	);

@@ -11,6 +11,7 @@ export interface User{
 	discordId?:string;
 	discordUsername?:string;
 	discordAvatar?:string;
+	isAdmin?:boolean;
 }
 
 export interface AuthContextType{

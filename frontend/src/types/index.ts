@@ -14,6 +14,7 @@ export type {
 	BoardComment, BoardCommentCreateRequest, BoardPostPage, BoardPostHistory
 } from "./board";
 export type {GameEvent} from "./event";
+export type {PhotoBoardPost, PhotoBoardPostPage, PhotoBoardPostCreateRequest} from "./photo-board";
 export type {
 	CounterTask, PhantomTower, BossProgress, Vanguard, DailyTasks, Resources,
 	WeeklyTasks, TodoSettings, TodoMemo, TodoData, UserTodo, UserTodoBarter

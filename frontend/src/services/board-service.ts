@@ -44,13 +44,6 @@ export const boardService = {
 		throw new Error(response.message || "Discord 게시글을 불러오는데 실패했습니다.");
 	},
 
-	// Notion 캐시 게시글
-	getNotionPosts: async ():Promise<BoardPost[]> => {
-		const response = await apiService.get<ApiResponse & {data:BoardPost[]}>("/board/external/notion");
-		if(response.success) return response.data;
-		throw new Error(response.message || "Notion 게시글을 불러오는데 실패했습니다.");
-	},
-
 	// 게시글 상세
 	getPost: async (postId:number):Promise<BoardPost> => {
 		const response = await apiService.get<ApiResponse & {post:BoardPost}>(`/board/posts/${postId}`);

@@ -42,31 +42,6 @@ public class BoardExternalService{
 	private final Map<String, String> discordUsernameCache = new ConcurrentHashMap<>();
 
 	/**
-	 * Notion 게시물 조회
-	 */
-	public List<BoardPostDto> getNotionPosts(){
-		try{
-			List<Object> rawPosts = redisTemplate.opsForList().range("board:notion:posts", 0, -1);
-			if(rawPosts == null || rawPosts.isEmpty()){
-				return new ArrayList<>();
-			}
-
-			List<BoardPostDto> posts = new ArrayList<>();
-			for(Object raw : rawPosts){
-				Map<String, Object> map = objectMapper.convertValue(raw, new TypeReference<Map<String, Object>>(){
-				});
-				BoardPostDto dto = convertToBoardPostDto(map, "NOTION");
-				posts.add(dto);
-			}
-
-			return posts;
-		}catch(Exception e){
-			log.error("Notion 게시물 조회 실패: {}", e.getMessage());
-			return new ArrayList<>();
-		}
-	}
-
-	/**
 	 * Discord 게시물 조회
 	 */
 	public List<BoardPostDto> getDiscordPosts(){

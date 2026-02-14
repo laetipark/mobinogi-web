@@ -47,15 +47,15 @@ const SortableTaskItem:React.FC<SortableTaskItemProps> = ({taskKey, label, hidde
 		transform,
 		transition,
 		isDragging
-	} = useSortable({id: taskKey});
-
+	} = useSortable({id : taskKey});
+	
 	const style:React.CSSProperties = {
-		transform: CSS.Transform.toString(transform),
+		transform : CSS.Transform.toString(transform),
 		transition,
-		opacity: isDragging ? 0.5 : 1,
-		zIndex: isDragging ? 10 : undefined
+		opacity : isDragging ? 0.5 : 1,
+		zIndex : isDragging ? 10 : undefined
 	};
-
+	
 	return (
 		<div
 			ref={setNodeRef}
@@ -82,12 +82,12 @@ const TaskSettingsModal:React.FC<TaskSettingsModalProps> = ({title, taskDefs, or
 		return ordered.filter(key => taskDefs.some(t => t.key === key));
 	});
 	const [hiddenSet, setHiddenSet] = useState<Set<string>>(() => new Set(hiddenTasks || []));
-
+	
 	const sensors = useSensors(
-		useSensor(PointerSensor, {activationConstraint: {distance: 5}}),
-		useSensor(TouchSensor, {activationConstraint: {delay: 150, tolerance: 5}})
+		useSensor(PointerSensor, {activationConstraint : {distance : 5}}),
+		useSensor(TouchSensor, {activationConstraint : {delay : 150, tolerance : 5}})
 	);
-
+	
 	const handleDragEnd = (event:DragEndEvent) => {
 		const {active, over} = event;
 		if(!over || active.id === over.id) return;
@@ -95,7 +95,7 @@ const TaskSettingsModal:React.FC<TaskSettingsModalProps> = ({title, taskDefs, or
 		const newIndex = items.indexOf(String(over.id));
 		setItems(arrayMove(items, oldIndex, newIndex));
 	};
-
+	
 	const toggleHidden = (key:string) => {
 		setHiddenSet(prev => {
 			const next = new Set(prev);
@@ -104,12 +104,12 @@ const TaskSettingsModal:React.FC<TaskSettingsModalProps> = ({title, taskDefs, or
 			return next;
 		});
 	};
-
+	
 	const labelMap = new Map(taskDefs.map(t => [t.key, t.label]));
-
+	
 	return (
 		<div className={styles.modalOverlay} onClick={onClose}>
-			<div className={styles.modal} onClick={(e) => e.stopPropagation()} style={{maxWidth: 400}}>
+			<div className={styles.modal} onClick={(e) => e.stopPropagation()} style={{maxWidth : 400}}>
 				<div className={styles.modalHeader}>
 					<h3>{title}</h3>
 					<button className={styles.modalClose} onClick={onClose}>&times;</button>
@@ -133,7 +133,8 @@ const TaskSettingsModal:React.FC<TaskSettingsModalProps> = ({title, taskDefs, or
 				</div>
 				<div className={styles.modalFooter}>
 					<button className={styles.modalCancelBtn} onClick={onClose}>취소</button>
-					<button className={styles.modalSaveBtn} onClick={() => onSave(items, Array.from(hiddenSet))}>저장</button>
+					<button className={styles.modalSaveBtn} onClick={() => onSave(items, Array.from(hiddenSet))}>저장
+					</button>
 				</div>
 			</div>
 		</div>

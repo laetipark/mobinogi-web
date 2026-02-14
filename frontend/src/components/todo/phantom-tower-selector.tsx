@@ -1,6 +1,6 @@
 import React, {useState, useRef, useEffect} from "react";
 import styles from "./todo.module.scss";
-import {PhantomTower} from "../../types";
+import {PhantomTower} from "@/types";
 
 interface PhantomTowerSelectorProps{
 	value:PhantomTower;

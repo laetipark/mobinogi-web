@@ -2,6 +2,7 @@ import React from "react";
 import {useAuth} from "@/hooks";
 import {Navigate} from "react-router-dom";
 import CharacterManager from "../../components/user/character-manager";
+import styles from "./characters.module.scss";
 
 const CharactersPage:React.FC = () => {
 	const {user} = useAuth();
@@ -11,8 +12,10 @@ const CharactersPage:React.FC = () => {
 	}
 	
 	return (
-		<div style={{padding : "2rem"}}>
-			<CharacterManager/>
+		<div className={styles.charactersPage}>
+			<div className={styles.container}>
+				<CharacterManager/>
+			</div>
 		</div>
 	);
 };

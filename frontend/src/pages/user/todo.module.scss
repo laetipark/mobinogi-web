@@ -4,10 +4,44 @@ html{
 	scrollbar-gutter:stable;
 }
 
+.todoPage{
+	min-height:calc(100vh - 80px);
+	padding:28px 20px 40px;
+	background:
+		radial-gradient(circle at 12% 8%, rgba(168, 213, 229, 0.25), transparent 40%),
+		radial-gradient(circle at 85% 15%, rgba(212, 197, 240, 0.24), transparent 35%),
+		var(--background);
+	--text-primary:var(--text);
+	--text-secondary:var(--text-muted);
+	--primary-color:var(--primary);
+	--card-bg:var(--surface);
+	--border-color:var(--border);
+	--card-header-bg:var(--surface-hover);
+	--danger-bg:rgba(239, 68, 68, 0.1);
+	--danger-color:#ef4444;
+	--badge-bg:var(--primary-light);
+	--badge-color:var(--primary-dark);
+	--badge-border:rgba(139, 196, 214, 0.35);
+	--badge-bg2:rgba(168, 213, 229, 0.2);
+	--badge-color2:var(--primary-dark);
+	--badge-border2:rgba(143, 184, 159, 0.35);
+	--input-bg:var(--surface);
+	--hover-bg:var(--surface-hover);
+
+	:global(.dark-mode) &{
+		--badge-bg:rgba(142, 185, 201, 0.22);
+		--badge-color:#d9eef5;
+		--badge-border:rgba(142, 185, 201, 0.6);
+		--badge-bg2:rgba(143, 184, 159, 0.22);
+		--badge-color2:#def4e5;
+		--badge-border2:rgba(143, 184, 159, 0.6);
+	}
+}
+
 .container{
-	max-width:1200px;
+	max-width:1120px;
 	margin:0 auto;
-	padding:24px 16px;
+	padding:0;
 }
 
 .pageHeader{
@@ -178,7 +212,7 @@ html{
 	border-radius:12px;
 	border:1px solid var(--border-color, #e0e0e0);
 	overflow:hidden;
-	box-shadow:0 2px 8px rgba(0, 0, 0, 0.06);
+	box-shadow:var(--shadow-sm);
 }
 
 .characterHeader{
@@ -214,18 +248,22 @@ html{
 
 .serverName{
 	font-size:12px;
+	font-weight:600;
 	padding:2px 8px;
 	border-radius:10px;
 	background:var(--badge-bg, #e8eaf6);
 	color:var(--badge-color, #3f51b5);
+	border:1px solid var(--badge-border, transparent);
 }
 
 .className{
 	font-size:12px;
+	font-weight:600;
 	padding:2px 8px;
 	border-radius:10px;
 	background:var(--badge-bg2, #e8f5e9);
 	color:var(--badge-color2, #2e7d32);
+	border:1px solid var(--badge-border2, transparent);
 }
 
 .characterStats{
@@ -350,7 +388,7 @@ html{
 	padding:24px;
 	width:90%;
 	max-width:440px;
-	box-shadow:0 8px 32px rgba(0, 0, 0, 0.15);
+	box-shadow:var(--shadow-md);
 
 	h3{
 		margin:0 0 20px;
@@ -474,8 +512,12 @@ html{
 }
 
 @media (max-width:640px){
+	.todoPage{
+		padding:18px 10px 28px;
+	}
+
 	.container{
-		padding:16px 10px;
+		padding:0;
 	}
 
 	.pageHeader{

@@ -101,7 +101,13 @@
 
 // 다크모드 스타일
 @mixin dark-mode{
-	@media (prefers-color-scheme:dark){
-		@content;
+	@if &{
+		.dark-mode &{
+			@content;
+		}
+	} @else{
+		.dark-mode{
+			@content;
+		}
 	}
 }

@@ -96,11 +96,22 @@ class ApiService{
 	}
 	
 	// 파일 업로드
-	async upload<T = any>(url:string, file:File, onUploadProgress?:(progress:number) => void):Promise<T>{
+	async upload<T = any>(
+		url:string,
+		file:File,
+		onUploadProgress?:(progress:number) => void,
+		extraFields?:Record<string, string>
+	):Promise<T>{
 		const formData = new FormData();
 		formData.append("file", file);
+		if(extraFields){
+			Object.entries(extraFields).forEach(([key, value]) => {
+				formData.append(key, value);
+			});
+		}
 		
 		const response = await this.api.post(url, formData, {
+			timeout : 60000,
 			headers : {
 				"Content-Type" : "multipart/form-data"
 			},

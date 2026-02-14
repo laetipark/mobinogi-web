@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import styles from "./todo.module.scss";
-import {GameMonster} from "../../types";
-import {getDifficultyLabel} from "../../utils";
+import {GameMonster} from "@/types";
+import {getDifficultyLabel} from "@/utils";
 
 interface BossSettingsModalProps{
 	title:string;
@@ -17,12 +17,24 @@ interface BossSettingsModalProps{
 	onClose:() => void;
 }
 
-const BossSettingsModal:React.FC<BossSettingsModalProps> = ({title, monsters, trackedIds, exclusiveByName, maxSelections, allowMultiple, groupByName, rewardMax, onRewardMaxChange, onSave, onClose}) => {
+const BossSettingsModal:React.FC<BossSettingsModalProps> = ({
+	title,
+	monsters,
+	trackedIds,
+	exclusiveByName,
+	maxSelections,
+	allowMultiple,
+	groupByName,
+	rewardMax,
+	onRewardMaxChange,
+	onSave,
+	onClose
+}) => {
 	const [selected, setSelected] = useState<number[]>([...trackedIds]);
 	const [localRewardMax, setLocalRewardMax] = useState(rewardMax ?? 4);
-
+	
 	const atLimit = maxSelections !== undefined && selected.length >= maxSelections;
-
+	
 	const handleToggle = (monsterId:number) => {
 		setSelected(prev => {
 			if(prev.includes(monsterId)){
@@ -41,7 +53,7 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({title, monsters, tr
 			return [...prev, monsterId];
 		});
 	};
-
+	
 	const handleSelectAll = () => {
 		if(exclusiveByName){
 			const seen = new Set<string>();
@@ -55,39 +67,24 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({title, monsters, tr
 				}
 			}
 			setSelected(result);
-		} else if(maxSelections !== undefined){
+		}else if(maxSelections !== undefined){
 			setSelected(monsters.slice(0, maxSelections).map(m => m.monsterId));
-		} else {
+		}else{
 			setSelected(monsters.map(m => m.monsterId));
 		}
 	};
-
+	
 	const handleDeselectAll = () => {
 		setSelected([]);
 	};
-
-	const getCountForMonster = (monsterId:number) => {
-		return selected.filter(id => id === monsterId).length;
-	};
-
-	const handleCountChange = (monsterId:number, delta:number) => {
-		setSelected(prev => {
-			const count = prev.filter(id => id === monsterId).length;
-			const newCount = Math.max(0, count + delta);
-			const others = prev.filter(id => id !== monsterId);
-			const newTotal = others.length + newCount;
-			if(rewardMax !== undefined && newTotal > localRewardMax) return prev;
-			return [...others, ...Array(newCount).fill(monsterId)];
-		});
-	};
-
+	
 	const handleAddOne = (monsterId:number) => {
 		setSelected(prev => {
 			if(rewardMax !== undefined && prev.length >= localRewardMax) return prev;
 			return [...prev, monsterId];
 		});
 	};
-
+	
 	const handleRemoveOne = (monsterId:number) => {
 		setSelected(prev => {
 			const idx = prev.lastIndexOf(monsterId);
@@ -95,36 +92,36 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({title, monsters, tr
 			return [...prev.slice(0, idx), ...prev.slice(idx + 1)];
 		});
 	};
-
+	
 	const handleRewardMaxChange = (newMax:number) => {
 		setLocalRewardMax(newMax);
 		setSelected(prev => prev.length > newMax ? prev.slice(0, newMax) : prev);
 	};
-
+	
 	const handleSave = () => {
 		if(onRewardMaxChange){
 			onRewardMaxChange(localRewardMax);
 		}
 		onSave(selected);
 	};
-
+	
 	const buildGroups = () => {
 		const groups:{name:string; monsters:GameMonster[]}[] = [];
 		for(const m of monsters){
 			const last = groups[groups.length - 1];
 			if(last && last.name === m.monsterName){
 				last.monsters.push(m);
-			} else {
-				groups.push({name: m.monsterName, monsters: [m]});
+			}else{
+				groups.push({name : m.monsterName, monsters : [m]});
 			}
 		}
 		return groups;
 	};
-
+	
 	const renderAllowMultiple = () => {
 		const groups = buildGroups();
 		const full = rewardMax !== undefined && selected.length >= localRewardMax;
-
+		
 		return groups.map(group => (
 			<div key={group.name} className={styles.monsterGroup}>
 				<div className={styles.monsterGroupMeta}>
@@ -149,7 +146,7 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({title, monsters, tr
 			</div>
 		));
 	};
-
+	
 	const buildPreviewMap = () => {
 		const map = new Map<number, number>();
 		for(const id of selected){
@@ -157,7 +154,7 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({title, monsters, tr
 		}
 		return map;
 	};
-
+	
 	const renderGroupByName = () => {
 		const groups = buildGroups();
 		return groups.map(group => (
@@ -168,14 +165,16 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({title, monsters, tr
 						const isSelected = selected.includes(monster.monsterId);
 						const disabled = !isSelected && atLimit;
 						return (
-							<label key={monster.monsterId} className={`${styles.monsterOption} ${disabled ? styles.disabled : ""}`}>
+							<label key={monster.monsterId}
+								   className={`${styles.monsterOption} ${disabled ? styles.disabled : ""}`}>
 								<input
 									type="checkbox"
 									checked={isSelected}
 									onChange={() => !disabled && handleToggle(monster.monsterId)}
 									disabled={disabled}
 								/>
-								<span className={styles.monsterOptionDetail}>{getDifficultyLabel(monster.monsterDifficulty)}</span>
+								<span
+									className={styles.monsterOptionDetail}>{getDifficultyLabel(monster.monsterDifficulty)}</span>
 							</label>
 						);
 					})}
@@ -183,7 +182,7 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({title, monsters, tr
 			</div>
 		));
 	};
-
+	
 	const renderExclusiveByName = () => {
 		const groups = buildGroups();
 		return groups.map(group => (
@@ -195,7 +194,8 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({title, monsters, tr
 						const groupHasSelection = group.monsters.some(m => selected.includes(m.monsterId));
 						const disabled = !isSelected && !groupHasSelection && atLimit;
 						return (
-							<label key={monster.monsterId} className={`${styles.monsterOption} ${disabled ? styles.disabled : ""}`}>
+							<label key={monster.monsterId}
+								   className={`${styles.monsterOption} ${disabled ? styles.disabled : ""}`}>
 								<input
 									type="radio"
 									name={`boss_${group.name}`}
@@ -203,7 +203,8 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({title, monsters, tr
 									onChange={() => !disabled && handleToggle(monster.monsterId)}
 									disabled={disabled}
 								/>
-								<span className={styles.monsterOptionDetail}>{getDifficultyLabel(monster.monsterDifficulty)}</span>
+								<span
+									className={styles.monsterOptionDetail}>{getDifficultyLabel(monster.monsterDifficulty)}</span>
 							</label>
 						);
 					})}
@@ -223,7 +224,7 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({title, monsters, tr
 			</div>
 		));
 	};
-
+	
 	const renderFlat = () => {
 		return monsters.map(monster => {
 			const isSelected = selected.includes(monster.monsterId);
@@ -242,9 +243,9 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({title, monsters, tr
 			);
 		});
 	};
-
+	
 	const totalSelected = allowMultiple ? selected.length : selected.length;
-
+	
 	return (
 		<div className={styles.modalOverlay} onClick={onClose}>
 			<div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -257,9 +258,13 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({title, monsters, tr
 						<div className={styles.rewardMaxRow}>
 							<span className={styles.rewardMaxLabel}>주간 보상 최대 횟수</span>
 							<div className={styles.counterControl}>
-								<button className={styles.counterBtn} onClick={() => handleRewardMaxChange(Math.max(1, localRewardMax - 1))} disabled={localRewardMax <= 1}>&minus;</button>
+								<button className={styles.counterBtn}
+										onClick={() => handleRewardMaxChange(Math.max(1, localRewardMax - 1))}
+										disabled={localRewardMax <= 1}>&minus;</button>
 								<span className={styles.counterValue}>{localRewardMax}</span>
-								<button className={styles.counterBtn} onClick={() => handleRewardMaxChange(localRewardMax + 1)}>+</button>
+								<button className={styles.counterBtn}
+										onClick={() => handleRewardMaxChange(localRewardMax + 1)}>+
+								</button>
 							</div>
 						</div>
 					)}
@@ -281,8 +286,8 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({title, monsters, tr
 					<div className={styles.monsterList}>
 						{allowMultiple ? renderAllowMultiple()
 							: exclusiveByName ? renderExclusiveByName()
-							: groupByName ? renderGroupByName()
-							: renderFlat()}
+								: groupByName ? renderGroupByName()
+									: renderFlat()}
 					</div>
 				</div>
 				{allowMultiple && selected.length > 0 && (
@@ -295,10 +300,13 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({title, monsters, tr
 									<div key={monsterId} className={styles.abyssPreviewCard}>
 										<div className={styles.abyssPreviewInfo}>
 											<span className={styles.abyssPreviewName}>{monster.monsterName}</span>
-											{monster.regionName && <span className={styles.abyssPreviewRegion}>{monster.regionName}</span>}
-											<span className={styles.abyssPreviewDiff}>{getDifficultyLabel(monster.monsterDifficulty)} &times;{count}</span>
+											{monster.regionName &&
+												<span className={styles.abyssPreviewRegion}>{monster.regionName}</span>}
+											<span
+												className={styles.abyssPreviewDiff}>{getDifficultyLabel(monster.monsterDifficulty)} &times;{count}</span>
 										</div>
-										<button className={styles.abyssPreviewRemove} onClick={() => handleRemoveOne(monsterId)}>&times;</button>
+										<button className={styles.abyssPreviewRemove}
+												onClick={() => handleRemoveOne(monsterId)}>&times;</button>
 									</div>
 								);
 							})}

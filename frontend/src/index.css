@@ -5,6 +5,7 @@
 }
 
 :root{
+	color-scheme:light;
 	/* 파스텔톤 색상 */
 	--primary:#a8d5e5;
 	--primary-dark:#8bc4d6;
@@ -43,10 +44,33 @@
 	--shadow-md:0 4px 16px rgba(168, 213, 229, 0.2);
 	--shadow-lg:0 8px 32px rgba(168, 213, 229, 0.25);
 	--shadow-xl:0 16px 48px rgba(168, 213, 229, 0.3);
+
+	/* Legacy aliases used by older modules */
+	--text-primary:var(--text);
+	--text-secondary:var(--text-muted);
+	--text-color:var(--text);
+	--text-light:var(--text-muted);
+	--bg-color:var(--surface);
+	--bg-secondary:var(--surface-hover);
+	--card-bg:var(--surface);
+	--input-bg:var(--surface);
+	--border-color:var(--border);
+	--primary-color:var(--primary);
+	--primary-hover:var(--primary-dark);
+	--primary-color-light:var(--primary-light);
+	--warning-color:var(--warning);
+	--card-header-bg:var(--surface-hover);
+	--badge-bg:var(--primary-light);
+	--badge-color:var(--primary-dark);
+	--badge-bg2:var(--surface-hover);
+	--badge-color2:var(--text);
+	--danger-bg:rgba(232, 168, 168, 0.15);
+	--danger-color:#c56969;
 }
 
 /* 다크모드 파스텔 색상 */
 .dark-mode{
+	color-scheme:dark;
 	/* 파스텔톤 다크 색상 */
 	--primary:#7ba8b8;
 	--primary-dark:#6a97a6;
@@ -228,6 +252,14 @@ body{
 
 .main{
 	flex:1;
+}
+
+.page-bg-shell{
+	min-height:calc(100vh - 80px);
+	background:
+		radial-gradient(circle at 12% 8%, rgba(168, 213, 229, 0.25), transparent 40%),
+		radial-gradient(circle at 85% 15%, rgba(212, 197, 240, 0.24), transparent 35%),
+		var(--background);
 }
 
 .page{

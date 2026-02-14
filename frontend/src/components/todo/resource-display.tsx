@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from "react";
 import styles from "./todo.module.scss";
-import {Resources, CounterTask} from "../../types";
+import {Resources, CounterTask} from "@/types";
 
 interface ResourceDisplayProps{
 	resources:Resources;

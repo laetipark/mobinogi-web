@@ -1,5 +1,6 @@
 import apiService from "./api";
 import type {ApiResponse, GameClassItem} from "../types";
+import {normalizeSelectableClasses} from "@/utils";
 
 let cachedClasses:GameClassItem[] | null = null;
 
@@ -11,7 +12,7 @@ export const gameClassService = {
 
 		const response = await apiService.get<ApiResponse & {classes:GameClassItem[]}>("/classes");
 		if(response.success){
-			cachedClasses = response.classes.filter(cls => !cls.isApprentice);
+			cachedClasses = normalizeSelectableClasses(response.classes);
 			return cachedClasses;
 		}
 		throw new Error(response.message || "Failed to fetch classes");

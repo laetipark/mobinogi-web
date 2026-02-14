@@ -39,6 +39,9 @@ public class User{
 	@Column(name = "discord_avatar", length = 500)
 	private String discordAvatar;
 
+	@Column(name = "is_admin")
+	private Boolean isAdmin;
+
 	@Column(name = "created_at", updatable = false)
 	private LocalDateTime createdAt;
 
@@ -52,6 +55,9 @@ public class User{
 	protected void onCreate(){
 		createdAt = LocalDateTime.now();
 		updatedAt = LocalDateTime.now();
+		if(isAdmin == null){
+			isAdmin = false;
+		}
 	}
 
 	@PreUpdate

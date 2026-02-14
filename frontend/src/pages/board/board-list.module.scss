@@ -3,7 +3,10 @@
 .boardPage{
 	min-height:calc(100vh - 80px);
 	padding:40px 20px;
-	background:var(--background);
+	background:
+		radial-gradient(circle at 12% 8%, rgba(168, 213, 229, 0.25), transparent 40%),
+		radial-gradient(circle at 85% 15%, rgba(212, 197, 240, 0.24), transparent 35%),
+		var(--background);
 }
 
 .container{
@@ -73,11 +76,6 @@
 		color:white;
 		border-color:var(--primary);
 	}
-}
-
-.notionTab.active{
-	background:#000;
-	border-color:#000;
 }
 
 .discordTab.active{
@@ -190,11 +188,6 @@
 	font-size:11px;
 	font-weight:600;
 	flex-shrink:0;
-
-	&.notion{
-		background:#000;
-		color:#fff;
-	}
 
 	&.discord{
 		background:#5865F2;

@@ -1,271 +1,282 @@
 @use '../../styles/index' as *;
 
-/* 아이템 검색 페이지 스타일 */
 .itemSearchPage{
-	max-width:1400px;
-	margin:0 auto;
-	padding:20px;
 	min-height:calc(100vh - 80px);
+	padding:28px 20px 40px;
+	background:
+		radial-gradient(circle at 12% 8%, rgba(168, 213, 229, 0.25), transparent 40%),
+		radial-gradient(circle at 85% 15%, rgba(212, 197, 240, 0.24), transparent 35%),
+		var(--background);
 }
 
-/* 페이지 헤더 */
+.container{
+	max-width:1120px;
+	margin:0 auto;
+}
+
 .pageHeader{
-	text-align:center;
-	margin-bottom:30px;
+	padding:20px 0;
+	margin-bottom:18px;
 
 	h1{
-		color:$gray-800;
-		font-size:2.5rem;
-		font-weight:bold;
-		margin-bottom:8px;
-	}
-
-	.pageDescription{
-		color:$gray-500;
-		font-size:1.1rem;
-		margin:0;
+		color:var(--text);
+		font-size:2rem;
+		font-weight:700;
+		margin:0 0 8px;
 	}
 }
 
-/* 검색 섹션 */
+.pageDescription{
+	color:var(--text-muted);
+	font-size:0.96rem;
+	margin:0;
+}
+
 .searchSection{
 	background:var(--surface);
-	border-radius:$border-radius-lg;
-	padding:24px;
-	box-shadow:$shadow-sm;
-	margin-bottom:24px;
+	border-radius:12px;
+	padding:16px;
+	border:1px solid var(--border);
+	box-shadow:var(--shadow-sm);
+	margin-bottom:20px;
 }
 
 .searchContainer{
 	display:flex;
 	align-items:center;
-	gap:12px;
+	gap:10px;
 	flex-wrap:wrap;
+}
 
-	.searchBox{
-		position:relative;
+.searchBox{
+	position:relative;
+	flex:1;
+	min-width:260px;
+	display:flex;
+	align-items:center;
+	gap:8px;
+	padding:9px 12px;
+	border:1px solid var(--border);
+	border-radius:10px;
+	background:var(--background);
+
+	.searchIcon{
+		color:var(--text-muted);
+		z-index:1;
+	}
+
+	.loadingIcon{
+		position:absolute;
+		right:12px;
+		top:50%;
+		transform:translateY(-50%);
+		color:var(--text-muted);
+	}
+
+	.searchInput{
 		flex:1;
-		min-width:300px;
+		border:none;
+		background:transparent;
+		color:var(--text);
+		font-size:0.92rem;
+		padding:2px 0;
 
-		.searchIcon{
-			position:absolute;
-			left:14px;
-			top:50%;
-			transform:translateY(-50%);
-			color:$gray-500;
-			z-index:1;
-		}
-
-		.loadingIcon{
-			position:absolute;
-			right:14px;
-			top:50%;
-			transform:translateY(-50%);
-			color:$gray-400;
-		}
-
-		.searchInput{
-			width:100%;
-			padding:14px 44px;
-			border:2px solid $gray-200;
-			border-radius:$border-radius;
-			font-size:16px;
-			transition:border-color $transition-fast;
-
-			&:focus{
-				outline:none;
-				border-color:$primary-blue;
-			}
-		}
-
-		.suggestionsDropdown{
-			position:absolute;
-			top:calc(100% + 4px);
-			left:0;
-			right:0;
-			background:var(--surface);
-			border:2px solid $gray-200;
-			border-radius:$border-radius;
-			box-shadow:$shadow-md;
-			z-index:1000;
-			max-height:300px;
-			overflow-y:auto;
-
-			.suggestionItem{
-				display:flex;
-				align-items:center;
-				gap:10px;
-				padding:12px 14px;
-				cursor:pointer;
-				transition:background-color $transition-fast;
-
-				&:hover{
-					background-color:$gray-50;
-				}
-
-				.suggestionName{
-					flex:1;
-					font-weight:500;
-					color:$gray-800;
-				}
-
-				.suggestionType{
-					font-size:12px;
-					color:$gray-500;
-					background:$gray-100;
-					padding:2px 8px;
-					border-radius:4px;
-				}
-			}
+		&:focus{
+			outline:none;
 		}
 	}
 
-	.searchBtn{
-		@include button-hover($primary-blue, $primary-blue-dark);
-		color:$white;
-		padding:14px 28px;
-		border:none;
-		border-radius:$border-radius;
-		font-size:16px;
-		font-weight:500;
-		cursor:pointer;
-		display:flex;
-		align-items:center;
-		gap:6px;
-		white-space:nowrap;
+	.suggestionsDropdown{
+		position:absolute;
+		top:calc(100% + 6px);
+		left:0;
+		right:0;
+		background:var(--surface);
+		border:1px solid var(--border);
+		border-radius:12px;
+		box-shadow:var(--shadow-md);
+		z-index:1000;
+		max-height:300px;
+		overflow-y:auto;
 
-		&:disabled{
-			opacity:0.6;
-			cursor:not-allowed;
+		.suggestionItem{
+			display:flex;
+			align-items:center;
+			gap:10px;
+			padding:10px 12px;
+			cursor:pointer;
+			transition:background-color $transition-fast;
+
+			&:hover{
+				background-color:var(--surface-hover);
+			}
+
+			.suggestionName{
+				flex:1;
+				font-weight:600;
+				color:var(--text);
+			}
+
+			.suggestionType{
+				font-size:12px;
+				color:var(--text-muted);
+				background:var(--surface-hover);
+				padding:2px 8px;
+				border-radius:999px;
+			}
 		}
-	}
-
-	.resetBtn{
-		@include button-hover($gray-100, $gray-200);
-		color:$gray-600;
-		padding:14px 28px;
-		border:none;
-		border-radius:$border-radius;
-		font-size:16px;
-		font-weight:500;
-		cursor:pointer;
-		white-space:nowrap;
 	}
 }
 
-/* 에러 메시지 */
+.searchBtn{
+	border:none;
+	background:var(--gradient);
+	color:#fff;
+	padding:9px 16px;
+	border-radius:10px;
+	font-size:0.9rem;
+	font-weight:600;
+	cursor:pointer;
+	display:flex;
+	align-items:center;
+	gap:6px;
+	white-space:nowrap;
+
+	&:disabled{
+		opacity:0.6;
+		cursor:not-allowed;
+	}
+}
+
+.resetBtn{
+	border:1px solid var(--border);
+	background:var(--surface-hover);
+	color:var(--text);
+	padding:9px 16px;
+	border-radius:10px;
+	font-size:0.9rem;
+	font-weight:600;
+	cursor:pointer;
+	white-space:nowrap;
+
+	&:hover:not(:disabled){
+		background:var(--surface);
+	}
+
+	&:disabled{
+		opacity:0.6;
+		cursor:not-allowed;
+	}
+}
+
 .errorMessage{
 	background:rgba(239, 68, 68, 0.1);
 	border:1px solid rgba(239, 68, 68, 0.3);
 	color:#dc2626;
-	padding:16px 20px;
-	border-radius:$border-radius;
-	margin-bottom:24px;
+	padding:12px 16px;
+	border-radius:10px;
+	margin-bottom:20px;
 	text-align:center;
+	font-size:0.9rem;
 }
 
-/* 결과 섹션 */
 .resultsSection{
 	display:flex;
 	flex-direction:column;
-	gap:20px;
+	gap:16px;
 }
 
-/* 아이템 정보 헤더 */
 .itemInfoHeader{
 	display:flex;
 	align-items:center;
-	gap:12px;
-	background:linear-gradient(135deg, $primary-blue 0%, #1d4ed8 100%);
-	color:$white;
-	padding:20px 24px;
-	border-radius:$border-radius-lg;
+	gap:10px;
+	background:var(--gradient);
+	color:#fff;
+	padding:16px 18px;
+	border-radius:14px;
 
 	h2{
 		margin:0;
-		font-size:1.5rem;
-		font-weight:600;
+		font-size:1.4rem;
+		font-weight:700;
 	}
 }
 
-/* 데이터 섹션 (물물교환, 제작) */
 .dataSection{
 	background:var(--surface);
-	border-radius:$border-radius-lg;
-	box-shadow:$shadow-sm;
+	border-radius:14px;
+	border:1px solid var(--border);
 	overflow:hidden;
 
 	.sectionHeader{
 		display:flex;
 		justify-content:space-between;
 		align-items:center;
-		padding:16px 20px;
-		background:$gray-50;
+		padding:12px 16px;
+		background:var(--surface-hover);
 		cursor:pointer;
 		transition:background-color $transition-fast;
 
 		&:hover{
-			background:$gray-100;
+			background:var(--surface);
 		}
 
 		.sectionTitle{
 			display:flex;
 			align-items:center;
-			gap:10px;
+			gap:8px;
 
 			h3{
 				margin:0;
-				font-size:1.1rem;
-				font-weight:600;
-				color:$gray-800;
+				font-size:1rem;
+				font-weight:700;
+				color:var(--text);
 			}
 
 			.badge{
-				background:$primary-blue;
-				color:$white;
-				font-size:12px;
-				font-weight:500;
+				background:var(--primary);
+				color:#fff;
+				font-size:11px;
+				font-weight:600;
 				padding:2px 8px;
-				border-radius:10px;
+				border-radius:999px;
 			}
 		}
 	}
 }
 
-/* 테이블 래퍼 */
 .tableWrapper{
 	overflow-x:auto;
-	padding:0 20px 20px;
+	padding:0 16px 16px;
 }
 
-/* 데이터 테이블 */
 .dataTable{
 	width:100%;
 	border-collapse:collapse;
-	font-size:14px;
+	font-size:13px;
 
 	th, td{
-		padding:12px 16px;
+		padding:10px 12px;
 		text-align:left;
-		border-bottom:1px solid $gray-200;
+		border-bottom:1px solid var(--border);
 	}
 
 	th{
-		background:$gray-50;
-		font-weight:600;
-		color:$gray-700;
+		background:var(--surface-hover);
+		font-weight:700;
+		color:var(--text-muted);
 		white-space:nowrap;
 	}
 
 	td{
-		color:$gray-600;
+		color:var(--text);
 	}
 
 	tbody tr{
 		transition:background-color $transition-fast;
 
 		&:hover{
-			background-color:$gray-50;
+			background-color:var(--surface-hover);
 		}
 
 		&:last-child td{
@@ -275,40 +286,39 @@
 
 	.itemCell{
 		.clickableItem{
-			color:$primary-blue;
+			color:var(--primary-dark);
 			cursor:pointer;
-			font-weight:500;
+			font-weight:600;
 			transition:color $transition-fast;
 
 			&:hover{
-				color:$primary-blue-dark;
+				color:var(--primary);
 				text-decoration:underline;
 			}
 		}
 	}
 }
 
-/* 제작 그룹 */
 .craftGroups{
 	display:flex;
 	flex-direction:column;
-	gap:16px;
-	padding:0 20px 20px;
+	gap:12px;
+	padding:0 16px 16px;
 }
 
 .craftGroup{
-	border:1px solid $gray-200;
-	border-radius:$border-radius;
+	border:1px solid var(--border);
+	border-radius:12px;
 	overflow:hidden;
 
 	.craftGroupHeader{
-		background:$gray-50;
-		padding:10px 16px;
+		background:var(--surface-hover);
+		padding:10px 14px;
 
 		.craftSubId{
-			font-weight:600;
-			color:$gray-700;
-			font-size:14px;
+			font-weight:700;
+			color:var(--text);
+			font-size:13px;
 		}
 	}
 
@@ -318,101 +328,81 @@
 
 	.dataTable{
 		th, td{
-			padding:10px 16px;
+			padding:9px 12px;
 		}
 	}
 }
 
-/* 관련 데이터 없음 */
 .noRelatedData{
 	background:var(--surface);
-	border-radius:$border-radius-lg;
-	padding:40px 20px;
+	border-radius:14px;
+	padding:32px 20px;
 	text-align:center;
-	color:$gray-500;
-	font-size:16px;
+	color:var(--text-muted);
+	font-size:0.95rem;
+	border:1px solid var(--border);
 }
 
-/* 초기 상태 안내 */
 .initialGuide{
 	background:var(--surface);
-	border-radius:$border-radius-lg;
-	padding:60px 20px;
+	border-radius:14px;
+	padding:50px 20px;
 	text-align:center;
-	color:$gray-400;
-	border:2px dashed $gray-200;
+	color:var(--text-muted);
+	border:1px dashed var(--border);
 
 	p{
-		margin:16px 0 0;
-		font-size:16px;
+		margin:12px 0 0;
+		font-size:0.95rem;
 	}
 }
 
-/* 로딩 상태 */
 .loadingContainer{
 	display:flex;
 	align-items:center;
 	justify-content:center;
-	gap:12px;
-	padding:40px;
-	color:$gray-500;
-	font-size:16px;
+	gap:10px;
+	padding:32px;
+	color:var(--text-muted);
+	font-size:0.95rem;
 }
 
-/* 스피닝 애니메이션 */
 .spinning{
 	@include spinning;
 }
 
-/* 반응형 디자인 */
 @include tablet{
 	.itemSearchPage{
-		padding:15px;
-	}
-
-	.pageHeader{
-		h1{
-			font-size:2rem;
-		}
-	}
-
-	.searchSection{
-		padding:16px;
+		padding:22px 16px 32px;
 	}
 
 	.searchContainer{
 		flex-direction:column;
 		align-items:stretch;
+	}
 
-		.searchBox{
-			min-width:unset;
-		}
-
-		.searchBtn,
-		.resetBtn{
-			justify-content:center;
-		}
+	.searchBtn,
+	.resetBtn{
+		justify-content:center;
 	}
 
 	.dataTable{
-		font-size:13px;
+		font-size:12px;
 
 		th, td{
-			padding:10px 12px;
+			padding:9px 10px;
 		}
 	}
 }
 
 @include mobile{
+	.itemSearchPage{
+		padding:18px 10px 28px;
+	}
+
 	.pageHeader{
-		margin-bottom:20px;
-
 		h1{
-			font-size:1.5rem;
-		}
-
-		.pageDescription{
-			font-size:0.9rem;
+			font-size:1.55rem;
 		}
 	}
 
@@ -425,17 +415,17 @@
 	}
 
 	.itemInfoHeader{
-		padding:16px;
+		padding:12px 14px;
 		flex-wrap:wrap;
 
 		h2{
-			font-size:1.25rem;
+			font-size:1.2rem;
 		}
 	}
 
 	.dataSection{
 		.sectionHeader{
-			padding:12px 16px;
+			padding:10px 12px;
 		}
 	}
 
@@ -444,12 +434,10 @@
 	}
 
 	.dataTable{
-		font-size:12px;
+		font-size:11px;
 
 		th, td{
-			padding:8px 10px;
+			padding:8px 8px;
 		}
 	}
 }
-
-/* 다크 모드 지원 */

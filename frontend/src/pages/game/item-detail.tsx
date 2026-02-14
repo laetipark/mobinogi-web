@@ -2,6 +2,7 @@ import React, {useState, useEffect} from "react";
 import {useParams, useNavigate} from "react-router-dom";
 import {GameItemData, GameItemSummary, LifeBarter, LifeCraft} from "@/types";
 import GameItemService from "@/services/game-item-service";
+import {getItemRarityInfo} from "@/utils";
 import {ArrowLeft, ArrowRight, Hammer, ArrowLeftRight, Package, MapPin, User, RefreshCw} from "lucide-react";
 import styles from "./item-detail.module.scss";
 
@@ -40,18 +41,6 @@ const ItemDetailPage:React.FC = () => {
 
 		fetchData();
 	}, [itemName]);
-
-	const getRarityColor = (rarity:string) => {
-		switch(rarity?.toLowerCase()){
-			case "일반": return "#6b7280";
-			case "고급": return "#10b981";
-			case "희귀": return "#3b82f6";
-			case "영웅": return "#8b5cf6";
-			case "전설": return "#f59e0b";
-			case "신화": return "#ef4444";
-			default: return "#6b7280";
-		}
-	};
 
 	const renderBarterCard = (barter:LifeBarter) => (
 		<div key={barter.barterId} className={styles.barterCard}>
@@ -105,9 +94,11 @@ const ItemDetailPage:React.FC = () => {
 	const craftsBySubId = itemData?.craftsBySubId || {};
 	const hasBarters = bartersByItemId.length > 0 || bartersByExchangeId.length > 0;
 	const hasCrafts = Object.keys(craftsBySubId).length > 0;
+	const rarityInfo = getItemRarityInfo(itemSummary?.itemRarity);
 
 	return (
-		<div className={styles.container}>
+		<div className={styles.itemDetailPage}>
+			<div className={styles.container}>
 			<button className={styles.backBtn} onClick={() => navigate(-1)}>
 				<ArrowLeft size={18}/>
 				<span>뒤로가기</span>
@@ -139,9 +130,13 @@ const ItemDetailPage:React.FC = () => {
 										<span className={styles.itemType}>{itemSummary.itemType}</span>
 										<span
 											className={styles.itemRarity}
-											style={{color:getRarityColor(itemSummary.itemRarity)}}
+											style={{
+												color : rarityInfo.color,
+												backgroundColor : rarityInfo.bg,
+												borderColor : rarityInfo.color
+											}}
 										>
-											{itemSummary.itemRarity}
+											{rarityInfo.label}
 										</span>
 									</div>
 								)}
@@ -238,6 +233,7 @@ const ItemDetailPage:React.FC = () => {
 					)}
 				</div>
 			)}
+			</div>
 		</div>
 	);
 };

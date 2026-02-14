@@ -1,8 +1,8 @@
 import React, {useState, useEffect, useRef, useCallback, useMemo} from "react";
 import styles from "./todo.module.scss";
-import {LifeBarter, UserTodoBarter} from "../../types";
-import {GameItemService} from "../../services/game-item-service";
-import {todoService} from "../../services/todo-service";
+import {LifeBarter, UserTodoBarter} from "@/types";
+import {GameItemService} from "@/services/game-item-service.ts";
+import {todoService} from "@/services/todo-service.ts";
 import {ArrowRight, Search, RefreshCw} from "lucide-react";
 
 interface BarterSettingsModalProps{

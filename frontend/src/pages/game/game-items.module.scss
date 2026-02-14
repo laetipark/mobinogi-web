@@ -1,151 +1,159 @@
 @use '../../styles/index' as *;
 
-/* 게임 아이템 페이지 스타일 */
 .gameItemsPage{
-	max-width:1200px;
-	margin:0 auto;
-	padding:20px;
 	min-height:calc(100vh - 80px);
+	padding:28px 20px 40px;
+	background:
+		radial-gradient(circle at 12% 8%, rgba(168, 213, 229, 0.25), transparent 40%),
+		radial-gradient(circle at 85% 15%, rgba(212, 197, 240, 0.24), transparent 35%),
+		var(--background);
 }
 
-/* 페이지 헤더 */
+.container{
+	max-width:1120px;
+	margin:0 auto;
+}
+
 .pageHeader{
-	text-align:center;
-	margin-bottom:30px;
+	padding:20px 0;
+	margin-bottom:18px;
 
 	h1{
-		color:$gray-800;
-		font-size:2.5rem;
-		font-weight:bold;
-		margin-bottom:8px;
-	}
-
-	.pageDescription{
-		color:$gray-500;
-		font-size:1.1rem;
-		margin:0;
+		color:var(--text);
+		font-size:2rem;
+		font-weight:700;
+		margin:0 0 8px;
 	}
 }
 
-/* 탭 네비게이션 */
+.pageDescription{
+	color:var(--text-muted);
+	font-size:0.96rem;
+	margin:0;
+}
+
 .tabContainer{
 	display:flex;
-	gap:8px;
-	margin-bottom:20px;
+	gap:6px;
+	flex-wrap:wrap;
+	margin-bottom:14px;
 	background:var(--surface);
-	padding:8px;
-	border-radius:$border-radius-lg;
-	box-shadow:$shadow-sm;
+	border:1px solid var(--border);
+	border-radius:12px;
+	padding:4px;
+	box-shadow:var(--shadow-sm);
 }
 
 .tabButton{
 	display:flex;
 	align-items:center;
-	gap:8px;
-	padding:12px 24px;
+	gap:6px;
+	padding:8px 14px;
 	border:none;
-	border-radius:$border-radius;
+	border-radius:10px;
 	background:transparent;
-	color:$gray-600;
-	font-size:15px;
-	font-weight:500;
+	color:var(--text-muted);
+	font-size:0.9rem;
 	cursor:pointer;
 	transition:all $transition-fast;
 
 	&:hover{
-		background:$gray-100;
-		color:$gray-800;
+		color:var(--text);
 	}
 
 	&.active{
-		background:$primary-blue;
-		color:$white;
-
-		&:hover{
-			background:$primary-blue-dark;
-		}
+		background:var(--gradient);
+		color:#fff;
 	}
 }
 
-/* 검색 및 필터 컨트롤 */
 .controlsSection{
 	background:var(--surface);
-	border-radius:$border-radius-lg;
-	padding:20px;
-	box-shadow:$shadow-sm;
-	margin-bottom:20px;
+	border:1px solid var(--border);
+	border-radius:12px;
+	padding:14px;
+	box-shadow:var(--shadow-sm);
+	margin-bottom:16px;
 	display:flex;
 	flex-direction:column;
-	gap:16px;
+	gap:12px;
 }
 
 .searchContainer{
 	display:flex;
 	align-items:center;
-	gap:12px;
+	gap:10px;
 	flex-wrap:wrap;
-	
-	.searchBox{
-		position:relative;
-		flex:1;
-		min-width:250px;
-		
-		.searchIcon{
-			position:absolute;
-			left:12px;
-			top:50%;
-			transform:translateY(-50%);
-			color:$gray-500;
-		}
-		
-		.searchInput{
-			width:100%;
-			padding:12px 12px 12px 44px;
-			border:2px solid $gray-200;
-			border-radius:$border-radius;
-			font-size:16px;
-			transition:border-color $transition-fast;
-			
-			&:focus{
-				outline:none;
-				border-color:$primary-blue;
-			}
-		}
+}
+
+.searchBox{
+	position:relative;
+	flex:1;
+	min-width:220px;
+	display:flex;
+	align-items:center;
+	gap:8px;
+	padding:9px 12px;
+	border:1px solid var(--border);
+	border-radius:10px;
+	background:var(--background);
+}
+
+.searchIcon{
+	color:var(--text-muted);
+	flex-shrink:0;
+}
+
+.searchInput{
+	flex:1;
+	border:none;
+	background:transparent;
+	color:var(--text);
+	font-size:0.92rem;
+
+	&:focus{
+		outline:none;
 	}
-	
-	.searchBtn{
-		@include button-hover($primary-blue, $primary-blue-dark);
-		color:$white;
-		padding:12px 24px;
-		border:none;
-		border-radius:$border-radius;
-		font-size:16px;
-		font-weight:500;
-		cursor:pointer;
-		display:flex;
-		align-items:center;
-		gap:6px;
-		white-space:nowrap;
-		
-		&:disabled{
-			opacity:0.6;
-			cursor:not-allowed;
-		}
+}
+
+.searchBtn{
+	border:none;
+	background:var(--gradient);
+	color:#fff;
+	padding:9px 16px;
+	border-radius:10px;
+	font-size:0.9rem;
+	font-weight:600;
+	cursor:pointer;
+	display:inline-flex;
+	align-items:center;
+	gap:6px;
+	white-space:nowrap;
+
+	&:disabled{
+		opacity:0.6;
+		cursor:not-allowed;
 	}
-	
-	.resetBtn{
-		@include button-hover($gray-100, $gray-200);
-		color:$gray-600;
-		padding:12px 24px;
-		border:none;
-		border-radius:$border-radius;
-		font-size:16px;
-		font-weight:500;
-		cursor:pointer;
-		display:flex;
-		align-items:center;
-		gap:6px;
-		white-space:nowrap;
+}
+
+.resetBtn{
+	border:1px solid var(--border);
+	background:var(--surface-hover);
+	color:var(--text);
+	padding:9px 16px;
+	border-radius:10px;
+	font-size:0.9rem;
+	font-weight:600;
+	cursor:pointer;
+	white-space:nowrap;
+
+	&:hover:not(:disabled){
+		background:var(--surface);
+	}
+
+	&:disabled{
+		opacity:0.6;
+		cursor:not-allowed;
 	}
 }
 
@@ -153,167 +161,48 @@
 	display:flex;
 	align-items:center;
 	gap:8px;
-	
+
 	label{
-		font-weight:500;
-		color:$gray-900;
+		font-weight:600;
+		color:var(--text-muted);
+		font-size:0.85rem;
 		white-space:nowrap;
 	}
-	
-	.sortSelect{
-		padding:8px 12px;
-		border:2px solid $gray-200;
-		border-radius:6px;
-		font-size:14px;
-		cursor:pointer;
-	}
 }
 
-/* 결과 정보 */
+.sortSelect{
+	padding:8px 12px;
+	border:1px solid var(--border);
+	border-radius:10px;
+	background:var(--surface);
+	color:var(--text);
+	font-size:0.88rem;
+	cursor:pointer;
+}
+
 .resultsInfo{
 	text-align:center;
-	margin-bottom:20px;
-	color:$gray-500;
-	
+	margin-bottom:16px;
+	color:var(--text-muted);
+	font-size:0.9rem;
+
 	strong{
-		color:$primary-blue;
+		color:var(--primary-dark);
 	}
 }
 
-/* 아이템 그리드 */
 .itemsGrid{
-	display:grid;
-	grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-	gap:20px;
-	margin-bottom:30px;
+	@include responsive-grid(280px, 16px);
+	margin-bottom:24px;
 }
 
-/* 물물교환 카드 */
-.barterCard{
-	background:var(--surface);
-	border:2px solid var(--border);
-	border-radius:$border-radius-lg;
-	padding:20px;
-	transition:all $transition-fast;
-
-	&.clickable{
-		cursor:pointer;
-
-		.clickHint{
-			opacity:0;
-		}
-
-		&:hover .clickHint{
-			opacity:1;
-		}
-	}
-
-	&:hover{
-		@include card-hover($primary-blue);
-	}
-
-	.clickHint{
-		display:flex;
-		align-items:center;
-		justify-content:center;
-		gap:6px;
-		margin-top:12px;
-		padding-top:12px;
-		border-top:1px dashed var(--border);
-		font-size:12px;
-		color:var(--primary);
-		transition:opacity $transition-fast;
-
-		svg{
-			flex-shrink:0;
-		}
-	}
-
-	.barterHeader{
-		display:flex;
-		justify-content:space-between;
-		align-items:center;
-		margin-bottom:16px;
-
-		.barterId{
-			font-size:12px;
-			color:$gray-500;
-			font-weight:500;
-			background:$gray-100;
-			padding:4px 8px;
-			border-radius:4px;
-		}
-
-		.barterLocation{
-			font-size:13px;
-			color:$primary-blue;
-			font-weight:500;
-		}
-	}
-
-	.barterExchange{
-		display:flex;
-		align-items:center;
-		justify-content:space-between;
-		gap:12px;
-		margin-bottom:16px;
-		padding:16px;
-		background:var(--surface-hover);
-		border-radius:$border-radius;
-
-		.barterItem{
-			flex:1;
-			display:flex;
-			flex-direction:column;
-			gap:4px;
-
-			.barterLabel{
-				font-size:11px;
-				color:$gray-500;
-				text-transform:uppercase;
-				font-weight:600;
-			}
-
-			.barterValue{
-				font-size:14px;
-				font-weight:600;
-				color:$gray-800;
-			}
-
-			.barterCost{
-				font-size:13px;
-				color:$primary-blue;
-				font-weight:500;
-			}
-		}
-
-		.arrowIcon{
-			color:$gray-400;
-			flex-shrink:0;
-		}
-	}
-
-	.barterInfo{
-		display:flex;
-		justify-content:space-between;
-		align-items:center;
-		font-size:13px;
-		color:$gray-500;
-
-		.barterTag{
-			color:$gray-600;
-			font-style:italic;
-		}
-	}
-}
-
-/* 제작 카드 */
+.barterCard,
 .craftCard{
 	background:var(--surface);
-	border:2px solid var(--border);
-	border-radius:$border-radius-lg;
-	padding:20px;
-	transition:all $transition-fast;
+	border:1px solid var(--border);
+	border-radius:16px;
+	padding:16px;
+	transition:transform $transition-fast, box-shadow $transition-fast, border-color $transition-fast;
 
 	&.clickable{
 		cursor:pointer;
@@ -328,250 +217,265 @@
 	}
 
 	&:hover{
-		@include card-hover($primary-blue);
-	}
-
-	.clickHint{
-		display:flex;
-		align-items:center;
-		justify-content:center;
-		gap:6px;
-		margin-top:12px;
-		padding-top:12px;
-		border-top:1px dashed var(--border);
-		font-size:12px;
-		color:var(--primary);
-		transition:opacity $transition-fast;
-
-		svg{
-			flex-shrink:0;
-		}
-	}
-
-	.craftHeader{
-		display:flex;
-		justify-content:space-between;
-		align-items:center;
-		margin-bottom:16px;
-
-		.craftId{
-			font-size:12px;
-			color:$gray-500;
-			font-weight:500;
-			background:$gray-100;
-			padding:4px 8px;
-			border-radius:4px;
-		}
-
-		.craftIcon{
-			color:$primary-blue;
-		}
-	}
-
-	.craftContent{
-		display:flex;
-		flex-direction:column;
-		gap:16px;
-
-		.craftResult{
-			display:flex;
-			flex-direction:column;
-			gap:4px;
-			padding-bottom:12px;
-			border-bottom:1px solid $gray-200;
-
-			.craftLabel{
-				font-size:11px;
-				color:$gray-500;
-				text-transform:uppercase;
-				font-weight:600;
-			}
-
-			.craftItemName{
-				font-size:16px;
-				font-weight:bold;
-				color:$gray-800;
-			}
-		}
-
-		.craftIngredient{
-			display:flex;
-			flex-direction:column;
-			gap:4px;
-
-			.craftLabel{
-				font-size:11px;
-				color:$gray-500;
-				text-transform:uppercase;
-				font-weight:600;
-			}
-
-			.ingredientInfo{
-				display:flex;
-				justify-content:space-between;
-				align-items:center;
-
-				.ingredientName{
-					font-size:14px;
-					color:$gray-700;
-				}
-
-				.ingredientCost{
-					font-size:14px;
-					color:$primary-blue;
-					font-weight:600;
-				}
-			}
-		}
+		transform:translateY(-2px);
+		box-shadow:var(--shadow-md);
+		border-color:var(--primary-light);
 	}
 }
 
-/* 로딩 및 상태 메시지 */
+.clickHint{
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	gap:6px;
+	margin-top:12px;
+	padding-top:12px;
+	border-top:1px dashed var(--border);
+	font-size:12px;
+	color:var(--primary);
+	transition:opacity $transition-fast;
+
+	svg{
+		flex-shrink:0;
+	}
+}
+
+.barterHeader{
+	display:flex;
+	justify-content:space-between;
+	align-items:center;
+	margin-bottom:14px;
+	gap:8px;
+}
+
+.barterId{
+	font-size:12px;
+	color:var(--text-muted);
+	font-weight:600;
+	background:var(--surface-hover);
+	padding:4px 8px;
+	border-radius:6px;
+}
+
+.barterLocation{
+	font-size:13px;
+	color:var(--primary-dark);
+	font-weight:600;
+}
+
+.barterExchange{
+	display:flex;
+	align-items:center;
+	justify-content:space-between;
+	gap:12px;
+	margin-bottom:14px;
+	padding:12px;
+	background:var(--surface-hover);
+	border-radius:12px;
+	border:1px solid var(--border);
+}
+
+.barterItem{
+	flex:1;
+	display:flex;
+	flex-direction:column;
+	gap:4px;
+}
+
+.barterLabel{
+	font-size:11px;
+	color:var(--text-muted);
+	text-transform:uppercase;
+	font-weight:700;
+	letter-spacing:0.02em;
+}
+
+.barterValue{
+	font-size:14px;
+	font-weight:600;
+	color:var(--text);
+}
+
+.barterCost{
+	font-size:13px;
+	color:var(--primary-dark);
+	font-weight:600;
+}
+
+.arrowIcon{
+	color:var(--text-muted);
+	flex-shrink:0;
+}
+
+.barterInfo{
+	display:flex;
+	justify-content:space-between;
+	align-items:center;
+	font-size:12px;
+	color:var(--text-muted);
+	gap:8px;
+	flex-wrap:wrap;
+}
+
+.barterTag{
+	color:var(--primary-dark);
+	font-style:italic;
+}
+
+.craftHeader{
+	display:flex;
+	justify-content:space-between;
+	align-items:center;
+	margin-bottom:14px;
+}
+
+.craftId{
+	font-size:12px;
+	color:var(--text-muted);
+	font-weight:600;
+	background:var(--surface-hover);
+	padding:4px 8px;
+	border-radius:6px;
+}
+
+.craftIcon{
+	color:var(--primary);
+}
+
+.craftContent{
+	display:flex;
+	flex-direction:column;
+	gap:14px;
+}
+
+.craftResult{
+	display:flex;
+	flex-direction:column;
+	gap:4px;
+	padding-bottom:10px;
+	border-bottom:1px solid var(--border);
+}
+
+.craftLabel{
+	font-size:11px;
+	color:var(--text-muted);
+	text-transform:uppercase;
+	font-weight:700;
+	letter-spacing:0.02em;
+}
+
+.craftItemName{
+	font-size:15px;
+	font-weight:700;
+	color:var(--text);
+}
+
+.craftIngredient{
+	display:flex;
+	flex-direction:column;
+	gap:4px;
+}
+
+.ingredientInfo{
+	display:flex;
+	justify-content:space-between;
+	align-items:center;
+	gap:8px;
+}
+
+.ingredientName{
+	font-size:14px;
+	color:var(--text);
+}
+
+.ingredientCost{
+	font-size:14px;
+	color:var(--primary-dark);
+	font-weight:700;
+}
+
 .loadingContainer{
 	display:flex;
 	align-items:center;
 	justify-content:center;
-	gap:12px;
+	gap:10px;
 	padding:30px;
-	color:$gray-500;
-	font-size:16px;
+	color:var(--text-muted);
+	font-size:15px;
 }
 
 .noMoreData,
 .noData{
 	text-align:center;
-	padding:40px 20px;
-	color:$gray-400;
-	font-style:italic;
-	font-size:16px;
+	padding:36px 20px;
+	color:var(--text-muted);
+	font-size:15px;
 }
 
 .noData{
 	background:var(--surface);
-	border-radius:$border-radius-lg;
-	border:2px dashed $gray-200;
+	border-radius:14px;
+	border:1px dashed var(--border);
 }
 
-/* 스피닝 애니메이션 */
 .spinning{
 	@include spinning;
 }
 
-/* 반응형 디자인 */
 @include tablet{
 	.gameItemsPage{
-		padding:15px;
-	}
-
-	.pageHeader{
-		h1{
-			font-size:2rem;
-		}
-	}
-
-	.tabContainer{
-		padding:6px;
-	}
-
-	.tabButton{
-		padding:10px 16px;
-		font-size:14px;
-	}
-
-	.controlsSection{
-		padding:15px;
+		padding:22px 16px 32px;
 	}
 
 	.searchContainer{
 		flex-direction:column;
 		align-items:stretch;
+	}
 
-		.searchBox{
-			min-width:unset;
-		}
-
-		.searchBtn,
-		.resetBtn{
-			justify-content:center;
-		}
+	.searchBtn,
+	.resetBtn{
+		justify-content:center;
 	}
 
 	.itemsGrid{
-		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-		gap:15px;
-	}
-
-	.barterCard,
-	.craftCard{
-		padding:15px;
+		grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
 	}
 }
 
 @include mobile{
-	.pageHeader{
-		h1{
-			font-size:1.5rem;
-		}
+	.gameItemsPage{
+		padding:18px 10px 28px;
+	}
 
-		.pageDescription{
-			font-size:0.9rem;
-		}
+	.pageHeader h1{
+		font-size:1.55rem;
 	}
 
 	.tabContainer{
-		flex-wrap:wrap;
+		width:100%;
 	}
 
 	.tabButton{
 		flex:1;
 		justify-content:center;
-		padding:8px 10px;
-		gap:4px;
-
-		span{
-			display:none;
-		}
-	}
-
-	.searchContainer{
-		.searchBtn,
-		.resetBtn{
-			width:100%;
-			justify-content:center;
-		}
-	}
-
-	.itemsGrid{
-		grid-template-columns: 1fr;
 	}
 
 	.sortContainer{
 		flex-direction:column;
 		align-items:flex-start;
 		gap:4px;
-
-		.sortSelect{
-			width:100%;
-		}
 	}
 
-	.barterCard{
-		.barterExchange{
-			.barterItem{
-				.barterValue{
-					font-size:13px;
-				}
-			}
-		}
+	.sortSelect{
+		width:100%;
 	}
 
 	.barterExchange{
 		flex-direction:column;
 		gap:8px;
+	}
 
-		.arrowIcon{
-			transform:rotate(90deg);
-		}
+	.arrowIcon{
+		transform:rotate(90deg);
 	}
 }
-

@@ -234,6 +234,7 @@ const ItemSearchPage:React.FC = () => {
 
 	return (
 		<div className={styles.itemSearchPage}>
+			<div className={styles.container}>
 			<div className={styles.pageHeader}>
 				<h1>아이템 검색</h1>
 				<p className={styles.pageDescription}>
@@ -352,6 +353,7 @@ const ItemSearchPage:React.FC = () => {
 					<span>아이템 정보를 불러오는 중...</span>
 				</div>
 			)}
+			</div>
 		</div>
 	);
 };

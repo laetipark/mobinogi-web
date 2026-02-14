@@ -68,20 +68,17 @@
 
 .meta{
 	display:flex;
-	flex-direction:column;
-	gap:2px;
-}
-
-.id{
-	font-size:12px;
-	color:var(--text-muted);
-	font-weight:500;
+	align-items:center;
 }
 
 .rarity{
-	font-size:13px;
+	font-size:12px;
 	font-weight:600;
 	color:var(--rarity-color);
+	background:var(--rarity-bg);
+	border:1px solid var(--rarity-color);
+	padding:3px 10px;
+	border-radius:999px;
 }
 
 .name{

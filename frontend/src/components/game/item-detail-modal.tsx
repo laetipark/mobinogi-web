@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from "react";
 import {GameItem, GameItemSummary, GameItemData, LifeBarter, LifeCraft} from "@/types";
 import GameItemService from "@/services/game-item-service";
+import {getItemRarityInfo} from "@/utils";
 import {X, ArrowRight, Hammer, ArrowLeftRight, Package, MapPin, User, RefreshCw} from "lucide-react";
 import styles from "./item-detail-modal.module.scss";
 
@@ -56,25 +57,6 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 		};
 	}, [onClose]);
 	
-	const getRarityColor = (rarity:string) => {
-		switch(rarity?.toLowerCase()){
-			case "일반":
-				return "#6b7280";
-			case "고급":
-				return "#10b981";
-			case "희귀":
-				return "#3b82f6";
-			case "영웅":
-				return "#8b5cf6";
-			case "전설":
-				return "#f59e0b";
-			case "신화":
-				return "#ef4444";
-			default:
-				return "#6b7280";
-		}
-	};
-	
 	// 물물교환 카드 렌더링
 	const renderBarterCard = (barter:LifeBarter) => (
 		<div key={barter.barterId} className={styles.barterCard}>
@@ -128,6 +110,7 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 	const craftsBySubId = itemData?.craftsBySubId || {};
 	const hasBarters = bartersByItemId.length > 0 || bartersByExchangeId.length > 0;
 	const hasCrafts = Object.keys(craftsBySubId).length > 0;
+	const rarityInfo = getItemRarityInfo(item.itemRarity);
 	
 	return (
 		<div className={styles.modalBackdrop} onClick={handleBackdropClick}>
@@ -142,9 +125,13 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 								<span className={styles.itemType}>{item.itemType}</span>
 								<span
 									className={styles.itemRarity}
-									style={{color : getRarityColor(item.itemRarity)}}
+									style={{
+										color : rarityInfo.color,
+										backgroundColor : rarityInfo.bg,
+										borderColor : rarityInfo.color
+									}}
 								>
-									{item.itemRarity}
+									{rarityInfo.label}
 								</span>
 							</div>
 						</div>

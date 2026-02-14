@@ -634,22 +634,28 @@
 // Black Hole expired state
 .blackHoleDot{
 	&.expired{
-		border-color:var(--border-color, #ddd);
-		background:var(--hover-bg, rgba(0, 0, 0, 0.06));
-		cursor:default;
-		opacity:0.35;
+		border-color:var(--warning-color, #f5a623);
+		background:linear-gradient(135deg, rgba(245, 166, 35, 0.15), rgba(245, 166, 35, 0.05));
+		cursor:pointer;
+		opacity:0.85;
 		position:relative;
 
 		&::after{
 			content:"";
 			position:absolute;
 			top:50%;
-			left:20%;
-			right:20%;
+			left:22%;
+			right:22%;
 			height:2px;
-			background:var(--text-secondary, #aaa);
+			background:var(--warning-color, #f5a623);
 			transform:translateY(-50%);
 			border-radius:1px;
+			opacity:0.8;
+		}
+
+		&:hover{
+			transform:scale(1.06);
+			box-shadow:0 0 0 1px rgba(245, 166, 35, 0.45);
 		}
 	}
 }

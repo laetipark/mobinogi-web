@@ -1,6 +1,6 @@
 import React, {useMemo, useState} from "react";
 import styles from "./todo.module.scss";
-import {GameMonster, TodoMemo, TodoSettings, WeeklyTasks} from "../../types";
+import {GameMonster, TodoMemo, TodoSettings, WeeklyTasks} from "@/types";
 import TaskCounter from "./task-counter";
 import BossChecklist from "./boss-checklist";
 import BossSettingsModal from "./boss-settings-modal";
@@ -40,6 +40,7 @@ const TXT = {
 const SUMMONING_BARRIER_MAX = 7;
 const ABYSS_REWARD_DEFAULT_MAX = 4;
 const BLACK_HOLE_TOTAL = 14;
+const BLACK_HOLE_DAILY_MAX = 8;
 const VANGUARD_REWARD_MAX = 3;
 
 const WEEKLY_TASK_DEFS:{key:string; label:string}[] = [
@@ -52,7 +53,12 @@ const WEEKLY_TASK_DEFS:{key:string; label:string}[] = [
 	{key : "barter", label : TXT.barter}
 ];
 
-function getBlackHoleInfo(totalDone:number):{maxForWeek:number; available:number}{
+function getBlackHoleInfo(totalDone:number):{
+	maxForWeek:number;
+	todayAvailable:number;
+	todayWindowCount:number;
+	passedCount:number
+}{
 	const now = new Date();
 	const kstOffset = 9 * 60;
 	const utc = now.getTime() + now.getTimezoneOffset() * 60000;
@@ -63,9 +69,38 @@ function getBlackHoleInfo(totalDone:number):{maxForWeek:number; available:number
 		day = (day + 6) % 7;
 	}
 	const daysSinceMonday = day === 0 ? 6 : day - 1;
-	const maxForWeek = BLACK_HOLE_TOTAL - daysSinceMonday;
-	const available = Math.max(0, maxForWeek - totalDone);
-	return {maxForWeek, available};
+	const maxForWeek = BLACK_HOLE_TOTAL;
+	const passedCount = daysSinceMonday;
+	const activeSlots = Math.max(0, BLACK_HOLE_TOTAL - passedCount);
+	const completedInActiveSlots = Math.max(0, totalDone - passedCount);
+	const dailyCapInActiveSlots = Math.min(BLACK_HOLE_DAILY_MAX, activeSlots);
+	const todayAvailable = Math.max(0, dailyCapInActiveSlots - completedInActiveSlots);
+	const todayWindowCount = dailyCapInActiveSlots;
+	return {maxForWeek, todayAvailable, todayWindowCount, passedCount};
+}
+
+function normalizeAbyssCompletedSlots(completed:number[] = [], tracked:number[] = []):number[]{
+	if(tracked.length === 0 || completed.length === 0){
+		return [];
+	}
+	const looksLikeSlotIndexes = completed.every((value) =>
+		Number.isInteger(value) && value >= 0 && value < tracked.length
+	);
+	if(looksLikeSlotIndexes){
+		return [...new Set(completed)].sort((a, b) => a - b);
+	}
+	const usedSlots = new Set<number>();
+	const slots:number[] = [];
+	for(const monsterId of completed){
+		const slotIndex = tracked.findIndex((trackedMonsterId, idx) =>
+			trackedMonsterId === monsterId && !usedSlots.has(idx)
+		);
+		if(slotIndex !== -1){
+			usedSlots.add(slotIndex);
+			slots.push(slotIndex);
+		}
+	}
+	return slots.sort((a, b) => a - b);
 }
 
 const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
@@ -88,6 +123,10 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 	
 	const abyss = weekly.abyss ?? {completed : [], tracked : []};
 	const abyssRewardMax = weekly.abyssRewardMax ?? ABYSS_REWARD_DEFAULT_MAX;
+	const abyssCompletedSlots = useMemo(
+		() => normalizeAbyssCompletedSlots(abyss.completed, abyss.tracked),
+		[abyss.completed, abyss.tracked]
+	);
 	
 	const trackedAbyssMonsters = useMemo(() => {
 		if(!abyss.tracked || abyss.tracked.length === 0) return [];
@@ -152,7 +191,7 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 				case "abyssReward":
 					total++;
 					if(abyss.tracked.length > 0){
-						if(abyss.completed.length >= abyssRewardMax) completed++;
+						if(abyssCompletedSlots.length >= abyssRewardMax) completed++;
 					}else if((weekly.abyssReward ?? 0) >= abyssRewardMax){
 						completed++;
 					}
@@ -193,7 +232,9 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 	
 	const renderBlackHole = () => {
 		const totalDone = weekly.blackHole;
-		const {maxForWeek, available} = blackHole;
+		const {maxForWeek, todayAvailable, todayWindowCount, passedCount} = blackHole;
+		const todayStart = passedCount;
+		const todayEnd = Math.min(BLACK_HOLE_TOTAL, todayStart + todayWindowCount);
 		return (
 			<div className={styles.blackHoleContainer}>
 				<div className={styles.taskLabelRow}>
@@ -203,17 +244,16 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 				<div className={styles.blackHoleDots}>
 					{Array.from({length : BLACK_HOLE_TOTAL}, (_, i) => {
 						let cls = styles.blackHoleDot;
-						let disabled = true;
+						let disabled = false;
 						if(i < totalDone){
 							cls += ` ${styles.completed}`;
-							disabled = false;
-						}else if(i < totalDone + available){
-							cls += ` ${styles.available}`;
-							disabled = false;
-						}else if(i >= maxForWeek){
+						}else if(i < passedCount){
 							cls += ` ${styles.expired}`;
+						}else if(i >= todayStart && i < todayEnd){
+							cls += ` ${styles.available}`;
 						}else{
 							cls += ` ${styles.unavailable}`;
+							disabled = true;
 						}
 						return (
 							<button
@@ -222,7 +262,7 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 								onClick={() => {
 									if(i < totalDone){
 										onChange({...weekly, blackHole : i});
-									}else if(i < totalDone + available){
+									}else if(!disabled){
 										onChange({...weekly, blackHole : i + 1});
 									}
 								}}
@@ -232,7 +272,7 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 					})}
 				</div>
 				<div
-					className={styles.blackHoleInfo}>{`\uC624\uB298 \uAC00\uB2A5 ${available}\uAC1C | \uC774\uBC88 \uC8FC ${totalDone}/${maxForWeek}`}</div>
+					className={styles.blackHoleInfo}>{`\uC624\uB298 \uAC00\uB2A5 ${todayAvailable}\uAC1C | \uC774\uBC88 \uC8FC ${totalDone}/${maxForWeek}`}</div>
 			</div>
 		);
 	};
@@ -261,7 +301,7 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 				return (
 					<div key={item.key} className={styles.taskItemWithSettings}>
 						<BossChecklist label={TXT.abyssReward} monsters={trackedAbyssMonsters}
-									   completedIds={abyss.completed} onChange={(completed) => onChange({
+									   completedIds={abyssCompletedSlots} onChange={(completed) => onChange({
 							...weekly,
 							abyss : {...abyss, completed},
 							abyssReward : completed.length
@@ -419,21 +459,26 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 						onChange({...weekly, abyssRewardMax : max});
 					}}
 					onSave={(tracked) => {
-						const trackedSet = new Set(tracked);
-						const newCompleted = abyss.completed.filter(id => trackedSet.has(id));
-						const trackedCounts = new Map<number, number>();
-						for(const id of tracked) trackedCounts.set(id, (trackedCounts.get(id) || 0) + 1);
-						const completedCounts = new Map<number, number>();
-						const finalCompleted:number[] = [];
-						for(const id of newCompleted){
-							const cur = completedCounts.get(id) || 0;
-							const max = trackedCounts.get(id) || 0;
-							if(cur < max){
-								finalCompleted.push(id);
-								completedCounts.set(id, cur + 1);
+						const previousCompletedMonsterIds = abyssCompletedSlots
+							.map((slotIdx) => abyss.tracked[slotIdx])
+							.filter((id):id is number => typeof id === "number");
+						const usedSlots = new Set<number>();
+						const remappedCompletedSlots:number[] = [];
+						for(const monsterId of previousCompletedMonsterIds){
+							const nextSlotIndex = tracked.findIndex((trackedMonsterId, idx) =>
+								trackedMonsterId === monsterId && !usedSlots.has(idx)
+							);
+							if(nextSlotIndex !== -1){
+								usedSlots.add(nextSlotIndex);
+								remappedCompletedSlots.push(nextSlotIndex);
 							}
 						}
-						onChange({...weekly, abyss : {completed : finalCompleted, tracked}});
+						const finalCompleted = remappedCompletedSlots.slice(0, abyssRewardMax).sort((a, b) => a - b);
+						onChange({
+							...weekly,
+							abyss : {completed : finalCompleted, tracked},
+							abyssReward : finalCompleted.length
+						});
 						setShowAbyssSettings(false);
 					}}
 					onClose={() => setShowAbyssSettings(false)}

@@ -42,15 +42,15 @@ const SortableItem:React.FC<SortableItemProps> = ({item, index}) => {
 		transform,
 		transition,
 		isDragging
-	} = useSortable({id: item.characterId});
-
+	} = useSortable({id : item.characterId});
+	
 	const style:React.CSSProperties = {
-		transform: CSS.Transform.toString(transform),
+		transform : CSS.Transform.toString(transform),
 		transition,
-		opacity: isDragging ? 0.5 : 1,
-		zIndex: isDragging ? 10 : undefined
+		opacity : isDragging ? 0.5 : 1,
+		zIndex : isDragging ? 10 : undefined
 	};
-
+	
 	return (
 		<div
 			ref={setNodeRef}
@@ -75,19 +75,19 @@ const SortableItem:React.FC<SortableItemProps> = ({item, index}) => {
 
 const SortableCharacterList:React.FC<SortableCharacterListProps> = ({items, onReorder}) => {
 	const sensors = useSensors(
-		useSensor(PointerSensor, {activationConstraint: {distance: 5}}),
-		useSensor(TouchSensor, {activationConstraint: {delay: 150, tolerance: 5}})
+		useSensor(PointerSensor, {activationConstraint : {distance : 5}}),
+		useSensor(TouchSensor, {activationConstraint : {delay : 150, tolerance : 5}})
 	);
-
+	
 	const handleDragEnd = (event:DragEndEvent) => {
 		const {active, over} = event;
 		if(!over || active.id === over.id) return;
-
+		
 		const oldIndex = items.findIndex(i => i.characterId === active.id);
 		const newIndex = items.findIndex(i => i.characterId === over.id);
 		onReorder(arrayMove(items, oldIndex, newIndex));
 	};
-
+	
 	return (
 		<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
 			<SortableContext items={items.map(i => i.characterId)} strategy={verticalListSortingStrategy}>

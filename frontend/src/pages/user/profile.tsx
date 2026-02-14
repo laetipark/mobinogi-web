@@ -1,8 +1,9 @@
-import React, {useState, useEffect, useRef} from "react";
+import React, {useState, useEffect, useRef, useMemo} from "react";
 import {useAuth} from "@/hooks/use-auth";
 import {UserCharacter, UserCharacterRequest, GameClassItem} from "@/types";
 import characterService from "@/services/character-service";
 import {gameClassService} from "@/services/game-class-service";
+import {getGameClassColorStyle} from "@/utils";
 import profileService from "@/services/profile-service";
 import {uploadService} from "@/services/upload-service";
 import {discordService} from "@/services/discord-service";
@@ -54,6 +55,17 @@ const ProfilePage:React.FC = () => {
 		classId : undefined
 	});
 	const [classes, setClasses] = useState<GameClassItem[]>([]);
+	const classCodeById = useMemo(() => new Map(classes.map((cls) => [cls.classId, cls.classCode])), [classes]);
+	const classCodeByName = useMemo(() => new Map(classes.map((cls) => [cls.className, cls.classCode])), [classes]);
+	const resolveClassCode = (classId?:number, className?:string | null) => {
+		if(classId && classCodeById.has(classId)){
+			return classCodeById.get(classId);
+		}
+		if(className && classCodeByName.has(className)){
+			return classCodeByName.get(className);
+		}
+		return undefined;
+	};
 	const servers:{id:number; name:string}[] = [
 		{id : 1, name : "데이안"}, {id : 2, name : "아이라"}, {id : 3, name : "던컨"}, {id : 4, name : "알리사"},
 		{id : 5, name : "메이븐"}, {id : 6, name : "라사"}, {id : 7, name : "칼릭스"}
@@ -136,7 +148,10 @@ const ProfilePage:React.FC = () => {
 				setProfileMessage({type : "error", text : result.message || "이미지 업로드에 실패했습니다."});
 			}
 		}catch(error:any){
-			setProfileMessage({type : "error", text : "이미지 업로드에 실패했습니다."});
+			setProfileMessage({
+				type : "error",
+				text : error?.response?.data?.message || error?.message || "이미지 업로드에 실패했습니다."
+			});
 		}finally{
 			setUploadProgress(null);
 		}
@@ -546,6 +561,7 @@ const ProfilePage:React.FC = () => {
 											...prev,
 											classId : e.target.value ? Number(e.target.value) : undefined
 										}))}
+										style={getGameClassColorStyle(resolveClassCode(characterForm.classId))}
 									>
 										<option value="">선택안함</option>
 										{classes.map(cls => (
@@ -626,7 +642,12 @@ const ProfilePage:React.FC = () => {
 											<span className={styles.characterMeta}>{character.serverName}</span>
 										)}
 										{character.className && (
-											<span className={styles.characterMeta}>{character.className}</span>
+											<span
+												className={`${styles.characterMeta} ${styles.classBadge}`}
+												style={getGameClassColorStyle(resolveClassCode(character.classId, character.className))}
+											>
+												{character.className}
+											</span>
 										)}
 										{rankLoading.has(character.characterId) && character.userPower == null && character.userVitality == null && character.userAttractiveness == null ? (
 											<div className={styles.characterStats}>

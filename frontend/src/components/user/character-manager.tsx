@@ -8,20 +8,30 @@ interface CharacterManagerProps{
 	isModal?:boolean;
 }
 
+const DEFAULT_FORM:UserCharacterRequest = {
+	characterName : "",
+	serverId : 2,
+	classId : undefined
+};
+
+const SERVERS:{id:number; name:string}[] = [
+	{id : 1, name : "데이안"},
+	{id : 2, name : "아이라"},
+	{id : 3, name : "던컨"},
+	{id : 4, name : "알리사"},
+	{id : 5, name : "메이븐"},
+	{id : 6, name : "라사"},
+	{id : 7, name : "칼릭스"}
+];
+
 const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = false}) => {
 	const [characters, setCharacters] = useState<UserCharacter[]>([]);
 	const [loading, setLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string | null>(null);
 	const [isAdding, setIsAdding] = useState<boolean>(false);
 	const [editingId, setEditingId] = useState<number | null>(null);
-	const [formData, setFormData] = useState<UserCharacterRequest>({
-		characterName : "",
-		serverName : "아이라",
-		className : ""
-	});
+	const [formData, setFormData] = useState<UserCharacterRequest>(DEFAULT_FORM);
 	const [classes, setClasses] = useState<GameClassItem[]>([]);
-	
-	const servers = ["데이안", "아이라", "던컨", "알리사", "메이븐", "라사", "칼릭스"];
 	
 	useEffect(() => {
 		loadCharacters();
@@ -36,21 +46,35 @@ const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = fa
 			const data = await characterService.getMyCharacters();
 			setCharacters(data);
 		}catch(err:any){
-			setError(err.message || "캐릭터 목록을 불러오는데 실패했습니다.");
+			setError(err.message || "ĳ���� ����� �ҷ����µ� �����߽��ϴ�.");
 		}finally{
 			setLoading(false);
 		}
 	};
 	
-	const handleInputChange = (e:React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-		const {name, value} = e.target;
-		setFormData(prev => ({...prev, [name] : value}));
+	const handleNameChange = (e:React.ChangeEvent<HTMLInputElement>) => {
+		const {value} = e.target;
+		setFormData(prev => ({...prev, characterName : value}));
+	};
+	
+	const handleServerChange = (e:React.ChangeEvent<HTMLSelectElement>) => {
+		const {value} = e.target;
+		setFormData(prev => ({...prev, serverId : value ? Number(value) : undefined}));
+	};
+	
+	const handleClassChange = (e:React.ChangeEvent<HTMLSelectElement>) => {
+		const {value} = e.target;
+		setFormData(prev => ({...prev, classId : value ? Number(value) : undefined}));
+	};
+	
+	const resetForm = () => {
+		setFormData(DEFAULT_FORM);
 	};
 	
 	const handleSubmit = async(e:React.FormEvent) => {
 		e.preventDefault();
 		if(!formData.characterName.trim()){
-			setError("캐릭터 이름을 입력해주세요.");
+			setError("ĳ���� �̸��� �Է����ּ���.");
 			return;
 		}
 		
@@ -65,9 +89,9 @@ const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = fa
 				setCharacters(prev => [created, ...prev]);
 				setIsAdding(false);
 			}
-			setFormData({characterName : "", serverName : "아이라", className : ""});
+			resetForm();
 		}catch(err:any){
-			setError(err.message || "캐릭터 저장에 실패했습니다.");
+			setError(err.message || "ĳ���� ���忡 �����߽��ϴ�.");
 		}
 	};
 	
@@ -75,14 +99,14 @@ const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = fa
 		setEditingId(character.characterId);
 		setFormData({
 			characterName : character.characterName,
-			serverName : character.serverName || "",
-			className : character.className || ""
+			serverId : character.serverId ?? undefined,
+			classId : character.classId ?? undefined
 		});
 		setIsAdding(true);
 	};
 	
 	const handleDelete = async(characterId:number) => {
-		if(!window.confirm("정말 삭제하시겠습니까?")){
+		if(!window.confirm("���� �����Ͻðڽ��ϱ�?")){
 			return;
 		}
 		
@@ -91,14 +115,14 @@ const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = fa
 			await characterService.deleteCharacter(characterId);
 			setCharacters(prev => prev.filter(c => c.characterId !== characterId));
 		}catch(err:any){
-			setError(err.message || "캐릭터 삭제에 실패했습니다.");
+			setError(err.message || "ĳ���� ������ �����߽��ϴ�.");
 		}
 	};
 	
 	const handleCancel = () => {
 		setIsAdding(false);
 		setEditingId(null);
-		setFormData({characterName : "", serverName : "아이라", className : ""});
+		resetForm();
 		setError(null);
 	};
 	
@@ -107,7 +131,7 @@ const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = fa
 	return (
 		<div className={containerClass}>
 			<div className={styles.header}>
-				<h2>내 캐릭터 관리</h2>
+				<h2>�� ĳ���� ����</h2>
 				{isModal && onClose && (
 					<button className={styles.closeBtn} onClick={onClose}>&times;</button>
 				)}
@@ -117,70 +141,70 @@ const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = fa
 			
 			{!isAdding && (
 				<button className={styles.addBtn} onClick={() => setIsAdding(true)}>
-					+ 캐릭터 추가
+					+ ĳ���� �߰�
 				</button>
 			)}
 			
 			{isAdding && (
 				<form className={styles.form} onSubmit={handleSubmit}>
 					<div className={styles.formGroup}>
-						<label htmlFor="characterName">캐릭터 이름 *</label>
+						<label htmlFor="characterName">ĳ���� �̸� *</label>
 						<input
 							type="text"
 							id="characterName"
 							name="characterName"
 							value={formData.characterName}
-							onChange={handleInputChange}
-							placeholder="캐릭터 이름 입력"
+							onChange={handleNameChange}
+							placeholder="ĳ���� �̸� �Է�"
 							autoFocus
 						/>
 					</div>
 					
 					<div className={styles.formGroup}>
-						<label htmlFor="serverName">서버</label>
+						<label htmlFor="serverId">����</label>
 						<select
-							id="serverName"
-							name="serverName"
-							value={formData.serverName}
-							onChange={handleInputChange}
+							id="serverId"
+							name="serverId"
+							value={formData.serverId ?? ""}
+							onChange={handleServerChange}
 						>
-							<option value="">선택안함</option>
-							{servers.map(server => (
-								<option key={server} value={server}>{server}</option>
+							<option value="">���þ���</option>
+							{SERVERS.map(server => (
+								<option key={server.id} value={server.id}>{server.name}</option>
 							))}
 						</select>
 					</div>
 					
 					<div className={styles.formGroup}>
-						<label htmlFor="className">직업</label>
+						<label htmlFor="classId">����</label>
 						<select
-							id="className"
-							name="className"
-							value={formData.className}
-							onChange={handleInputChange}
+							id="classId"
+							name="classId"
+							value={formData.classId ?? ""}
+							onChange={handleClassChange}
 						>
-							<option value="">선택안함</option>
+							<option value="">���þ���</option>
 							{classes.map(cls => (
-								<option key={cls.classId} value={cls.className}>{cls.className}</option>
+								<option key={cls.classId} value={cls.classId}>{cls.className}</option>
 							))}
 						</select>
 					</div>
 					
 					<div className={styles.formActions}>
 						<button type="submit" className={styles.submitBtn}>
-							{editingId ? "수정" : "추가"}
+							{editingId ? "����" : "�߰�"}
 						</button>
 						<button type="button" className={styles.cancelBtn} onClick={handleCancel}>
-							취소
+							���
 						</button>
 					</div>
 				</form>
 			)}
 			
 			{loading ? (
-				<div className={styles.loading}>로딩 중...</div>
+				<div className={styles.loading}>�ε� ��...</div>
 			) : characters.length === 0 ? (
-				<div className={styles.empty}>등록된 캐릭터가 없습니다.</div>
+				<div className={styles.empty}>��ϵ� ĳ���Ͱ� �����ϴ�.</div>
 			) : (
 				<ul className={styles.characterList}>
 					{characters.map(character => (
@@ -199,13 +223,13 @@ const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = fa
 									className={styles.editBtn}
 									onClick={() => handleEdit(character)}
 								>
-									수정
+									����
 								</button>
 								<button
 									className={styles.deleteBtn}
 									onClick={() => handleDelete(character.characterId)}
 								>
-									삭제
+									����
 								</button>
 							</div>
 						</li>

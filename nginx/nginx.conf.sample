@@ -1,6 +1,7 @@
 server {
     listen 80;
     server_name yourdomain.com www.yourdomain.com localhost;
+    client_max_body_size 10M;
 
     # Frontend (React)
     location / {
@@ -16,7 +17,7 @@ server {
     }
 
     # API Proxy (keep /api prefix)
-    location /api/ {
+    location ^~ /api/ {
         proxy_pass http://app:50620/api/;
         proxy_http_version 1.1;
         proxy_set_header Host $host;

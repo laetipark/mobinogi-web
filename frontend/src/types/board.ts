@@ -17,7 +17,7 @@ export interface BoardPost{
 	title:string;
 	content:string;
 	viewCount:number;
-	sourceType:"USER" | "NOTION" | "DISCORD";
+	sourceType:"USER" | "DISCORD" | string;
 	externalUrl:string | null;
 	externalAuthor:string | null;
 	images?:string[];

@@ -48,5 +48,4 @@ nginx/nginx.conf
 docker-compose.yml
 
 ### Claude AI Rules - Local/Private ###
-.claude/local/
-/.aiassistant/
+/.aiassistant/rules/local

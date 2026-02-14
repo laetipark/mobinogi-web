@@ -1,46 +1,54 @@
 @use '../../styles/index' as *;
 
+.itemDetailPage{
+	min-height:calc(100vh - 80px);
+	padding:28px 20px 40px;
+	background:
+		radial-gradient(circle at 12% 8%, rgba(168, 213, 229, 0.25), transparent 40%),
+		radial-gradient(circle at 85% 15%, rgba(212, 197, 240, 0.24), transparent 35%),
+		var(--background);
+}
+
 .container{
-	max-width:700px;
+	max-width:820px;
 	margin:0 auto;
-	padding:24px 20px;
 }
 
 .backBtn{
 	display:inline-flex;
 	align-items:center;
 	gap:6px;
-	padding:8px 16px;
-	border:1px solid $gray-200;
-	border-radius:$border-radius;
-	background:$white;
-	color:$gray-600;
+	padding:8px 14px;
+	border:1px solid var(--border);
+	border-radius:10px;
+	background:var(--surface);
+	color:var(--text-muted);
 	font-size:0.9rem;
 	cursor:pointer;
 	transition:all $transition-fast;
-	margin-bottom:20px;
+	margin-bottom:16px;
 
 	&:hover{
-		border-color:$primary-blue;
-		color:$primary-blue;
+		background:var(--surface-hover);
+		color:var(--text);
 	}
 }
 
 .content{
-	background:$white;
-	border-radius:$border-radius-lg;
+	background:var(--surface);
+	border-radius:16px;
 	overflow:hidden;
-	box-shadow:0 4px 16px rgba(0, 0, 0, 0.08);
+	border:1px solid var(--border);
+	box-shadow:var(--shadow-md);
 }
 
 .header{
 	display:flex;
 	align-items:center;
 	justify-content:space-between;
-	padding:20px 24px;
-	border-bottom:1px solid $gray-200;
-	background:linear-gradient(135deg, $primary-blue 0%, $primary-blue-darker 100%);
-	color:$white;
+	padding:18px 20px;
+	background:var(--gradient);
+	color:#fff;
 
 	.itemInfo{
 		display:flex;
@@ -50,7 +58,7 @@
 		h2{
 			margin:0;
 			font-size:1.25rem;
-			font-weight:600;
+			font-weight:700;
 		}
 
 		.itemMeta{
@@ -60,33 +68,36 @@
 
 			.itemType{
 				font-size:0.8rem;
-				opacity:0.9;
+				opacity:0.85;
 			}
 
 			.itemRarity{
 				font-size:0.8rem;
-				font-weight:600;
+				font-weight:700;
+				border:1px solid transparent;
+				border-radius:999px;
+				padding:2px 8px;
 			}
 		}
 	}
 }
 
 .itemEffect{
-	padding:16px 24px;
-	background:$gray-50;
-	color:$gray-600;
+	padding:14px 20px;
+	background:var(--surface-hover);
+	color:var(--text-muted);
 	font-size:0.9rem;
 	line-height:1.5;
-	border-bottom:1px solid $gray-200;
+	border-bottom:1px solid var(--border);
 }
 
 .loading{
 	display:flex;
 	align-items:center;
 	justify-content:center;
-	gap:12px;
-	padding:80px 24px;
-	color:$gray-500;
+	gap:10px;
+	padding:70px 24px;
+	color:var(--text-muted);
 }
 
 .spinning{
@@ -95,98 +106,101 @@
 
 .error{
 	text-align:center;
-	padding:80px 20px;
-	color:$gray-400;
-	font-size:1rem;
+	padding:70px 20px;
+	color:var(--text-muted);
+	font-size:0.95rem;
 }
 
 .tabs{
 	display:flex;
-	padding:0 24px;
-	border-bottom:1px solid $gray-200;
-	background:$gray-50;
+	padding:0 20px;
+	border-bottom:1px solid var(--border);
+	background:var(--surface-hover);
 }
 
 .tab{
 	display:flex;
 	align-items:center;
 	gap:8px;
-	padding:14px 20px;
+	padding:12px 16px;
 	border:none;
 	background:transparent;
-	color:$gray-600;
-	font-size:0.9rem;
-	font-weight:500;
+	color:var(--text-muted);
+	font-size:0.88rem;
+	font-weight:600;
 	cursor:pointer;
 	border-bottom:2px solid transparent;
 	margin-bottom:-1px;
 	transition:all $transition-fast;
 
 	&:hover{
-		color:$primary-blue;
+		color:var(--text);
 	}
 
 	&.active{
-		color:$primary-blue;
-		border-bottom-color:$primary-blue;
-		background:$white;
+		color:#fff;
+		border-bottom-color:transparent;
+		background:var(--gradient);
+		border-radius:10px 10px 0 0;
 	}
 
 	.count{
-		background:$gray-200;
-		color:$gray-600;
+		background:var(--surface);
+		color:var(--text-muted);
 		font-size:0.75rem;
 		padding:2px 8px;
-		border-radius:10px;
-		font-weight:600;
-	}
-
-	&.active .count{
-		background:rgba($primary-blue, 0.1);
-		color:$primary-blue;
+		border-radius:999px;
+		font-weight:700;
 	}
 }
 
+.tab.active .count{
+	background:rgba(255, 255, 255, 0.2);
+	color:#fff;
+}
+
 .tabContent{
-	padding:20px 24px;
+	padding:18px 20px;
 }
 
 .section{
 	&:not(:last-child){
-		margin-bottom:24px;
+		margin-bottom:20px;
 	}
 }
 
 .sectionTitle{
 	font-size:0.9rem;
-	font-weight:600;
-	color:$gray-700;
+	font-weight:700;
+	color:var(--text);
 	margin:0 0 12px 0;
 	display:flex;
 	align-items:center;
-	gap:4px;
+	gap:6px;
 
 	.highlight{
-		color:$primary-blue;
+		color:var(--primary-dark);
 	}
 }
 
-.barterList{
+.barterList,
+.craftList{
 	display:flex;
 	flex-direction:column;
 	gap:12px;
 }
 
-.barterCard{
-	background:$gray-50;
-	border:1px solid $gray-200;
-	border-radius:$border-radius;
+.barterCard,
+.craftGroup{
+	background:var(--surface-hover);
+	border:1px solid var(--border);
+	border-radius:12px;
 	padding:14px;
 	transition:all $transition-fast;
 
 	&:hover{
-		border-color:$primary-blue;
-		box-shadow:0 2px 8px rgba($primary-blue, 0.1);
+		border-color:var(--primary-light);
+		box-shadow:var(--shadow-sm);
 	}
 }
 
@@ -194,12 +208,12 @@
 	display:flex;
 	align-items:center;
 	gap:6px;
-	font-size:0.8rem;
-	color:$gray-500;
+	font-size:0.82rem;
+	color:var(--text-muted);
 	margin-bottom:10px;
 
 	svg{
-		color:$gray-400;
+		color:var(--text-muted);
 	}
 }
 
@@ -209,7 +223,7 @@
 	gap:12px;
 
 	.arrow{
-		color:$gray-400;
+		color:var(--text-muted);
 		flex-shrink:0;
 	}
 }
@@ -219,68 +233,49 @@
 	display:flex;
 	flex-direction:column;
 	gap:2px;
-	background:$white;
+	background:var(--surface);
 	padding:10px 12px;
-	border-radius:$border-radius;
-	border:1px solid $gray-200;
+	border-radius:10px;
+	border:1px solid var(--border);
 
 	.itemName{
 		font-size:0.9rem;
-		font-weight:500;
-		color:$gray-800;
+		font-weight:600;
+		color:var(--text);
 	}
 
 	.itemCount{
 		font-size:0.8rem;
-		color:$primary-blue;
-		font-weight:600;
+		color:var(--primary-dark);
+		font-weight:700;
 	}
 }
 
 .barterNote{
 	margin-top:10px;
 	font-size:0.8rem;
-	color:$gray-500;
+	color:var(--text-muted);
 	font-style:italic;
 	padding-top:10px;
-	border-top:1px dashed $gray-200;
-}
-
-.craftList{
-	display:flex;
-	flex-direction:column;
-	gap:12px;
-}
-
-.craftGroup{
-	background:$gray-50;
-	border:1px solid $gray-200;
-	border-radius:$border-radius;
-	padding:14px;
-	transition:all $transition-fast;
-
-	&:hover{
-		border-color:$primary-blue;
-		box-shadow:0 2px 8px rgba($primary-blue, 0.1);
-	}
+	border-top:1px dashed var(--border);
 }
 
 .craftResult{
 	display:flex;
 	align-items:center;
 	gap:8px;
-	padding-bottom:12px;
-	margin-bottom:12px;
-	border-bottom:1px solid $gray-200;
+	padding-bottom:10px;
+	margin-bottom:10px;
+	border-bottom:1px solid var(--border);
 
 	svg{
-		color:$primary-blue;
+		color:var(--primary);
 	}
 
 	.resultName{
-		font-size:1rem;
-		font-weight:600;
-		color:$gray-800;
+		font-size:0.98rem;
+		font-weight:700;
+		color:var(--text);
 	}
 }
 
@@ -294,35 +289,35 @@
 	display:flex;
 	align-items:center;
 	gap:6px;
-	background:$white;
+	background:var(--surface);
 	padding:8px 12px;
-	border-radius:$border-radius;
-	border:1px solid $gray-200;
+	border-radius:10px;
+	border:1px solid var(--border);
 
 	.ingredientName{
 		font-size:0.85rem;
-		color:$gray-700;
+		color:var(--text);
 	}
 
 	.ingredientCount{
 		font-size:0.8rem;
-		color:$primary-blue;
-		font-weight:600;
+		color:var(--primary-dark);
+		font-weight:700;
 	}
 }
 
-.empty, .noData{
+.empty,
+.noData{
 	text-align:center;
-	padding:40px 20px;
-	color:$gray-400;
+	padding:36px 20px;
+	color:var(--text-muted);
 	font-size:0.9rem;
 }
 
 .noData{
-	padding:60px 24px;
+	padding:50px 24px;
 }
 
-// 반응형
 @include tablet{
 	.barterExchange{
 		flex-direction:column;
@@ -339,8 +334,8 @@
 }
 
 @include mobile{
-	.container{
-		padding:16px 12px;
+	.itemDetailPage{
+		padding:18px 10px 28px;
 	}
 
 	.header{
@@ -371,12 +366,8 @@
 	}
 
 	.tab{
-		padding:12px 14px;
-		font-size:0.85rem;
-
-		span:not(.count){
-			display:none;
-		}
+		padding:10px 12px;
+		font-size:0.82rem;
 	}
 
 	.tabContent{
@@ -390,90 +381,5 @@
 	.ingredient{
 		width:100%;
 		justify-content:space-between;
-	}
-}
-
-// 다크 모드
-@include dark-mode{
-	.backBtn{
-		background:#1e293b;
-		border-color:#334155;
-		color:#94a3b8;
-
-		&:hover{
-			border-color:$primary-blue;
-			color:$primary-blue;
-		}
-	}
-
-	.content{
-		background:#1e293b;
-	}
-
-	.header{
-		border-color:#334155;
-	}
-
-	.itemEffect{
-		background:#0f172a;
-		border-color:#334155;
-		color:#94a3b8;
-	}
-
-	.tabs{
-		background:#0f172a;
-		border-color:#334155;
-	}
-
-	.tab{
-		color:#94a3b8;
-
-		&.active{
-			background:#1e293b;
-		}
-
-		.count{
-			background:#334155;
-			color:#94a3b8;
-		}
-	}
-
-	.sectionTitle{
-		color:#e2e8f0;
-	}
-
-	.barterCard, .craftGroup{
-		background:#0f172a;
-		border-color:#334155;
-	}
-
-	.exchangeItem, .ingredient{
-		background:#1e293b;
-		border-color:#334155;
-
-		.itemName, .ingredientName{
-			color:#e2e8f0;
-		}
-	}
-
-	.barterLocation{
-		color:#94a3b8;
-	}
-
-	.barterNote{
-		border-color:#334155;
-		color:#94a3b8;
-	}
-
-	.craftResult{
-		border-color:#334155;
-
-		.resultName{
-			color:#f1f5f9;
-		}
-	}
-
-	.error{
-		color:#94a3b8;
 	}
 }

@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useCallback} from "react";
-import {eventService} from "../../services/event-service";
-import type {GameEvent} from "../../types";
+import {eventService} from "@/services/event-service.ts";
+import type {GameEvent} from "@/types";
 import {Eye, EyeOff} from "lucide-react";
 import styles from "./todo.module.scss";
 
@@ -14,7 +14,8 @@ const loadChecked = ():Set<string> => {
 			const arr:string[] = JSON.parse(raw);
 			return new Set(arr);
 		}
-	}catch{ /* ignore */ }
+	}catch{ /* ignore */
+	}
 	return new Set();
 };
 
@@ -29,7 +30,8 @@ const loadHidden = ():Set<string> => {
 			const arr:string[] = JSON.parse(raw);
 			return new Set(arr);
 		}
-	}catch{ /* ignore */ }
+	}catch{ /* ignore */
+	}
 	return new Set();
 };
 
@@ -37,7 +39,8 @@ const saveHidden = (hidden:Set<string>) => {
 	localStorage.setItem(HIDDEN_STORAGE_KEY, JSON.stringify([...hidden]));
 };
 
-const formatTimeLeft = (endDate:string):string => {
+const formatTimeLeft = (endDate:string, permanent?:boolean):string => {
+	if(permanent) return "상시";
 	const diff = new Date(endDate).getTime() - Date.now();
 	if(diff <= 0) return "종료";
 	const days = Math.floor(diff / 86400000);
@@ -55,20 +58,26 @@ const EventChecklist:React.FC = () => {
 	const [loading, setLoading] = useState(true);
 	const [showSettings, setShowSettings] = useState(false);
 	const [, setTick] = useState(0);
-
+	
 	useEffect(() => {
-		eventService.getActiveEvents()
-			.then(all => setEvents(all.filter(e => e.endingSoon)))
-			.catch(() => {})
-			.finally(() => setLoading(false));
+		eventService.getActiveEvents().then((all) => {
+			const sorted = [...all].sort((a, b) => {
+				if(a.permanent !== b.permanent){
+					return a.permanent ? 1 : -1;
+				}
+				return new Date(a.endDate).getTime() - new Date(b.endDate).getTime();
+			});
+			setEvents(sorted);
+		}).catch(() => {
+		}).finally(() => setLoading(false));
 	}, []);
-
+	
 	// 1분마다 카운트다운 갱신
 	useEffect(() => {
 		const interval = setInterval(() => setTick(t => t + 1), 60000);
 		return () => clearInterval(interval);
 	}, []);
-
+	
 	const toggle = useCallback((eventId:string) => {
 		setChecked(prev => {
 			const next = new Set(prev);
@@ -78,7 +87,7 @@ const EventChecklist:React.FC = () => {
 			return next;
 		});
 	}, []);
-
+	
 	const toggleHidden = useCallback((eventId:string) => {
 		setHidden(prev => {
 			const next = new Set(prev);
@@ -88,29 +97,30 @@ const EventChecklist:React.FC = () => {
 			return next;
 		});
 	}, []);
-
+	
 	if(loading || events.length === 0) return null;
-
+	
 	const visibleEvents = events.filter(e => !hidden.has(e.eventId));
 	const completedCount = visibleEvents.filter(e => checked.has(e.eventId)).length;
 	const progress = visibleEvents.length > 0 ? Math.round((completedCount / visibleEvents.length) * 100) : 0;
-
+	
 	const formatDate = (dateStr:string):string => {
 		const date = new Date(dateStr);
 		return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
 	};
-
+	
 	return (
 		<div className={styles.eventChecklist}>
 			<div className={styles.sectionHeader}>
-				<h4>마감 임박 이벤트</h4>
+				<h4>전체 이벤트 목록</h4>
 				<div className={styles.sectionHeaderRight}>
 					<span className={styles.progressText}>{completedCount}/{visibleEvents.length}</span>
-					<button className={styles.headerSettingsBtn} onClick={() => setShowSettings(true)} title="이벤트 표시 설정">&#9881;</button>
+					<button className={styles.headerSettingsBtn} onClick={() => setShowSettings(true)}
+							title="이벤트 표시 설정">&#9881;</button>
 				</div>
 			</div>
 			<div className={styles.progressBar}>
-				<div className={styles.progressFill} style={{width: `${progress}%`}}/>
+				<div className={styles.progressFill} style={{width : `${progress}%`}}/>
 			</div>
 			<div className={styles.eventCheckGrid}>
 				{visibleEvents.map(event => {
@@ -136,7 +146,7 @@ const EventChecklist:React.FC = () => {
 								<div className={styles.eventCheckBody}>
 									<div className={styles.eventCheckHeader}>
 										<h3 className={styles.eventCheckName}>{event.title}</h3>
-										<span className={styles.eventCheckDday}>{formatTimeLeft(event.endDate)}</span>
+										<span className={styles.eventCheckDday}>{formatTimeLeft(event.endDate, event.permanent)}</span>
 									</div>
 									<p className={styles.eventCheckPeriod}>
 										{formatDate(event.startDate)} ~ {formatDate(event.endDate)}
@@ -147,13 +157,14 @@ const EventChecklist:React.FC = () => {
 					);
 				})}
 			</div>
-
+			
 			{showSettings && (
 				<div className={styles.modalOverlay} onClick={() => setShowSettings(false)}>
 					<div className={styles.modal} onClick={(e) => e.stopPropagation()}>
 						<div className={styles.modalHeader}>
 							<h3>이벤트 표시 설정</h3>
-							<button className={styles.modalClose} onClick={() => setShowSettings(false)}>&times;</button>
+							<button className={styles.modalClose}
+									onClick={() => setShowSettings(false)}>&times;</button>
 						</div>
 						<div className={styles.modalBody}>
 							<div className={styles.settingsTaskList}>

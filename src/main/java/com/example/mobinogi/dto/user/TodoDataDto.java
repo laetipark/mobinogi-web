@@ -176,17 +176,21 @@ public class TodoDataDto{
 	}
 
 	public static TodoDataDto createDailyReset(TodoDataDto existing){
+		TodoDataDto base = existing != null ? existing : createDefault();
+		WeeklyTasks weekly = base.getWeekly() != null ? base.getWeekly() : createDefault().getWeekly();
+		Resources resources = base.getResources() != null ? base.getResources() : createDefault().getResources();
+
 		return TodoDataDto.builder()
 			.daily(DailyTasks.builder()
 				.dayDungeon(false)
 				.freeShopPurchase(false)
 				.gemTreasureChest(false)
 				.build())
-			.weekly(existing.getWeekly())
-			.resources(existing.getResources())
-			.settings(existing.getSettings())
-			.dailyMemos(resetMemos(existing.getDailyMemos()))
-			.weeklyMemos(existing.getWeeklyMemos())
+			.weekly(weekly)
+			.resources(resources)
+			.settings(base.getSettings())
+			.dailyMemos(resetMemos(base.getDailyMemos()))
+			.weeklyMemos(base.getWeeklyMemos())
 			.build();
 	}
 
@@ -199,13 +203,13 @@ public class TodoDataDto{
 		Integer abyssRewardMax = 4;
 		if(existing != null && existing.getWeekly() != null){
 			if(existing.getWeekly().getFieldBoss() != null && existing.getWeekly().getFieldBoss().getTracked() != null){
-				fieldBossTracked = existing.getWeekly().getFieldBoss().getTracked();
+				fieldBossTracked = new ArrayList<>(existing.getWeekly().getFieldBoss().getTracked());
 			}
 			if(existing.getWeekly().getRaid() != null && existing.getWeekly().getRaid().getTracked() != null){
-				raidTracked = existing.getWeekly().getRaid().getTracked();
+				raidTracked = new ArrayList<>(existing.getWeekly().getRaid().getTracked());
 			}
 			if(existing.getWeekly().getAbyss() != null && existing.getWeekly().getAbyss().getTracked() != null){
-				abyssTracked = existing.getWeekly().getAbyss().getTracked();
+				abyssTracked = new ArrayList<>(existing.getWeekly().getAbyss().getTracked());
 			}
 			if(existing.getWeekly().getAbyssRewardMax() != null){
 				abyssRewardMax = existing.getWeekly().getAbyssRewardMax();

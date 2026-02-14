@@ -20,6 +20,7 @@ public class UserDto{
 	private String discordId;
 	private String discordUsername;
 	private String discordAvatar;
+	private Boolean isAdmin;
 	private String provider;
 	private LocalDateTime createdAt;
 
@@ -33,6 +34,7 @@ public class UserDto{
 			.discordId(user.getDiscordId())
 			.discordUsername(user.getDiscordUsername())
 			.discordAvatar(user.getDiscordAvatar())
+			.isAdmin(user.getIsAdmin())
 			.provider("kakao")
 			.createdAt(user.getCreatedAt())
 			.build();

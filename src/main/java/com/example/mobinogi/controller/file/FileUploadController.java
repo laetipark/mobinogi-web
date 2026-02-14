@@ -4,6 +4,7 @@ import com.example.mobinogi.service.file.FileStorageService;
 import com.example.mobinogi.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,41 +26,72 @@ public class FileUploadController{
 
 	@PostMapping("/image")
 	public ResponseEntity<Map<String, Object>> uploadImage(
-		@RequestHeader("Authorization") String authHeader,
-		@RequestParam("file") MultipartFile file,
-		@RequestParam(value = "type", defaultValue = "board") String type
+		@RequestHeader(value = "Authorization", required = false) String authHeader,
+		@RequestParam(value = "file", required = false) MultipartFile file,
+		@RequestParam(value = "type", defaultValue = "board") String type,
+		@RequestParam(value = "temporary", defaultValue = "false") boolean temporary
 	){
 		Map<String, Object> response = new HashMap<>();
+		String normalizedType = normalizeType(type);
+
 		try{
 			Long userId = getUserIdFromToken(authHeader);
 
-			if(!ALLOWED_TYPES.contains(type)){
+			if(file == null || file.isEmpty()){
 				response.put("success", false);
-				response.put("message", "허용되지 않는 업로드 타입입니다.");
+				response.put("message", "File is missing or empty.");
 				return ResponseEntity.badRequest().body(response);
 			}
 
-			String url = fileStorageService.storeFile(file, type);
-			log.info("이미지 업로드 성공 - userId: {}, type: {}, url: {}", userId, type, url);
+			if(!ALLOWED_TYPES.contains(normalizedType)){
+				response.put("success", false);
+				response.put("message", "Unsupported upload type: " + normalizedType);
+				return ResponseEntity.badRequest().body(response);
+			}
+
+			log.info(
+				"Image upload request - userId: {}, type: {}, filename: {}, contentType: {}, size: {}",
+				userId,
+				normalizedType,
+				file.getOriginalFilename(),
+				file.getContentType(),
+				file.getSize()
+			);
+
+			String url = temporary
+				? fileStorageService.storeTempFile(file, normalizedType, userId)
+				: fileStorageService.storeFile(file, normalizedType);
+			log.info(
+				"Image upload success - userId: {}, type: {}, temporary: {}, url: {}",
+				userId,
+				normalizedType,
+				temporary,
+				url
+			);
 
 			response.put("success", true);
 			response.put("url", url);
+			response.put("temporary", temporary);
 			return ResponseEntity.ok(response);
+		}catch(SecurityException e){
+			response.put("success", false);
+			response.put("message", e.getMessage());
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
 		}catch(IllegalArgumentException e){
 			response.put("success", false);
 			response.put("message", e.getMessage());
 			return ResponseEntity.badRequest().body(response);
 		}catch(Exception e){
-			log.error("이미지 업로드 실패", e);
+			log.error("Image upload failed", e);
 			response.put("success", false);
-			response.put("message", "이미지 업로드에 실패했습니다.");
+			response.put("message", "Image upload failed.");
 			return ResponseEntity.internalServerError().body(response);
 		}
 	}
 
 	@DeleteMapping("/image")
 	public ResponseEntity<Map<String, Object>> deleteImage(
-		@RequestHeader("Authorization") String authHeader,
+		@RequestHeader(value = "Authorization", required = false) String authHeader,
 		@RequestParam("url") String fileUrl
 	){
 		Map<String, Object> response = new HashMap<>();
@@ -68,24 +100,38 @@ public class FileUploadController{
 
 			boolean deleted = fileStorageService.deleteFile(fileUrl);
 			response.put("success", deleted);
-			response.put("message", deleted ? "삭제되었습니다." : "파일을 찾을 수 없습니다.");
+			response.put("message", deleted ? "Deleted." : "File not found.");
 			return ResponseEntity.ok(response);
-		}catch(Exception e){
-			log.error("이미지 삭제 실패", e);
+		}catch(SecurityException e){
 			response.put("success", false);
-			response.put("message", "이미지 삭제에 실패했습니다.");
+			response.put("message", e.getMessage());
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+		}catch(Exception e){
+			log.error("Image delete failed", e);
+			response.put("success", false);
+			response.put("message", "Image delete failed.");
 			return ResponseEntity.internalServerError().body(response);
 		}
 	}
 
 	private Long getUserIdFromToken(String authHeader){
 		if(authHeader == null || !authHeader.startsWith("Bearer ")){
-			throw new RuntimeException("인증 토큰이 필요합니다.");
+			throw new SecurityException("Authorization token is required.");
 		}
+
 		String token = authHeader.substring(7);
 		if(!jwtUtil.validateToken(token)){
-			throw new RuntimeException("유효하지 않은 토큰입니다.");
+			throw new SecurityException("Invalid token.");
 		}
+
 		return jwtUtil.getUserIdFromToken(token);
+	}
+
+	private String normalizeType(String type){
+		if(type == null){
+			return "board";
+		}
+		String trimmed = type.trim().toLowerCase();
+		return trimmed.isEmpty() ? "board" : trimmed;
 	}
 }

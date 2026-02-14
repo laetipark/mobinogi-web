@@ -104,24 +104,6 @@ public class BoardController{
 		}
 	}
 
-	// GET /api/board/external/notion - Redis에서 Notion 게시글 조회
-	@GetMapping("/external/notion")
-	public ResponseEntity<?> getNotionPosts(){
-		try{
-			List<BoardPostDto> posts = externalService.getNotionPosts();
-
-			Map<String, Object> response = new HashMap<>();
-			response.put("success", true);
-			response.put("data", posts);
-			return ResponseEntity.ok(response);
-		}catch(Exception e){
-			Map<String, Object> errorResponse = new HashMap<>();
-			errorResponse.put("success", false);
-			errorResponse.put("message", e.getMessage());
-			return ResponseEntity.badRequest().body(errorResponse);
-		}
-	}
-
 	// GET /api/board/posts/{postId}
 	@GetMapping("/posts/{postId}")
 	public ResponseEntity<?> getPost(@PathVariable Long postId){
@@ -299,7 +281,7 @@ public class BoardController{
 	}
 
 	// 디버그 및 동기화 엔드포인트는 제거됨
-	// Discord/Notion 동기화는 Node.js 크롤러에서 처리
+	// Discord 동기화는 Node.js 크롤러에서 처리
 	// (필요시 Node.js 크롤러를 수동으로 실행하거나 PM2로 스케줄링)
 
 	// DELETE /api/board/comments/{commentId}

@@ -249,6 +249,7 @@ const GameItemsPage:React.FC = () => {
 
 	return (
 		<div className={styles.gameItemsPage}>
+			<div className={styles.container}>
 			<div className={styles.pageHeader}>
 				<h1>게임 데이터</h1>
 				<p className={styles.pageDescription}>
@@ -409,6 +410,7 @@ const GameItemsPage:React.FC = () => {
 					}}
 				/>
 			)}
+			</div>
 		</div>
 	);
 };

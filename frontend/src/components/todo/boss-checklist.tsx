@@ -1,7 +1,7 @@
 import React, {useMemo} from "react";
 import styles from "./todo.module.scss";
-import {GameMonster} from "../../types";
-import {getDifficultyLabel} from "../../utils";
+import {GameMonster} from "@/types";
+import {getDifficultyLabel} from "@/utils";
 
 interface BossChecklistProps{
 	label:string;
@@ -15,7 +15,17 @@ interface BossChecklistProps{
 	trackedIds?:number[];
 }
 
-const BossChecklist:React.FC<BossChecklistProps> = ({label, monsters, completedIds, onChange, maxCompleted, groupByName, visualGroup, allowDuplicates, trackedIds}) => {
+const BossChecklist:React.FC<BossChecklistProps> = ({
+	label,
+	monsters,
+	completedIds,
+	onChange,
+	maxCompleted,
+	groupByName,
+	visualGroup,
+	allowDuplicates,
+	trackedIds
+}) => {
 	const handleToggle = (monsterId:number) => {
 		const monster = monsters.find(m => m.monsterId === monsterId);
 		if(completedIds.includes(monsterId)){
@@ -33,25 +43,31 @@ const BossChecklist:React.FC<BossChecklistProps> = ({label, monsters, completedI
 			onChange(newCompleted);
 		}
 	};
-
+	
 	const handleDuplicateSlotToggle = (monsterId:number, slotIndex:number, maxCount:number) => {
-		const currentCount = completedIds.filter(id => id === monsterId).length;
-		const isCompletedSlot = slotIndex < currentCount;
+		const completedSet = new Set(completedIds);
+		const isCompletedSlot = completedSet.has(slotIndex);
 		if(isCompletedSlot){
-			const removeIndex = completedIds.lastIndexOf(monsterId);
-			if(removeIndex === -1) return;
-			onChange([...completedIds.slice(0, removeIndex), ...completedIds.slice(removeIndex + 1)]);
+			completedSet.delete(slotIndex);
+			onChange(Array.from(completedSet).sort((a, b) => a - b));
 			return;
 		}
-		if(maxCompleted !== undefined && completedIds.length >= maxCompleted){
+		if(maxCompleted !== undefined && completedSet.size >= maxCompleted){
 			return;
 		}
+		const currentCount = trackedIds?.reduce((count, trackedId, trackedIndex) => {
+			if(trackedId === monsterId && completedSet.has(trackedIndex)){
+				return count + 1;
+			}
+			return count;
+		}, 0) ?? 0;
 		if(currentCount >= maxCount){
 			return;
 		}
-		onChange([...completedIds, monsterId]);
+		completedSet.add(slotIndex);
+		onChange(Array.from(completedSet).sort((a, b) => a - b));
 	};
-
+	
 	const groups = useMemo(() => {
 		if(!visualGroup && !allowDuplicates) return null;
 		const result:{name:string; monsters:GameMonster[]}[] = [];
@@ -60,14 +76,14 @@ const BossChecklist:React.FC<BossChecklistProps> = ({label, monsters, completedI
 			if(last && last.name === m.monsterName){
 				last.monsters.push(m);
 			}else{
-				result.push({name: m.monsterName, monsters: [m]});
+				result.push({name : m.monsterName, monsters : [m]});
 			}
 		}
 		return result;
 	}, [monsters, visualGroup, allowDuplicates]);
-
+	
 	const getRegionText = (monster:GameMonster) => monster.regionName || "N/A";
-
+	
 	if(monsters.length === 0){
 		return (
 			<div className={styles.taskItem}>
@@ -78,21 +94,22 @@ const BossChecklist:React.FC<BossChecklistProps> = ({label, monsters, completedI
 			</div>
 		);
 	}
-
+	
 	if(allowDuplicates && trackedIds){
 		const monsterCounts = new Map<number, number>();
 		for(const id of trackedIds){
 			monsterCounts.set(id, (monsterCounts.get(id) || 0) + 1);
 		}
-		const perMonsterSlotIndex = new Map<number, number>();
-		const trackedSlots = trackedIds.map((monsterId, idx) => {
-			const slotIndex = perMonsterSlotIndex.get(monsterId) || 0;
-			perMonsterSlotIndex.set(monsterId, slotIndex + 1);
-			return {key: `${monsterId}_${idx}`, monsterId, slotIndex};
+		const perMonsterOrder = new Map<number, number>();
+		const trackedSlots = trackedIds.map((monsterId, trackedIndex) => {
+			const order = perMonsterOrder.get(monsterId) || 0;
+			perMonsterOrder.set(monsterId, order + 1);
+			return {key : `${monsterId}_${trackedIndex}`, monsterId, trackedIndex, order};
 		});
 		const totalTracked = trackedIds.length;
-		const totalCompleted = Math.min(completedIds.length, maxCompleted ?? totalTracked);
-
+		const completedSet = new Set(completedIds.filter((idx) => idx >= 0 && idx < totalTracked));
+		const totalCompleted = Math.min(completedSet.size, maxCompleted ?? totalTracked);
+		
 		return (
 			<div className={styles.taskItem}>
 				<div className={styles.taskLabelRow}>
@@ -104,19 +121,19 @@ const BossChecklist:React.FC<BossChecklistProps> = ({label, monsters, completedI
 						const monster = monsters.find(m => m.monsterId === slot.monsterId);
 						if(!monster) return null;
 						const maxCount = monsterCounts.get(slot.monsterId) || 1;
-						const doneCount = completedIds.filter(id => id === slot.monsterId).length;
-						const completed = slot.slotIndex < doneCount;
+						const completed = completedSet.has(slot.trackedIndex);
 						return (
 							<button
 								key={slot.key}
 								className={`${styles.bossItem} ${completed ? styles.completed : ""}`}
-								onClick={() => handleDuplicateSlotToggle(slot.monsterId, slot.slotIndex, maxCount)}
-								title={`${getDifficultyLabel(monster.monsterDifficulty)} - ${monster.regionName || ""}`}
+								onClick={() => handleDuplicateSlotToggle(slot.monsterId, slot.trackedIndex, maxCount)}
+								title={`${getDifficultyLabel(monster.monsterDifficulty)} - ${monster.regionName || ""} #${slot.order + 1}`}
 							>
 								<span className={styles.bossCheckmark}>{completed && "✓"}</span>
 								<span className={styles.bossName}>{monster.monsterName}</span>
 								<span className={styles.bossRegion}>{getRegionText(monster)}</span>
- 								<span className={styles.bossDifficulty}>{getDifficultyLabel(monster.monsterDifficulty)}</span>
+								<span
+									className={styles.bossDifficulty}>{getDifficultyLabel(monster.monsterDifficulty)}</span>
 							</button>
 						);
 					})}
@@ -124,9 +141,9 @@ const BossChecklist:React.FC<BossChecklistProps> = ({label, monsters, completedI
 			</div>
 		);
 	}
-
+	
 	const displayMax = maxCompleted ?? (groupByName ? new Set(monsters.map(m => m.monsterName)).size : monsters.length);
-
+	
 	if(visualGroup && groups){
 		return (
 			<div className={styles.taskItem}>
@@ -147,7 +164,8 @@ const BossChecklist:React.FC<BossChecklistProps> = ({label, monsters, completedI
 								<span className={styles.bossCheckmark}>{completed && "✓"}</span>
 								<span className={styles.bossName}>{monster.monsterName}</span>
 								<span className={styles.bossRegion}>{getRegionText(monster)}</span>
-								<span className={styles.bossDifficulty}>{getDifficultyLabel(monster.monsterDifficulty)}</span>
+								<span
+									className={styles.bossDifficulty}>{getDifficultyLabel(monster.monsterDifficulty)}</span>
 							</button>
 						);
 					})}
@@ -155,7 +173,7 @@ const BossChecklist:React.FC<BossChecklistProps> = ({label, monsters, completedI
 			</div>
 		);
 	}
-
+	
 	return (
 		<div className={styles.taskItem}>
 			<div className={styles.taskLabelRow}>
@@ -175,7 +193,8 @@ const BossChecklist:React.FC<BossChecklistProps> = ({label, monsters, completedI
 							<span className={styles.bossCheckmark}>{completed && "✓"}</span>
 							<span className={styles.bossName}>{monster.monsterName}</span>
 							<span className={styles.bossRegion}>{getRegionText(monster)}</span>
-							<span className={styles.bossDifficulty}>{getDifficultyLabel(monster.monsterDifficulty)}</span>
+							<span
+								className={styles.bossDifficulty}>{getDifficultyLabel(monster.monsterDifficulty)}</span>
 						</button>
 					);
 				})}

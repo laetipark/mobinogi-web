@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {TodoMemo} from "../../types";
+import {TodoMemo} from "@/types";
 import {Plus, Trash2} from "lucide-react";
 import styles from "./todo.module.scss";
 
