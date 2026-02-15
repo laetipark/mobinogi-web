@@ -1,12 +1,7 @@
 import React from "react";
-import {LifeBarter} from "@/types";
 import styles from "@/pages/game/game-items.module.scss";
 import {ArrowRight, Info} from "lucide-react";
-
-interface BarterCardProps{
-	barter:LifeBarter;
-	onClick?:(barter:LifeBarter) => void;
-}
+import type {BarterCardProps} from "@/types/ui";
 
 const BarterCard:React.FC<BarterCardProps> = ({barter, onClick}) => {
 	return (
@@ -15,7 +10,6 @@ const BarterCard:React.FC<BarterCardProps> = ({barter, onClick}) => {
 			onClick={() => onClick?.(barter)}
 		>
 			<div className={styles.barterHeader}>
-				<span className={styles.barterId}>ID: {barter.barterId}</span>
 				<span className={styles.barterLocation}>
 					{barter.gameRegion?.regionName || "N/A"} - {barter.gameNpc?.npcName || "N/A"}
 				</span>
@@ -38,7 +32,7 @@ const BarterCard:React.FC<BarterCardProps> = ({barter, onClick}) => {
 			</div>
 
 			<div className={styles.barterInfo}>
-				<span>무게: {barter.itemWeight}</span>
+				<span>교환 횟수: {barter.itemWeight}</span>
 				{barter.barterServer && <span className={styles.barterTag}>서버 공유</span>}
 				{barter.barterNpc && <span className={styles.barterTag}>NPC 공유</span>}
 			</div>

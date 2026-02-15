@@ -1,4 +1,4 @@
-﻿import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {Calendar, Eye, Heart, ImagePlus, LayoutGrid, List, Pencil, Search, Tag, Trash2, X} from "lucide-react";
 import {photoBoardService} from "@/services/photo-board-service";
 import {uploadService} from "@/services/upload-service";
@@ -438,9 +438,10 @@ const PhotoBoardPage:React.FC = () => {
 		>
 			<div className={styles.container}>
 				<section className={styles.hero}>
-					<p className={styles.subtitle}>GALLERY</p>
-					<h1>갤러리</h1>
-					<p className={styles.description}>페이지에 이미지를 드래그앤드롭하거나 파일을 첨부하면 등록 창이 열립니다.</p>
+					<div className="oYV5kUSv">
+						<h1>갤러리</h1>
+						<p className="-v1-aGH7">페이지에 이미지를 드래그앤드롭하거나 파일을 첨부하면 등록 창이 열립니다.</p>
+					</div>
 					{user && (
 						<button type="button" className={styles.writeToggle} onClick={handleCreateModalOpenByFile}>
 							사진 등록

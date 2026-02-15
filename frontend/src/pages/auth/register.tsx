@@ -1,4 +1,4 @@
-﻿import React, {useState, FormEvent, ChangeEvent} from "react";
+import React, {useState, FormEvent, ChangeEvent} from "react";
 import {useNavigate, Link} from "react-router-dom";
 import {Eye, EyeOff, AlertCircle, CheckCircle} from "lucide-react";
 import {useAuth} from "@/hooks/use-auth";

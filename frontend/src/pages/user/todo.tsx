@@ -353,7 +353,10 @@ const TodoPage:React.FC = () => {
 		<div className={styles.todoPage}>
 			<div className={styles.container}>
 			<div className={styles.pageHeader}>
-				<h2>숙제 관리</h2>
+				<div className="oYV5kUSv">
+					<h1>숙제 관리</h1>
+					<p className="-v1-aGH7">캐릭터별 일일/주간 진행도를 체크하고 이벤트 일정을 관리하세요</p>
+				</div>
 				<div className={styles.resetTimers}>
 					<div className={styles.resetTimer}>
 						<span>일일 리셋</span>

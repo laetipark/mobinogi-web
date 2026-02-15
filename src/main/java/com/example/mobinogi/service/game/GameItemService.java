@@ -1,6 +1,7 @@
 package com.example.mobinogi.service.game;
 
 import com.example.mobinogi.dto.game.GameItemDataDto;
+import com.example.mobinogi.dto.game.GameItemFilterOptionsDto;
 import com.example.mobinogi.entity.GameItem;
 import com.example.mobinogi.entity.LifeBarter;
 import com.example.mobinogi.entity.LifeCraft;
@@ -9,15 +10,20 @@ import com.example.mobinogi.repository.LifeBarterRepository;
 import com.example.mobinogi.repository.LifeCraftRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.example.mobinogi.dto.game.GameItemSummaryDto;
@@ -65,23 +71,52 @@ public class GameItemService{
 		// ✅ rowIndex 이후의 기존 아이템 삭제
 		gameItemRepository.deleteByItemIdGreaterThanEqual(rowIndex);
 	}
-	
+
 	// 페이지네이션으로 게임 아이템 목록 조회 (요약 정보 포함)
-	public Page<GameItemSummaryDto> getGameItemsWithSummary(int page, int size, String sortBy, String sortDir, String keyword){
-		log.info("🔍 GameItems 조회 시작 - page: {}, size: {}, sortBy: {}, sortDir: {}, keyword: {}",
-			page, size, sortBy, sortDir, keyword);
-		
+	public Page<GameItemSummaryDto> getGameItemsWithSummary(
+		int page,
+		int size,
+		String sortBy,
+		String sortDir,
+		String keyword,
+		String itemType,
+		List<String> itemRarities){
+		log.info("🔍 GameItems 조회 시작 - page: {}, size: {}, sortBy: {}, sortDir: {}, keyword: {}, itemType: {}, itemRarities: {}",
+			page, size, sortBy, sortDir, keyword, itemType, itemRarities);
+
 		Sort sort = sortDir.equalsIgnoreCase("desc") ?
 			Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-		
+
 		Pageable pageable = PageRequest.of(page, size, sort);
-		
-		Page<GameItem> result;
-		if(keyword != null && !keyword.trim().isEmpty()){
-			result = gameItemRepository.findByItemNameContaining(keyword, pageable);
-		}else{
-			result = gameItemRepository.findAll(pageable);
-		}
+
+		List<String> normalizedRarities = itemRarities == null
+			? List.of()
+			: itemRarities.stream()
+				.filter(StringUtils::hasText)
+				.map(String::trim)
+				.distinct()
+				.toList();
+		List<String> expandedRarityFilters = expandRarityFilters(normalizedRarities);
+
+		Specification<GameItem> specification = (root, query, cb) -> {
+			List<Predicate> predicates = new ArrayList<>();
+
+			if(StringUtils.hasText(keyword)){
+				predicates.add(cb.like(root.get("itemName"), "%" + keyword.trim() + "%"));
+			}
+
+			if(StringUtils.hasText(itemType)){
+				predicates.add(cb.equal(root.get("itemType"), itemType.trim()));
+			}
+
+			if(!expandedRarityFilters.isEmpty()){
+				predicates.add(root.get("itemRarity").in(expandedRarityFilters));
+			}
+
+			return cb.and(predicates.toArray(new Predicate[0]));
+		};
+
+		Page<GameItem> result = gameItemRepository.findAll(specification, pageable);
 		
 		// GameItem을 GameItemSummaryDto로 변환하면서 물물교환/제작 정보 추가
 		Page<GameItemSummaryDto> summaryPage = result.map(item -> {
@@ -114,7 +149,78 @@ public class GameItemService{
 		
 		log.info("📊 조회 결과: 총 {}개 아이템, 현재 페이지 {}개",
 			summaryPage.getTotalElements(), summaryPage.getNumberOfElements());
-		
+
 		return summaryPage;
+	}
+
+	public GameItemFilterOptionsDto getGameItemFilterOptions(){
+		GameItemFilterOptionsDto dto = new GameItemFilterOptionsDto();
+		dto.setItemTypes(gameItemRepository.findDistinctItemTypes());
+		dto.setItemRarities(gameItemRepository.findDistinctItemRarities());
+		return dto;
+	}
+
+	private List<String> expandRarityFilters(List<String> rarities){
+		if(rarities == null || rarities.isEmpty()){
+			return List.of();
+		}
+
+		Set<String> expanded = new LinkedHashSet<>();
+		for(String rarity : rarities){
+			String normalized = rarity == null ? "" : rarity.trim().toLowerCase();
+			switch(normalized){
+				case "일반":
+				case "노말":
+				case "normal":
+				case "common":
+					expanded.add("일반");
+					expanded.add("노말");
+					expanded.add("normal");
+					expanded.add("common");
+					break;
+				case "레어":
+				case "희귀":
+				case "rare":
+					expanded.add("레어");
+					expanded.add("희귀");
+					expanded.add("rare");
+					break;
+				case "엘리트":
+				case "영웅":
+				case "elite":
+					expanded.add("엘리트");
+					expanded.add("영웅");
+					expanded.add("elite");
+					break;
+				case "전설":
+				case "legendary":
+					expanded.add("전설");
+					expanded.add("legendary");
+					break;
+				case "신화":
+				case "mythic":
+					expanded.add("신화");
+					expanded.add("mythic");
+					break;
+				case "유니크":
+				case "unique":
+					expanded.add("유니크");
+					expanded.add("unique");
+					break;
+				case "에픽":
+				case "epic":
+					expanded.add("에픽");
+					expanded.add("epic");
+					break;
+				case "고급":
+					expanded.add("고급");
+					break;
+				default:
+					expanded.add(rarity);
+					break;
+			}
+		}
+
+		return expanded.stream().toList();
 	}
 }

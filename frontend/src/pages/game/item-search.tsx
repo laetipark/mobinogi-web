@@ -235,11 +235,9 @@ const ItemSearchPage:React.FC = () => {
 	return (
 		<div className={styles.itemSearchPage}>
 			<div className={styles.container}>
-			<div className={styles.pageHeader}>
+			<div className="oYV5kUSv">
 				<h1>아이템 검색</h1>
-				<p className={styles.pageDescription}>
-					아이템을 검색하여 물물교환, 제작 정보를 확인하세요
-				</p>
+				<p className="-v1-aGH7">아이템을 검색하여 물물교환, 제작 정보를 확인하세요</p>
 			</div>
 
 			{/* 검색 영역 */}

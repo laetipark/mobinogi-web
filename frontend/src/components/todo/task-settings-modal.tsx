@@ -1,4 +1,5 @@
 import React, {useState} from "react";
+import type {TaskSettingsModalProps, SortableTaskItemProps} from "@/types/ui";
 import {
 	DndContext,
 	closestCenter,
@@ -17,27 +18,6 @@ import {
 import {CSS} from "@dnd-kit/utilities";
 import {GripVertical, Eye, EyeOff} from "lucide-react";
 import styles from "./todo.module.scss";
-
-interface TaskDef{
-	key:string;
-	label:string;
-}
-
-interface TaskSettingsModalProps{
-	title:string;
-	taskDefs:TaskDef[];
-	order?:string[];
-	hiddenTasks?:string[];
-	onSave:(order:string[], hiddenTasks:string[]) => void;
-	onClose:() => void;
-}
-
-interface SortableTaskItemProps{
-	taskKey:string;
-	label:string;
-	hidden:boolean;
-	onToggleHidden:() => void;
-}
 
 const SortableTaskItem:React.FC<SortableTaskItemProps> = ({taskKey, label, hidden, onToggleHidden}) => {
 	const {

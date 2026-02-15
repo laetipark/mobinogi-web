@@ -1,12 +1,7 @@
 import React from "react";
-import {LifeCraft} from "@/types";
 import styles from "@/pages/game/game-items.module.scss";
 import {Hammer, Info} from "lucide-react";
-
-interface CraftCardProps{
-	craft:LifeCraft;
-	onClick?:(craft:LifeCraft) => void;
-}
+import type {CraftCardProps} from "@/types/ui";
 
 const CraftCard:React.FC<CraftCardProps> = ({craft, onClick}) => {
 	return (
@@ -15,7 +10,6 @@ const CraftCard:React.FC<CraftCardProps> = ({craft, onClick}) => {
 			onClick={() => onClick?.(craft)}
 		>
 			<div className={styles.craftHeader}>
-				<span className={styles.craftId}>ID: {craft.craftId}-{craft.craftSubId}</span>
 				<Hammer size={20} className={styles.craftIcon}/>
 			</div>
 

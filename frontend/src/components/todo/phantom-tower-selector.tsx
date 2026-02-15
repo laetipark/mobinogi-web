@@ -1,11 +1,6 @@
 import React, {useState, useRef, useEffect} from "react";
 import styles from "./todo.module.scss";
-import {PhantomTower} from "@/types";
-
-interface PhantomTowerSelectorProps{
-	value:PhantomTower;
-	onChange:(value:PhantomTower) => void;
-}
+import type {PhantomTowerSelectorProps} from "@/types/ui";
 
 const MAX_FLOOR = 30;
 const MAX_STAGE = 5;

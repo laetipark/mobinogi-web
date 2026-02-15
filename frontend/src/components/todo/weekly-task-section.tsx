@@ -1,25 +1,13 @@
 import React, {useMemo, useState} from "react";
 import styles from "./todo.module.scss";
-import {GameMonster, TodoMemo, TodoSettings, WeeklyTasks} from "@/types";
+import type {GameMonster} from "@/types";
 import TaskCounter from "./task-counter";
 import BossChecklist from "./boss-checklist";
 import BossSettingsModal from "./boss-settings-modal";
 import TaskSettingsModal from "./task-settings-modal";
 import MemoTaskModal from "./memo-task-modal";
 import BarterCart from "./barter-cart";
-
-interface WeeklyTaskSectionProps{
-	weekly:WeeklyTasks;
-	fieldBossMonsters:GameMonster[];
-	raidMonsters:GameMonster[];
-	abyssBossMonsters:GameMonster[];
-	settings?:TodoSettings;
-	characterId:number;
-	weeklyMemos?:TodoMemo[];
-	onChange:(weekly:WeeklyTasks) => void;
-	onSettingsChange:(settings:TodoSettings) => void;
-	onMemosChange:(memos:TodoMemo[]) => void;
-}
+import type {WeeklyTaskSectionProps} from "@/types/ui";
 
 const TXT = {
 	summoningBarrier : "\uC18C\uD658\uC758 \uACB0\uACC4",

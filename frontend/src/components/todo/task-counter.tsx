@@ -1,12 +1,6 @@
 import React from "react";
 import styles from "./todo.module.scss";
-
-interface TaskCounterProps{
-	label:string;
-	current:number;
-	max:number;
-	onChange:(value:number) => void;
-}
+import type {TaskCounterProps} from "@/types/ui";
 
 const TaskCounter:React.FC<TaskCounterProps> = ({label, current, max, onChange}) => {
 	return (

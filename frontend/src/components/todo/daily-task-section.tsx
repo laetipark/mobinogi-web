@@ -1,25 +1,15 @@
 import React, {useState, useMemo} from "react";
 import styles from "./todo.module.scss";
-import {DailyTasks, TodoSettings, TodoMemo} from "@/types";
 import TaskSettingsModal from "./task-settings-modal";
 import MemoTaskModal from "./memo-task-modal";
 import BarterCart from "./barter-cart";
+import type {DailyTaskSectionProps} from "@/types/ui";
 
 const DAILY_TASK_DEFS:{key:string; label:string}[] = [
 	{key: "dayDungeon", label: "요일 던전"},
 	{key: "cashShop", label: "캐시샵"},
 	{key: "barter", label: "물물교환"}
 ];
-
-interface DailyTaskSectionProps{
-	daily:DailyTasks;
-	settings?:TodoSettings;
-	characterId:number;
-	dailyMemos?:TodoMemo[];
-	onChange:(daily:DailyTasks, changedField?:string) => void;
-	onSettingsChange:(settings:TodoSettings) => void;
-	onMemosChange:(memos:TodoMemo[]) => void;
-}
 
 const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({daily, settings, characterId, dailyMemos, onChange, onSettingsChange, onMemosChange}) => {
 	const [showSettings, setShowSettings] = useState(false);

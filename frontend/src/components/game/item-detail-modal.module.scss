@@ -16,7 +16,8 @@
 }
 
 .modalContent{
-	background:$white;
+	background:var(--surface);
+	border:1px solid var(--border);
 	border-radius:$border-radius-lg;
 	max-width:600px;
 	width:100%;
@@ -44,7 +45,7 @@
 	align-items:center;
 	justify-content:space-between;
 	padding:20px 24px;
-	border-bottom:1px solid $gray-200;
+	border-bottom:1px solid var(--border);
 	background:linear-gradient(135deg, $primary-blue 0%, $primary-blue-darker 100%);
 	color:$white;
 
@@ -52,6 +53,10 @@
 		display:flex;
 		align-items:center;
 		gap:12px;
+
+		svg{
+			color:rgba(255, 255, 255, 0.96);
+		}
 
 		h2{
 			margin:0;
@@ -70,11 +75,30 @@
 			}
 
 			.itemRarity{
-				font-size:0.8rem;
-				font-weight:600;
-				border:1px solid transparent;
+				--rarity-color:#8faed6;
+				--rarity-bg:rgba(143, 174, 214, 0.2);
+				display:inline-flex;
+				align-items:center;
+				gap:6px;
+				font-size:0.79rem;
+				font-weight:700;
+				color:#f8fbff;
+				background:linear-gradient(135deg, rgba(18, 30, 51, 0.45) 0%, var(--rarity-bg) 100%);
+				border:1px solid var(--rarity-color);
 				border-radius:999px;
-				padding:2px 8px;
+				padding:3px 10px 3px 8px;
+				box-shadow:0 0 0 1px rgba(255, 255, 255, 0.14) inset, 0 2px 6px rgba(0, 0, 0, 0.22);
+				text-shadow:none;
+
+				&::before{
+					content:"";
+					width:7px;
+					height:7px;
+					border-radius:50%;
+					background:var(--rarity-color);
+					box-shadow:0 0 0 2px rgba(255, 255, 255, 0.2);
+					flex-shrink:0;
+				}
 			}
 		}
 	}
@@ -97,13 +121,38 @@
 	}
 }
 
+:global(.dark-mode) .modalHeader{
+	background:linear-gradient(135deg, #1c2d4a 0%, #2b3959 100%);
+	border-bottom-color:#6d86b4;
+}
+
+:global(.dark-mode) .modalHeader .itemInfo .itemMeta .itemType{
+	color:#d7e5fb;
+	opacity:1;
+}
+
+:global(.dark-mode) .modalHeader .itemInfo .itemMeta .itemRarity{
+	color:#fbfdff;
+	background:linear-gradient(135deg, rgba(10, 16, 29, 0.76) 0%, var(--rarity-bg) 100%);
+	box-shadow:0 0 0 1px rgba(216, 230, 255, 0.24) inset, 0 2px 8px rgba(1, 4, 10, 0.46);
+}
+
+:global(.dark-mode) .modalHeader .closeBtn{
+	background:rgba(13, 20, 35, 0.38);
+	border:1px solid rgba(171, 194, 235, 0.45);
+}
+
+:global(.dark-mode) .modalHeader .closeBtn:hover{
+	background:rgba(24, 35, 56, 0.58);
+}
+
 .itemEffect{
 	padding:16px 24px;
-	background:$gray-50;
-	color:$gray-600;
+	background:var(--surface-hover);
+	color:var(--text-muted);
 	font-size:0.9rem;
 	line-height:1.5;
-	border-bottom:1px solid $gray-200;
+	border-bottom:1px solid var(--border);
 }
 
 .loading{
@@ -112,7 +161,7 @@
 	justify-content:center;
 	gap:12px;
 	padding:60px 24px;
-	color:$gray-500;
+	color:var(--text-muted);
 }
 
 .spinning{
@@ -122,8 +171,8 @@
 .tabs{
 	display:flex;
 	padding:0 24px;
-	border-bottom:1px solid $gray-200;
-	background:$gray-50;
+	border-bottom:1px solid var(--border);
+	background:var(--surface-hover);
 }
 
 .tab{
@@ -133,7 +182,7 @@
 	padding:14px 20px;
 	border:none;
 	background:transparent;
-	color:$gray-600;
+	color:var(--text-muted);
 	font-size:0.9rem;
 	font-weight:500;
 	cursor:pointer;
@@ -148,12 +197,12 @@
 	&.active{
 		color:$primary-blue;
 		border-bottom-color:$primary-blue;
-		background:$white;
+		background:var(--surface);
 	}
 
 	.count{
-		background:$gray-200;
-		color:$gray-600;
+		background:var(--border);
+		color:var(--text-muted);
 		font-size:0.75rem;
 		padding:2px 8px;
 		border-radius:10px;
@@ -181,7 +230,7 @@
 .sectionTitle{
 	font-size:0.9rem;
 	font-weight:600;
-	color:$gray-700;
+	color:var(--text);
 	margin:0 0 12px 0;
 	display:flex;
 	align-items:center;
@@ -199,8 +248,8 @@
 }
 
 .barterCard{
-	background:$gray-50;
-	border:1px solid $gray-200;
+	background:var(--surface-hover);
+	border:1px solid var(--border);
 	border-radius:$border-radius;
 	padding:14px;
 	transition:all $transition-fast;
@@ -216,11 +265,11 @@
 	align-items:center;
 	gap:6px;
 	font-size:0.8rem;
-	color:$gray-500;
+	color:var(--text-muted);
 	margin-bottom:10px;
 
 	svg{
-		color:$gray-400;
+		color:var(--text-muted);
 	}
 }
 
@@ -230,7 +279,7 @@
 	gap:12px;
 
 	.arrow{
-		color:$gray-400;
+		color:var(--text-muted);
 		flex-shrink:0;
 	}
 }
@@ -240,15 +289,15 @@
 	display:flex;
 	flex-direction:column;
 	gap:2px;
-	background:$white;
+	background:var(--surface);
 	padding:10px 12px;
 	border-radius:$border-radius;
-	border:1px solid $gray-200;
+	border:1px solid var(--border);
 
 	.itemName{
 		font-size:0.9rem;
 		font-weight:500;
-		color:$gray-800;
+		color:var(--text);
 	}
 
 	.itemCount{
@@ -261,10 +310,10 @@
 .barterNote{
 	margin-top:10px;
 	font-size:0.8rem;
-	color:$gray-500;
+	color:var(--text-muted);
 	font-style:italic;
 	padding-top:10px;
-	border-top:1px dashed $gray-200;
+	border-top:1px dashed var(--border);
 }
 
 .craftList{
@@ -274,8 +323,8 @@
 }
 
 .craftGroup{
-	background:$gray-50;
-	border:1px solid $gray-200;
+	background:var(--surface-hover);
+	border:1px solid var(--border);
 	border-radius:$border-radius;
 	padding:14px;
 	transition:all $transition-fast;
@@ -292,7 +341,7 @@
 	gap:8px;
 	padding-bottom:12px;
 	margin-bottom:12px;
-	border-bottom:1px solid $gray-200;
+	border-bottom:1px solid var(--border);
 
 	svg{
 		color:$primary-blue;
@@ -301,7 +350,7 @@
 	.resultName{
 		font-size:1rem;
 		font-weight:600;
-		color:$gray-800;
+		color:var(--text);
 	}
 }
 
@@ -315,14 +364,14 @@
 	display:flex;
 	align-items:center;
 	gap:6px;
-	background:$white;
+	background:var(--surface);
 	padding:8px 12px;
 	border-radius:$border-radius;
-	border:1px solid $gray-200;
+	border:1px solid var(--border);
 
 	.ingredientName{
 		font-size:0.85rem;
-		color:$gray-700;
+		color:var(--text);
 	}
 
 	.ingredientCount{
@@ -335,7 +384,7 @@
 .empty, .noData{
 	text-align:center;
 	padding:40px 20px;
-	color:$gray-400;
+	color:var(--text-muted);
 	font-size:0.9rem;
 }
 
@@ -412,72 +461,3 @@
 	}
 }
 
-// 다크 모드
-@include dark-mode{
-	.modalContent{
-		background:#1e293b;
-	}
-
-	.modalHeader{
-		border-color:#334155;
-	}
-
-	.itemEffect{
-		background:#0f172a;
-		border-color:#334155;
-		color:#94a3b8;
-	}
-
-	.tabs{
-		background:#0f172a;
-		border-color:#334155;
-	}
-
-	.tab{
-		color:#94a3b8;
-
-		&.active{
-			background:#1e293b;
-		}
-
-		.count{
-			background:#334155;
-			color:#94a3b8;
-		}
-	}
-
-	.sectionTitle{
-		color:#e2e8f0;
-	}
-
-	.barterCard, .craftGroup{
-		background:#0f172a;
-		border-color:#334155;
-	}
-
-	.exchangeItem, .ingredient{
-		background:#1e293b;
-		border-color:#334155;
-
-		.itemName, .ingredientName{
-			color:#e2e8f0;
-		}
-	}
-
-	.barterLocation{
-		color:#94a3b8;
-	}
-
-	.barterNote{
-		border-color:#334155;
-		color:#94a3b8;
-	}
-
-	.craftResult{
-		border-color:#334155;
-
-		.resultName{
-			color:#f1f5f9;
-		}
-	}
-}

@@ -1,15 +1,7 @@
 import React, {useState} from "react";
-import type {BoardComment} from "@/types";
 import {useAuth} from "@/hooks/use-auth";
 import styles from "./comment-item.module.scss";
-
-interface CommentItemProps{
-	comment:BoardComment;
-	onReply:(parentId:number) => void;
-	onEdit:(commentId:number, content:string) => void;
-	onDelete:(commentId:number) => void;
-	isReply?:boolean;
-}
+import type {CommentItemProps} from "@/types/ui";
 
 const CommentItem:React.FC<CommentItemProps> = ({comment, onReply, onEdit, onDelete, isReply = false}) => {
 	const {user} = useAuth();

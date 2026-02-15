@@ -1,15 +1,12 @@
-import React, {createContext, useState, useEffect, ReactNode} from "react";
+import React, {createContext, useState, useEffect} from "react";
 import {User, ExtendedAuthContextType} from "../types";
 import {storage} from "../utils/helpers";
 import {useKakaoLogin} from "../hooks/use-kakao-login";
 import axios from "axios";
 import {config} from "../config/env";
+import type {AuthProviderProps} from "@/types/ui";
 
 export const AuthContext = createContext<ExtendedAuthContextType | undefined>(undefined);
-
-interface AuthProviderProps{
-	children:ReactNode;
-}
 
 // axios 기본 설정
 axios.defaults.baseURL = config.api.baseUrl;

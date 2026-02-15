@@ -1,3 +1,7 @@
+---
+apply: always
+---
+
 # Frontend Development Guide
 
 ## Styling

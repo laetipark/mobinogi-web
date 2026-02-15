@@ -1,4 +1,5 @@
 import React from "react";
+import type {MarkdownToolbarProps, ToolbarAction} from "@/types/ui";
 import {
 	Heading1, Heading2, Heading3,
 	Bold, Italic, Strikethrough,
@@ -6,18 +7,6 @@ import {
 	ListOrdered, List, Link, Minus
 } from "lucide-react";
 import styles from "./markdown-toolbar.module.scss";
-
-interface MarkdownToolbarProps {
-	textareaRef: React.RefObject<HTMLTextAreaElement | null>;
-	content: string;
-	setContent: (content: string) => void;
-}
-
-interface ToolbarAction {
-	icon: React.ReactNode;
-	title: string;
-	action: () => void;
-}
 
 const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({textareaRef, content, setContent}) => {
 

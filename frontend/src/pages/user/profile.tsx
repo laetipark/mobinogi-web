@@ -333,7 +333,10 @@ const ProfilePage:React.FC = () => {
 	return (
 		<div className={styles.profilePage}>
 			<div className={styles.container}>
-				<h1 className={styles.pageTitle}>프로필 설정</h1>
+				<div className="oYV5kUSv">
+					<h1>프로필 설정</h1>
+					<p className="-v1-aGH7">프로필, Discord 연동, 캐릭터 정보를 한 번에 관리하세요</p>
+				</div>
 				
 				{/* 프로필 섹션 */}
 				<section className={styles.section}>

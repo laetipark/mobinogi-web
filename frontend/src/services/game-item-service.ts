@@ -1,4 +1,4 @@
-import {GameItemSummaryPage, GameItemSearchParams, GameItemData, LifeBarterPage, LifeCraftPage, ListSearchParams} from "@/types";
+import {GameItemSummaryPage, GameItemSearchParams, GameItemData, LifeBarterPage, LifeCraftPage, ListSearchParams, GameItemFilterOptions} from "@/types";
 import apiService from "./api";
 
 export class GameItemService{
@@ -11,7 +11,9 @@ export class GameItemService{
 			size = 10,
 			sortBy = "itemId",
 			sortDir = "asc",
-			keyword
+			keyword,
+			itemType,
+			itemRarity
 		} = params;
 
 		const queryParams:Record<string, any> = {
@@ -25,7 +27,19 @@ export class GameItemService{
 			queryParams.keyword = keyword.trim();
 		}
 
+		if(itemType && itemType.trim()){
+			queryParams.itemType = itemType.trim();
+		}
+
+		if(itemRarity && itemRarity.length > 0){
+			queryParams.itemRarity = itemRarity.join(",");
+		}
+
 		return apiService.get<GameItemSummaryPage>("/items", queryParams);
+	}
+
+	static async getGameItemFilterOptions():Promise<GameItemFilterOptions>{
+		return apiService.get<GameItemFilterOptions>("/items/filters");
 	}
 
 	/**

@@ -27,6 +27,10 @@ public class GameEvent{
 	
 	@Column(name = "title", nullable = false, length = 255)
 	private String title;
+
+	@Lob
+	@Column(name = "content", columnDefinition = "LONGTEXT")
+	private String content;
 	
 	@Column(name = "start_date")
 	private LocalDateTime startDate;

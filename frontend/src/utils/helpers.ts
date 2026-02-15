@@ -1,4 +1,4 @@
-﻿import {PasswordStrengthResult} from "../types";
+import {PasswordStrengthResult} from "../types";
 
 /**
  * Validate email format

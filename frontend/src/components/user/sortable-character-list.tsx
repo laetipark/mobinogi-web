@@ -1,4 +1,6 @@
 import React from "react";
+import type {SortableCharacterListProps, SortableItemProps} from "@/types/ui";
+export type {SortableCharacterItem} from "@/types/ui";
 import {
 	DndContext,
 	closestCenter,
@@ -17,22 +19,6 @@ import {
 import {CSS} from "@dnd-kit/utilities";
 import {GripVertical} from "lucide-react";
 import styles from "./sortable-character-list.module.scss";
-
-export interface SortableCharacterItem{
-	characterId:number;
-	characterName:string;
-	serverName?:string;
-}
-
-interface SortableCharacterListProps{
-	items:SortableCharacterItem[];
-	onReorder:(newItems:SortableCharacterItem[]) => void;
-}
-
-interface SortableItemProps{
-	item:SortableCharacterItem;
-	index:number;
-}
 
 const SortableItem:React.FC<SortableItemProps> = ({item, index}) => {
 	const {

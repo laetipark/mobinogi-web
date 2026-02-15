@@ -1,4 +1,4 @@
-﻿// 카카오 SDK 관련 타입 정의
+// 카카오 SDK 관련 타입 정의
 declare global{
 	interface Window{
 		Kakao:{

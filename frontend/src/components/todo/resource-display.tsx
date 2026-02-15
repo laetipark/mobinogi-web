@@ -1,19 +1,6 @@
 import React, {useState, useEffect} from "react";
 import styles from "./todo.module.scss";
-import {Resources, CounterTask} from "@/types";
-
-interface ResourceDisplayProps{
-	resources:Resources;
-	onChange:(resources:Resources) => void;
-}
-
-interface ResourceItemProps{
-	label:string;
-	max:number;
-	chargeIntervalMinutes:number;
-	value?:CounterTask;
-	onChange:(value:CounterTask) => void;
-}
+import type {ResourceDisplayProps, ResourceItemProps} from "@/types/ui";
 
 const ResourceItem:React.FC<ResourceItemProps> = ({label, max, chargeIntervalMinutes, value, onChange}) => {
 	const [fullChargeText, setFullChargeText] = useState("");

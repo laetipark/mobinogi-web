@@ -1,14 +1,10 @@
 import React, {useState, useEffect} from "react";
-import {GameItem, GameItemSummary, GameItemData, LifeBarter, LifeCraft} from "@/types";
+import {GameItemData, LifeBarter, LifeCraft} from "@/types";
 import GameItemService from "@/services/game-item-service";
 import {getItemRarityInfo} from "@/utils";
 import {X, ArrowRight, Hammer, ArrowLeftRight, Package, MapPin, User, RefreshCw} from "lucide-react";
 import styles from "./item-detail-modal.module.scss";
-
-interface ItemDetailModalProps{
-	item:GameItem | GameItemSummary;
-	onClose:() => void;
-}
+import type {ItemDetailModalProps} from "@/types/ui";
 
 const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 	const [itemData, setItemData] = useState<GameItemData | null>(null);
@@ -111,6 +107,10 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 	const hasBarters = bartersByItemId.length > 0 || bartersByExchangeId.length > 0;
 	const hasCrafts = Object.keys(craftsBySubId).length > 0;
 	const rarityInfo = getItemRarityInfo(item.itemRarity);
+	const rarityStyle = {
+		"--rarity-color" : rarityInfo.color,
+		"--rarity-bg" : rarityInfo.bg
+	} as React.CSSProperties;
 	
 	return (
 		<div className={styles.modalBackdrop} onClick={handleBackdropClick}>
@@ -125,11 +125,7 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 								<span className={styles.itemType}>{item.itemType}</span>
 								<span
 									className={styles.itemRarity}
-									style={{
-										color : rarityInfo.color,
-										backgroundColor : rarityInfo.bg,
-										borderColor : rarityInfo.color
-									}}
+									style={rarityStyle}
 								>
 									{rarityInfo.label}
 								</span>

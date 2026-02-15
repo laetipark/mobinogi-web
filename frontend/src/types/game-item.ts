@@ -34,6 +34,13 @@ export interface GameItemSearchParams{
 	sortBy?:string;
 	sortDir?:"asc" | "desc";
 	keyword?:string;
+	itemType?:string;
+	itemRarity?:string[];
+}
+
+export interface GameItemFilterOptions{
+	itemTypes:string[];
+	itemRarities:string[];
 }
 
 export interface GameItemData{

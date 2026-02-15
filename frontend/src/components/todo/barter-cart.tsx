@@ -3,12 +3,7 @@ import styles from "./todo.module.scss";
 import {UserTodoBarter} from "@/types";
 import {todoService} from "@/services/todo-service.ts";
 import BarterSettingsModal from "./barter-settings-modal";
-
-interface BarterCartProps{
-	characterId:number;
-	cycle:number;
-	cycleLabel:string;
-}
+import type {BarterCartProps} from "@/types/ui";
 
 const TXT = {
 	barter : "\uBB3C\uBB3C\uAD50\uD658",

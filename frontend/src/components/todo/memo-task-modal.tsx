@@ -2,13 +2,7 @@ import React, {useState} from "react";
 import {TodoMemo} from "@/types";
 import {Plus, Trash2} from "lucide-react";
 import styles from "./todo.module.scss";
-
-interface MemoTaskModalProps{
-	title:string;
-	memos:TodoMemo[];
-	onSave:(memos:TodoMemo[]) => void;
-	onClose:() => void;
-}
+import type {MemoTaskModalProps} from "@/types/ui";
 
 const MemoTaskModal:React.FC<MemoTaskModalProps> = ({title, memos, onSave, onClose}) => {
 	const [items, setItems] = useState<TodoMemo[]>(memos.map(m => ({...m})));

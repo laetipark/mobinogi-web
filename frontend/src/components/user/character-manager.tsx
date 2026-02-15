@@ -2,11 +2,7 @@ import React, {useState, useEffect} from "react";
 import {UserCharacter, UserCharacterRequest, GameClassItem} from "@/types";
 import {characterService, gameClassService} from "@/services";
 import styles from "./character-manager.module.scss";
-
-interface CharacterManagerProps{
-	onClose?:() => void;
-	isModal?:boolean;
-}
+import type {CharacterManagerProps} from "@/types/ui";
 
 const DEFAULT_FORM:UserCharacterRequest = {
 	characterName : "",

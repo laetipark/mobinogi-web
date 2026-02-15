@@ -2,20 +2,7 @@ import React, {useState} from "react";
 import styles from "./todo.module.scss";
 import {GameMonster} from "@/types";
 import {getDifficultyLabel} from "@/utils";
-
-interface BossSettingsModalProps{
-	title:string;
-	monsters:GameMonster[];
-	trackedIds:number[];
-	exclusiveByName?:boolean;
-	maxSelections?:number;
-	allowMultiple?:boolean;
-	groupByName?:boolean;
-	rewardMax?:number;
-	onRewardMaxChange?:(max:number) => void;
-	onSave:(trackedIds:number[]) => void;
-	onClose:() => void;
-}
+import type {BossSettingsModalProps} from "@/types/ui";
 
 const BossSettingsModal:React.FC<BossSettingsModalProps> = ({
 	title,

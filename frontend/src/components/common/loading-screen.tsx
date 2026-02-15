@@ -1,8 +1,5 @@
+import type {LoadingScreenProps} from "@/types/ui";
 ﻿import React from "react";
-
-interface LoadingScreenProps{
-	message?:string;
-}
 
 const LoadingScreen:React.FC<LoadingScreenProps> = ({message = "Loading..."}) => {
 	return (

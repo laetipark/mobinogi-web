@@ -16,6 +16,7 @@ public class GameEventDto{
 	private String eventId;
 	private String thumbnail;
 	private String title;
+	private String content;
 	private LocalDateTime startDate;
 	private LocalDateTime endDate;
 	private boolean endingSoon;
@@ -32,6 +33,7 @@ public class GameEventDto{
 			.eventId(event.getEventId())
 			.thumbnail(event.getThumbnail())
 			.title(event.getTitle())
+			.content(event.getContent())
 			.startDate(event.getStartDate())
 			.endDate(event.getEndDate())
 			.endingSoon(endingSoon)

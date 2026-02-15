@@ -4,15 +4,7 @@ import {LifeBarter, UserTodoBarter} from "@/types";
 import {GameItemService} from "@/services/game-item-service.ts";
 import {todoService} from "@/services/todo-service.ts";
 import {ArrowRight, Search, RefreshCw} from "lucide-react";
-
-interface BarterSettingsModalProps{
-	characterId:number;
-	cycle:number;
-	cycleLabel:string;
-	existingBarters:UserTodoBarter[];
-	onUpdate:(barters:UserTodoBarter[]) => void;
-	onClose:() => void;
-}
+import type {BarterSettingsModalProps} from "@/types/ui";
 
 const barterKey = (itemName:string, exchangeItemName:string, npcName:string) =>
 	`${itemName}|${exchangeItemName}|${npcName}`;

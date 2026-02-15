@@ -1,14 +1,6 @@
 import React, {useState, useEffect} from "react";
 import styles from "./todo.module.scss";
-
-interface CoinCounterProps{
-	label:string;
-	current:number;
-	max:number;
-	chargeIntervalMinutes:number;
-	lastChargeTime?:string;
-	onChange:(value:number) => void;
-}
+import type {CoinCounterProps} from "@/types/ui";
 
 const CoinCounter:React.FC<CoinCounterProps> = ({
 	label,

@@ -170,6 +170,84 @@
 	}
 }
 
+.filtersSection{
+	display:flex;
+	flex-direction:column;
+	gap:10px;
+	padding-top:4px;
+	border-top:1px dashed var(--border);
+}
+
+.itemTypeFilter{
+	display:flex;
+	align-items:center;
+	gap:10px;
+	flex-wrap:wrap;
+
+	label{
+		font-weight:600;
+		color:var(--text-muted);
+		font-size:0.85rem;
+	}
+}
+
+.filterSelect{
+	padding:8px 12px;
+	border:1px solid var(--border);
+	border-radius:10px;
+	background:var(--surface);
+	color:var(--text);
+	font-size:0.88rem;
+	min-width:180px;
+}
+
+.itemRarityFilter{
+	display:flex;
+	flex-direction:column;
+	gap:8px;
+}
+
+.rarityLabel{
+	font-weight:600;
+	color:var(--text-muted);
+	font-size:0.85rem;
+}
+
+.rarityOptions{
+	display:flex;
+	flex-wrap:wrap;
+	gap:8px;
+}
+
+.rarityOption{
+	display:inline-flex;
+	align-items:center;
+	gap:6px;
+	cursor:pointer;
+
+	input{
+		margin:0;
+	}
+}
+
+.rarityBadge{
+	display:inline-flex;
+	align-items:center;
+	justify-content:center;
+	padding:4px 10px;
+	border-radius:999px;
+	border:1px solid transparent;
+	font-size:0.76rem;
+	font-weight:700;
+	line-height:1;
+	opacity:0.85;
+}
+
+.selected .rarityBadge{
+	opacity:1;
+	box-shadow:0 0 0 1px currentColor inset;
+}
+
 .sortSelect{
 	padding:8px 12px;
 	border:1px solid var(--border);
@@ -242,7 +320,7 @@
 
 .barterHeader{
 	display:flex;
-	justify-content:space-between;
+	justify-content:flex-start;
 	align-items:center;
 	margin-bottom:14px;
 	gap:8px;
@@ -324,7 +402,7 @@
 
 .craftHeader{
 	display:flex;
-	justify-content:space-between;
+	justify-content:flex-end;
 	align-items:center;
 	margin-bottom:14px;
 }
@@ -466,8 +544,21 @@
 		gap:4px;
 	}
 
+	.itemTypeFilter{
+		flex-direction:column;
+		align-items:flex-start;
+	}
+
 	.sortSelect{
 		width:100%;
+	}
+
+	.filterSelect{
+		width:100%;
+	}
+
+	.rarityOptions{
+		gap:6px;
 	}
 
 	.barterExchange{

@@ -2,18 +2,7 @@ import React, {useMemo} from "react";
 import styles from "./todo.module.scss";
 import {GameMonster} from "@/types";
 import {getDifficultyLabel} from "@/utils";
-
-interface BossChecklistProps{
-	label:string;
-	monsters:GameMonster[];
-	completedIds:number[];
-	onChange:(completedIds:number[]) => void;
-	maxCompleted?:number;
-	groupByName?:boolean;
-	visualGroup?:boolean;
-	allowDuplicates?:boolean;
-	trackedIds?:number[];
-}
+import type {BossChecklistProps} from "@/types/ui";
 
 const BossChecklist:React.FC<BossChecklistProps> = ({
 	label,

@@ -8,6 +8,7 @@ import LoginPage from "./pages/auth/login";
 import RegisterNicknamePage from "./pages/auth/register-nickname";
 import GameItemsPage from "./pages/game/game-items";
 import EventsPage from "./pages/game/events";
+import NewsPage from "./pages/game/news";
 import CharactersPage from "./pages/user/characters";
 import ProfilePage from "./pages/user/profile";
 import TodoPage from "./pages/user/todo";
@@ -68,6 +69,7 @@ const AppContent:React.FC = () => {
 					<Route path="/item" element={<GameItemsPage/>}/>
 					<Route path="/item/:itemName/detail" element={<GameItemsPage/>}/>
 					<Route path="/events" element={<EventsPage/>}/>
+					<Route path="/news" element={<NewsPage/>}/>
 					<Route path="/profile" element={<PrivateRoute><ProfilePage/></PrivateRoute>}/>
 					<Route path="/characters" element={<CharactersPage/>}/>
 					<Route path="/todo" element={<PrivateRoute><TodoPage/></PrivateRoute>}/>

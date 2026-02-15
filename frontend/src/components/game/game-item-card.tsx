@@ -1,21 +1,10 @@
 import React, {useMemo} from "react";
-import {GameItemSummary} from "@/types";
 import {Info, Package, RefreshCw, Hammer, MapPin, User} from "lucide-react";
 import {getItemRarityInfo} from "@/utils";
 import styles from "./game-item-card.module.scss";
-
-interface GameItemCardProps{
-	item:GameItemSummary;
-	onClick?:(item:GameItemSummary) => void;
-}
+import type {GameItemCardProps, GroupedBarterSource} from "@/types/ui";
 
 // 지역+NPC 기준으로 그룹화된 물물교환 정보
-interface GroupedBarterSource{
-	regionName:string | null;
-	npcName:string | null;
-	count:number;
-}
-
 const GameItemCard:React.FC<GameItemCardProps> = ({item, onClick}) => {
 	// 지역+NPC가 같은 물물교환 정보를 그룹화
 	const groupedBarterSources = useMemo<GroupedBarterSource[]>(() => {

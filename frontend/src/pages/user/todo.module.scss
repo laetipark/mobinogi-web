@@ -47,14 +47,8 @@ html{
 .pageHeader{
 	display:flex;
 	justify-content:space-between;
-	align-items:center;
+	align-items:flex-start;
 	margin-bottom:24px;
-
-	h2{
-		margin:0;
-		font-size:24px;
-		color:var(--text-primary, #333);
-	}
 }
 
 .resetTimers{
@@ -524,10 +518,6 @@ html{
 		flex-direction:column;
 		gap:12px;
 		align-items:flex-start;
-
-		h2{
-			font-size:20px;
-		}
 	}
 
 	.resetTimers{
