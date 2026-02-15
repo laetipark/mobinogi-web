@@ -14,18 +14,16 @@
 	margin:0 auto;
 }
 
-.header{
+.pageHero{
 	display:flex;
 	justify-content:space-between;
-	align-items:center;
-	margin-bottom:24px;
-}
+	align-items:flex-end;
+	gap:12px;
+	margin-bottom:16px;
 
-.pageTitle{
-	font-size:24px;
-	font-weight:700;
-	color:var(--text);
-	margin:0;
+	:global(.oYV5kUSv){
+		margin-bottom:0;
+	}
 }
 
 .writeBtn{
@@ -167,6 +165,10 @@
 	min-width:0;
 }
 
+.rowMeta{
+	display:contents;
+}
+
 .categoryTag{
 	color:var(--primary);
 	font-size:13px;
@@ -261,15 +263,61 @@
 
 @include tablet{
 	.listHeader{
-		grid-template-columns:1fr 100px 80px;
+		display:none;
 	}
 
 	.postRow{
-		grid-template-columns:1fr 100px 80px;
+		display:flex;
+		flex-direction:column;
+		align-items:stretch;
+		gap:8px;
+		padding:12px;
+	}
+
+	.rowMeta{
+		display:flex;
+		flex-wrap:wrap;
+		gap:6px 14px;
 	}
 
 	.colViews{
 		display:none;
+	}
+
+	.colAuthor,
+	.colDate{
+		font-size:12px;
+		color:var(--text-muted);
+		overflow:visible;
+		text-overflow:clip;
+		white-space:nowrap;
+		text-align:left;
+	}
+
+	.colAuthor::before{
+		content:"작성자";
+		font-weight:600;
+		margin-right:4px;
+	}
+
+	.colDate::before{
+		content:"등록";
+		font-weight:600;
+		margin-right:4px;
+	}
+
+	.colTitle{
+		flex-wrap:wrap;
+		align-items:flex-start;
+	}
+
+	.title{
+		white-space:normal;
+		overflow:hidden;
+		text-overflow:ellipsis;
+		display:-webkit-box;
+		-webkit-line-clamp:2;
+		-webkit-box-orient:vertical;
 	}
 }
 
@@ -278,13 +326,14 @@
 		padding:20px 10px;
 	}
 
-	.header{
-		flex-wrap:wrap;
-		gap:8px;
+	.pageHero{
+		flex-direction:column;
+		align-items:stretch;
+		gap:6px;
 	}
 
-	.pageTitle{
-		font-size:20px;
+	.pageHero :global(.oYV5kUSv){
+		padding:14px 0;
 	}
 
 	.tab{
@@ -296,22 +345,7 @@
 		width:100%;
 	}
 
-	.listHeader{
-		display:none;
-	}
-
-	.postRow{
-		display:flex;
-		flex-direction:column;
-		gap:4px;
-		padding:12px;
-	}
-
-	.colTitle{
-		flex-wrap:wrap;
-	}
-
-	.colAuthor, .colDate, .colViews{
-		font-size:12px;
+	.writeBtn{
+		width:100%;
 	}
 }

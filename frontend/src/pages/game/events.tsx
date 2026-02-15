@@ -211,7 +211,11 @@ const buildSummaryGroups = (rows:Array<{left:string; right:string}>):SummaryGrou
 const sanitizeTableHtml = (html:string):string => {
 	const doc = new DOMParser().parseFromString(html, "text/html");
 	doc.querySelectorAll("script, iframe, object, embed, style, link, meta, base").forEach((node) => node.remove());
-	doc.querySelectorAll("table").forEach((table) => table.removeAttribute("style"));
+	doc.querySelectorAll("table, thead, tbody, tfoot, tr, th, td, colgroup, col").forEach((element) => {
+		element.removeAttribute("style");
+		element.removeAttribute("width");
+		element.removeAttribute("height");
+	});
 
 	Array.from(doc.querySelectorAll("*")).forEach((el) => {
 		Array.from(el.attributes).forEach((attr) => {
@@ -258,7 +262,7 @@ const EventSummaryContent:React.FC<{content:string}> = ({content}) => {
 		return (
 			<div className={styles.summaryBlocks}>
 				{parsedTables.map((table, tableIndex) => {
-					if(table.hasSpan){
+					if(table.rawHtml){
 						return (
 							<div
 								key={`summary-html-${tableIndex}`}

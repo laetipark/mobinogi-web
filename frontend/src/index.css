@@ -818,28 +818,7 @@ body{
 	}
 }
 
-@media (max-width:768px){
-	.container{
-		padding:0 1rem;
-	}
-
-	.header-content{
-		gap:0.5rem;
-		padding:0.65rem 0;
-	}
-
-	.logo{
-		font-size:1.16rem;
-		flex-shrink:0;
-	}
-
-	.header-right{
-		flex:1;
-		min-width:0;
-		gap:0.45rem;
-		justify-content:flex-end;
-	}
-
+@media (max-width:940px){
 	.menu-toggle{
 		display:inline-flex;
 		order:3;
@@ -847,12 +826,6 @@ body{
 
 	.desktop-nav{
 		display:none;
-	}
-
-	.nav-btn{
-		padding:0.46rem 0.7rem;
-		font-size:0.78rem;
-		border-radius:10px;
 	}
 
 	.mobile-nav{
@@ -889,6 +862,35 @@ body{
 	.mobile-nav .nav-btn{
 		width:100%;
 		justify-content:flex-start;
+	}
+}
+
+@media (max-width:768px){
+	.container{
+		padding:0 1rem;
+	}
+
+	.header-content{
+		gap:0.5rem;
+		padding:0.65rem 0;
+	}
+
+	.logo{
+		font-size:1.16rem;
+		flex-shrink:0;
+	}
+
+	.header-right{
+		flex:1;
+		min-width:0;
+		gap:0.45rem;
+		justify-content:flex-end;
+	}
+
+	.nav-btn{
+		padding:0.46rem 0.7rem;
+		font-size:0.78rem;
+		border-radius:10px;
 	}
 
 	.profile-chip{

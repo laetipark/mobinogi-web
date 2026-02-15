@@ -136,8 +136,11 @@ const BoardListPage:React.FC = () => {
 	return (
 		<div className={styles.boardPage}>
 			<div className={styles.container}>
-				<div className={styles.header}>
-					<h2 className={styles.pageTitle}>게시판</h2>
+				<div className={styles.pageHero}>
+					<div className="oYV5kUSv">
+						<h1>게시판</h1>
+						<p className="-v1-aGH7">자유 글, 위키, Discord 글을 한곳에서 확인하세요</p>
+					</div>
 					{user && (
 						<button className={styles.writeBtn} onClick={() => navigate("/board/write")}>
 							글쓰기
@@ -201,7 +204,7 @@ const BoardListPage:React.FC = () => {
 									className={styles.postRow}
 									onClick={() => handlePostClick(post)}
 								>
-									<div className={styles.colTitle}>
+								<div className={styles.colTitle}>
 										{post.categoryName && (
 											<span className={styles.categoryTag}>[{post.categoryName}]</span>
 										)}
@@ -212,11 +215,13 @@ const BoardListPage:React.FC = () => {
 											<span className={styles.commentCount}>[{post.commentCount}]</span>
 										)}
 									</div>
-									<span className={styles.colAuthor}>
-										{post.authorNickname || post.externalAuthor || "익명"}
-									</span>
-									<span className={styles.colDate}>{formatDate(post.createdAt)}</span>
-									<span className={styles.colViews}>{post.viewCount}</span>
+									<div className={styles.rowMeta}>
+										<span className={styles.colAuthor}>
+											{post.authorNickname || post.externalAuthor || "익명"}
+										</span>
+										<span className={styles.colDate}>{formatDate(post.createdAt)}</span>
+										<span className={styles.colViews}>{post.viewCount}</span>
+									</div>
 								</div>
 							))}
 						</div>

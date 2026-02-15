@@ -1,5 +1,5 @@
 import type {KakaoLoginProps} from "@/types/ui";
-﻿import React from "react";
+import React from "react";
 import {useAuth} from "@/hooks/use-auth";
 import styles from "./kakao-login.module.scss";
 

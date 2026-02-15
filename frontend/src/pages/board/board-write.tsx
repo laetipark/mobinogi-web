@@ -1,7 +1,9 @@
 import React, {useState, useEffect, useRef, useCallback} from "react";
 import {useNavigate, useParams} from "react-router-dom";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, {type Components} from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
 import type {BoardCategory, BoardPostCreateRequest, BoardPostUpdateRequest} from "@/types";
 import {boardService} from "@/services/board-service";
 import {uploadService} from "@/services/upload-service";
@@ -9,6 +11,16 @@ import {useAuth} from "@/hooks/use-auth";
 import {ImagePlus} from "lucide-react";
 import MarkdownToolbar from "@/components/board/markdown-toolbar";
 import styles from "./board-write.module.scss";
+
+const markdownComponents:Components = {
+	table: ({children, ...props}) => (
+		<div className={styles.tableWrapper}>
+			<table {...props}>{children}</table>
+		</div>
+	)
+};
+
+const markdownRehypePlugins = [rehypeRaw, rehypeSanitize] as const;
 
 const BoardWritePage:React.FC = () => {
 	const {postId} = useParams<{postId:string}>();
@@ -274,7 +286,13 @@ const BoardWritePage:React.FC = () => {
 						{showPreview ? (
 							<div className={styles.preview}>
 								{content.trim() ? (
-									<ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+									<ReactMarkdown
+										remarkPlugins={[remarkGfm]}
+										rehypePlugins={markdownRehypePlugins}
+										components={markdownComponents}
+									>
+										{content}
+									</ReactMarkdown>
 								) : (
 									<span className={styles.previewEmpty}>내용을 입력하면 미리보기가 표시됩니다.</span>
 								)}

@@ -3,6 +3,8 @@ import {useNavigate, useLocation} from "react-router-dom";
 import {Gamepad2, Shield, Package, LogOut, ClipboardCheck, MessageSquare, Megaphone, CalendarDays, Image, Menu, X} from "lucide-react";
 import {useAuth} from "@/hooks/use-auth";
 
+const MOBILE_MENU_BREAKPOINT = 940;
+
 const Header:React.FC = () => {
 	const {user, logout} = useAuth();
 	const navigate = useNavigate();
@@ -36,7 +38,7 @@ const Header:React.FC = () => {
 
 	useEffect(() => {
 		const handleResize = () => {
-			if(window.innerWidth > 768){
+			if(window.innerWidth > MOBILE_MENU_BREAKPOINT){
 				setMobileMenuOpen(false);
 			}
 		};

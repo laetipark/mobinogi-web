@@ -21,15 +21,28 @@
 - Annotate read operations with `@Transactional(readOnly = true)`.
 - Annotate write operations with `@Transactional`.
 - Keep domain rules and orchestration in service layer.
+- Normalize and validate optional request parameters in dedicated helper methods
+  (e.g. `normalizeCategory(...)`, `resolve...(...)`) instead of inline branching.
+- Replace repeated branching blocks with intention-revealing private methods.
 
 ## Repository Rules
 - Extend `JpaRepository`.
 - For soft-delete entities, include `...AndDeletedAtIsNull` conditions.
 - Keep query methods readable; move complex queries to `@Query` when needed.
+- If derived query names become hard to read, prefer explicit `@Query` with
+  clear method names (e.g. `findActive...`, `findActive...ByTypes`).
 
 ## Error and Logging
 - Use centralized exception handling for API errors.
 - Log actionable context only; do not log secrets or tokens.
+- Avoid returning raw exception messages from generic `Exception` handlers.
+  Return stable client-safe messages and keep details in server logs.
+
+## Controller Readability
+- Avoid `ResponseEntity<?>` when response shape is known; use explicit generic types.
+- For map-based response contracts, use dedicated helper methods to build success/failure payloads
+  to remove duplication and keep key ordering consistent.
+- Extract repeated response keys (`success`, `message`, `data`) into one code path per controller.
 
 ## Build and Validation
 - Compile: `./mvnw clean compile -DskipTests -q`

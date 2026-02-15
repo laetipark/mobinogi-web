@@ -1,12 +1,24 @@
 import React, {useState, useEffect} from "react";
 import {useParams, useNavigate, useLocation} from "react-router-dom";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, {type Components} from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
 import type {BoardPost, BoardComment, BoardCommentCreateRequest, BoardPostHistory} from "@/types";
 import {boardService} from "@/services/board-service";
 import {useAuth} from "@/hooks/use-auth";
 import CommentItem from "@/components/board/comment-item";
 import styles from "./board-detail.module.scss";
+
+const markdownComponents:Components = {
+	table: ({children, ...props}) => (
+		<div className={styles.tableWrapper}>
+			<table {...props}>{children}</table>
+		</div>
+	)
+};
+
+const markdownRehypePlugins = [rehypeRaw, rehypeSanitize] as const;
 
 const BoardDetailPage:React.FC = () => {
 	const {postId} = useParams<{postId:string}>();
@@ -211,13 +223,13 @@ const BoardDetailPage:React.FC = () => {
 					)}
 
 					<div className={styles.content}>
-						<ReactMarkdown remarkPlugins={[remarkGfm]} components={{
-							table: ({children, ...props}) => (
-								<div style={{overflowX:"auto"}}>
-									<table {...props}>{children}</table>
-								</div>
-							)
-						}}>{post.content}</ReactMarkdown>
+						<ReactMarkdown
+							remarkPlugins={[remarkGfm]}
+							rehypePlugins={markdownRehypePlugins}
+							components={markdownComponents}
+						>
+							{post.content}
+						</ReactMarkdown>
 					</div>
 				</article>
 
@@ -243,7 +255,13 @@ const BoardDetailPage:React.FC = () => {
 											{selectedHistory?.historyId === h.historyId && (
 												<div className={styles.historyDetail}>
 													<h4>{h.title}</h4>
-													<ReactMarkdown remarkPlugins={[remarkGfm]}>{h.content}</ReactMarkdown>
+													<ReactMarkdown
+														remarkPlugins={[remarkGfm]}
+														rehypePlugins={markdownRehypePlugins}
+														components={markdownComponents}
+													>
+														{h.content}
+													</ReactMarkdown>
 												</div>
 											)}
 										</div>

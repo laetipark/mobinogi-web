@@ -42,7 +42,7 @@ const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = fa
 			const data = await characterService.getMyCharacters();
 			setCharacters(data);
 		}catch(err:any){
-			setError(err.message || "ĳ���� ����� �ҷ����µ� �����߽��ϴ�.");
+			setError(err.message || "캐릭터 목록을 불러오는데 실패했습니다.");
 		}finally{
 			setLoading(false);
 		}
@@ -70,7 +70,7 @@ const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = fa
 	const handleSubmit = async(e:React.FormEvent) => {
 		e.preventDefault();
 		if(!formData.characterName.trim()){
-			setError("ĳ���� �̸��� �Է����ּ���.");
+			setError("캐릭터 이름을 입력해주세요.");
 			return;
 		}
 		
@@ -87,7 +87,7 @@ const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = fa
 			}
 			resetForm();
 		}catch(err:any){
-			setError(err.message || "ĳ���� ���忡 �����߽��ϴ�.");
+			setError(err.message || "캐릭터 저장에 실패했습니다.");
 		}
 	};
 	
@@ -102,7 +102,7 @@ const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = fa
 	};
 	
 	const handleDelete = async(characterId:number) => {
-		if(!window.confirm("���� �����Ͻðڽ��ϱ�?")){
+		if(!window.confirm("정말 삭제하시겠습니까?")){
 			return;
 		}
 		
@@ -111,7 +111,7 @@ const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = fa
 			await characterService.deleteCharacter(characterId);
 			setCharacters(prev => prev.filter(c => c.characterId !== characterId));
 		}catch(err:any){
-			setError(err.message || "ĳ���� ������ �����߽��ϴ�.");
+			setError(err.message || "캐릭터 삭제에 실패했습니다.");
 		}
 	};
 	
@@ -127,7 +127,7 @@ const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = fa
 	return (
 		<div className={containerClass}>
 			<div className={styles.header}>
-				<h2>�� ĳ���� ����</h2>
+				<h2>내 캐릭터 관리</h2>
 				{isModal && onClose && (
 					<button className={styles.closeBtn} onClick={onClose}>&times;</button>
 				)}
@@ -137,34 +137,34 @@ const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = fa
 			
 			{!isAdding && (
 				<button className={styles.addBtn} onClick={() => setIsAdding(true)}>
-					+ ĳ���� �߰�
+					+ 캐릭터 추가
 				</button>
 			)}
 			
 			{isAdding && (
 				<form className={styles.form} onSubmit={handleSubmit}>
 					<div className={styles.formGroup}>
-						<label htmlFor="characterName">ĳ���� �̸� *</label>
+						<label htmlFor="characterName">캐릭터 이름 *</label>
 						<input
 							type="text"
 							id="characterName"
 							name="characterName"
 							value={formData.characterName}
 							onChange={handleNameChange}
-							placeholder="ĳ���� �̸� �Է�"
+							placeholder="캐릭터 이름 입력"
 							autoFocus
 						/>
 					</div>
 					
 					<div className={styles.formGroup}>
-						<label htmlFor="serverId">����</label>
+						<label htmlFor="serverId">서버</label>
 						<select
 							id="serverId"
 							name="serverId"
 							value={formData.serverId ?? ""}
 							onChange={handleServerChange}
 						>
-							<option value="">���þ���</option>
+							<option value="">선택하세요</option>
 							{SERVERS.map(server => (
 								<option key={server.id} value={server.id}>{server.name}</option>
 							))}
@@ -172,14 +172,14 @@ const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = fa
 					</div>
 					
 					<div className={styles.formGroup}>
-						<label htmlFor="classId">����</label>
+						<label htmlFor="classId">직업</label>
 						<select
 							id="classId"
 							name="classId"
 							value={formData.classId ?? ""}
 							onChange={handleClassChange}
 						>
-							<option value="">���þ���</option>
+							<option value="">선택하세요</option>
 							{classes.map(cls => (
 								<option key={cls.classId} value={cls.classId}>{cls.className}</option>
 							))}
@@ -188,19 +188,19 @@ const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = fa
 					
 					<div className={styles.formActions}>
 						<button type="submit" className={styles.submitBtn}>
-							{editingId ? "����" : "�߰�"}
+							{editingId ? "수정" : "추가"}
 						</button>
 						<button type="button" className={styles.cancelBtn} onClick={handleCancel}>
-							���
+							취소
 						</button>
 					</div>
 				</form>
 			)}
 			
 			{loading ? (
-				<div className={styles.loading}>�ε� ��...</div>
+				<div className={styles.loading}>로딩 중...</div>
 			) : characters.length === 0 ? (
-				<div className={styles.empty}>��ϵ� ĳ���Ͱ� �����ϴ�.</div>
+				<div className={styles.empty}>등록된 캐릭터가 없습니다.</div>
 			) : (
 				<ul className={styles.characterList}>
 					{characters.map(character => (
@@ -219,13 +219,13 @@ const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = fa
 									className={styles.editBtn}
 									onClick={() => handleEdit(character)}
 								>
-									����
+									수정
 								</button>
 								<button
 									className={styles.deleteBtn}
 									onClick={() => handleDelete(character.characterId)}
 								>
-									����
+									삭제
 								</button>
 							</div>
 						</li>
