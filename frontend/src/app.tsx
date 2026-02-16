@@ -19,6 +19,7 @@ import PhotoBoardPage from "./pages/photo/photo-board";
 import DiscordCallbackPage from "./pages/auth/discord-callback";
 import LoadingScreen from "./components/common/loading-screen";
 import DarkModeToggle from "./components/common/dark-mode-toggle";
+import SiteFooter from "./components/layout/site-footer";
 
 const PublicRoute:React.FC<{children:React.ReactNode}> = ({children}) => {
 	const {user} = useAuth();
@@ -82,6 +83,7 @@ const AppContent:React.FC = () => {
 					<Route path="/photo-board" element={<Navigate to="/gallery" replace/>}/>
 				</Routes>
 			</div>
+			<SiteFooter/>
 			<DarkModeToggle/>
 		</>
 	);

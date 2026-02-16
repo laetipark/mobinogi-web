@@ -471,9 +471,12 @@ const GameItemsPage:React.FC = () => {
 							key={`${craft.craftId}-${craft.craftSubId}-${craft.craftIngredientId}`}
 							craft={craft}
 							onClick={(clickedCraft) => {
-								if(clickedCraft.gameItem){
-									setSelectedItem(clickedCraft.gameItem);
-									navigate(`/items/${encodeURIComponent(clickedCraft.gameItem.itemName)}/detail`);
+								const targetName = clickedCraft.itemName || clickedCraft.gameItem?.itemName;
+								if(targetName){
+									if(clickedCraft.gameItem){
+										setSelectedItem(clickedCraft.gameItem);
+									}
+									navigate(`/items/${encodeURIComponent(targetName)}/detail`);
 								}
 							}}
 						/>

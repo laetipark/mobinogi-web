@@ -1,8 +1,30 @@
-import React, {useState, useEffect, useCallback} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {GameItemSummary, GameItemData, LifeBarter, LifeCraft, GameItemSearchParams} from "@/types";
 import GameItemService from "@/services/game-item-service";
 import {Search, RefreshCw, Package, ArrowRightLeft, Hammer, ChevronDown, ChevronUp} from "lucide-react";
 import styles from "./item-search.module.scss";
+
+const formatCraftLevel = (craftableLevel:number | null | undefined):string => {
+	if(craftableLevel === null || craftableLevel === undefined){
+		return "-";
+	}
+	return `${craftableLevel}`;
+};
+
+const formatProcessingTime = (processingTime:number | null | undefined):string => {
+	if(processingTime === null || processingTime === undefined){
+		return "-";
+	}
+	const minutes = Math.floor(processingTime / 60);
+	const seconds = processingTime % 60;
+	if(minutes <= 0){
+		return `${seconds}초`;
+	}
+	if(seconds === 0){
+		return `${minutes}분`;
+	}
+	return `${minutes}분 ${seconds}초`;
+};
 
 const ItemSearchPage:React.FC = () => {
 	const [searchInput, setSearchInput] = useState("");
@@ -10,49 +32,48 @@ const ItemSearchPage:React.FC = () => {
 	const [error, setError] = useState<string | null>(null);
 	const [itemData, setItemData] = useState<GameItemData | null>(null);
 
-	// 자동완성 관련 상태
 	const [suggestions, setSuggestions] = useState<GameItemSummary[]>([]);
 	const [showSuggestions, setShowSuggestions] = useState(false);
 	const [suggestionsLoading, setSuggestionsLoading] = useState(false);
 
-	// 섹션 접기/펼치기 상태
 	const [expandedSections, setExpandedSections] = useState({
 		bartersByItem: true,
 		bartersByExchange: true,
 		crafts: true
 	});
 
-	// 자동완성 검색 (디바운스)
 	useEffect(() => {
 		const timer = setTimeout(async() => {
-			if(searchInput.trim().length >= 1){
-				setSuggestionsLoading(true);
-				try{
-					const params:GameItemSearchParams = {
-						page: 0,
-						size: 10,
-						keyword: searchInput.trim()
-					};
-					const response = await GameItemService.getGameItems(params);
-					setSuggestions(response.content);
-					setShowSuggestions(true);
-				}catch(err){
-					setSuggestions([]);
-				}finally{
-					setSuggestionsLoading(false);
-				}
-			}else{
+			if(searchInput.trim().length < 1){
 				setSuggestions([]);
 				setShowSuggestions(false);
+				return;
+			}
+
+			setSuggestionsLoading(true);
+			try{
+				const params:GameItemSearchParams = {
+					page: 0,
+					size: 10,
+					keyword: searchInput.trim()
+				};
+				const response = await GameItemService.getGameItems(params);
+				setSuggestions(response.content || []);
+				setShowSuggestions(true);
+			}catch{
+				setSuggestions([]);
+			}finally{
+				setSuggestionsLoading(false);
 			}
 		}, 300);
 
 		return () => clearTimeout(timer);
 	}, [searchInput]);
 
-	// 아이템 검색
 	const handleSearch = useCallback(async(itemName:string) => {
-		if(!itemName.trim()) return;
+		if(!itemName.trim()){
+			return;
+		}
 
 		setLoading(true);
 		setError(null);
@@ -70,21 +91,18 @@ const ItemSearchPage:React.FC = () => {
 		}
 	}, []);
 
-	// 자동완성 항목 클릭
 	const handleSuggestionClick = (item:GameItemSummary) => {
 		setSearchInput(item.itemName);
 		setShowSuggestions(false);
 		handleSearch(item.itemName);
 	};
 
-	// Enter 키 검색
 	const handleKeyPress = (e:React.KeyboardEvent) => {
 		if(e.key === "Enter"){
 			handleSearch(searchInput);
 		}
 	};
 
-	// 초기화
 	const handleReset = () => {
 		setSearchInput("");
 		setItemData(null);
@@ -93,7 +111,6 @@ const ItemSearchPage:React.FC = () => {
 		setShowSuggestions(false);
 	};
 
-	// 섹션 토글
 	const toggleSection = (section:keyof typeof expandedSections) => {
 		setExpandedSections(prev => ({
 			...prev,
@@ -101,9 +118,10 @@ const ItemSearchPage:React.FC = () => {
 		}));
 	};
 
-	// 물물교환 테이블 렌더링
 	const renderBarterTable = (barters:LifeBarter[], title:string, sectionKey:keyof typeof expandedSections) => {
-		if(!barters || barters.length === 0) return null;
+		if(!barters || barters.length === 0){
+			return null;
+		}
 
 		return (
 			<div className={styles.dataSection}>
@@ -127,7 +145,7 @@ const ItemSearchPage:React.FC = () => {
 									<th>무게</th>
 									<th>교환 아이템</th>
 									<th>교환 수량</th>
-									<th>수량</th>
+									<th>획득 수량</th>
 									<th>비고</th>
 								</tr>
 							</thead>
@@ -155,7 +173,11 @@ const ItemSearchPage:React.FC = () => {
 										</td>
 										<td>{barter.exchangeCost}</td>
 										<td>{barter.barterQty}</td>
-										<td>{[barter.barterServer && "서버 공유", barter.barterNpc && "NPC 공유"].filter(Boolean).join(" / ") || "-"}</td>
+										<td>
+											{[barter.barterServer && "서버 공유", barter.barterNpc && "NPC 공유"]
+												.filter(Boolean)
+												.join(" / ") || "-"}
+										</td>
 									</tr>
 								))}
 							</tbody>
@@ -166,9 +188,10 @@ const ItemSearchPage:React.FC = () => {
 		);
 	};
 
-	// 제작 테이블 렌더링
 	const renderCraftTable = (craftsBySubId:Record<number, LifeCraft[]>) => {
-		if(!craftsBySubId || Object.keys(craftsBySubId).length === 0) return null;
+		if(!craftsBySubId || Object.keys(craftsBySubId).length === 0){
+			return null;
+		}
 
 		const craftEntries = Object.entries(craftsBySubId);
 
@@ -185,47 +208,56 @@ const ItemSearchPage:React.FC = () => {
 
 				{expandedSections.crafts && (
 					<div className={styles.craftGroups}>
-						{craftEntries.map(([subId, crafts]) => (
-							<div key={subId} className={styles.craftGroup}>
-								<div className={styles.craftGroupHeader}>
-									<span className={styles.craftSubId}>제작법 #{subId}</span>
-								</div>
-								<div className={styles.tableWrapper}>
-									<table className={styles.dataTable}>
-										<thead>
-											<tr>
-												<th>결과물</th>
-												<th>재료</th>
-												<th>필요 수량</th>
-											</tr>
-										</thead>
-										<tbody>
-											{crafts.map((craft) => (
-												<tr key={craft.craftId}>
-													<td className={styles.itemCell}>
-														<span
-															className={styles.clickableItem}
-															onClick={() => craft.gameItem?.itemName && handleSearch(craft.gameItem.itemName)}
-														>
-															{craft.gameItem?.itemName || craft.itemId}
-														</span>
-													</td>
-													<td className={styles.itemCell}>
-														<span
-															className={styles.clickableItem}
-															onClick={() => craft.ingredientItem?.itemName && handleSearch(craft.ingredientItem.itemName)}
-														>
-															{craft.ingredientItem?.itemName || craft.craftIngredientId}
-														</span>
-													</td>
-													<td>{craft.craftIngredientCost}</td>
+						{craftEntries.map(([subId, crafts]) => {
+							const firstCraft = crafts[0];
+							return (
+								<div key={subId} className={styles.craftGroup}>
+									<div className={styles.craftGroupHeader}>
+										<span className={styles.craftSubId}>제작법 #{subId}</span>
+										<div className={styles.craftMeta}>
+											<span>{firstCraft?.craftType || "-"}</span>
+											<span>{firstCraft?.craftName || "-"}</span>
+											<span>레벨 {formatCraftLevel(firstCraft?.craftableLevel)}</span>
+											<span>소요 {formatProcessingTime(firstCraft?.processingTime)}</span>
+										</div>
+									</div>
+									<div className={styles.tableWrapper}>
+										<table className={styles.dataTable}>
+											<thead>
+												<tr>
+													<th>결과물</th>
+													<th>재료</th>
+													<th>필요 수량</th>
 												</tr>
-											))}
-										</tbody>
-									</table>
+											</thead>
+											<tbody>
+												{crafts.map((craft) => (
+													<tr key={craft.craftId}>
+														<td className={styles.itemCell}>
+															<span
+																className={styles.clickableItem}
+																onClick={() => (craft.itemName || craft.gameItem?.itemName) && handleSearch(craft.itemName || craft.gameItem?.itemName || "")}
+															>
+																{craft.itemName || craft.gameItem?.itemName || craft.itemId}
+															</span>
+														</td>
+														<td className={styles.itemCell}>
+															<span
+																className={styles.clickableItem}
+																onClick={() => (craft.ingredientName || craft.ingredientItem?.itemName) && handleSearch(craft.ingredientName || craft.ingredientItem?.itemName || "")}
+															>
+																{craft.ingredientName || craft.ingredientItem?.itemName || craft.craftIngredientId}
+															</span>
+														</td>
+														<td>{craft.craftIngredientCost}</td>
+													</tr>
+												))}
+											</tbody>
+										</table>
+									</div>
 								</div>
-							</div>
-						))}
+							);
+						})}
 					</div>
 				)}
 			</div>
@@ -235,122 +267,97 @@ const ItemSearchPage:React.FC = () => {
 	return (
 		<div className={styles.itemSearchPage}>
 			<div className={styles.container}>
-			<div className="oYV5kUSv">
-				<h1>아이템 검색</h1>
-				<p className="-v1-aGH7">아이템을 검색하여 물물교환, 제작 정보를 확인하세요</p>
-			</div>
-
-			{/* 검색 영역 */}
-			<div className={styles.searchSection}>
-				<div className={styles.searchContainer}>
-					<div className={styles.searchBox}>
-						<Search size={20} className={styles.searchIcon}/>
-						<input
-							type="text"
-							placeholder="아이템 이름을 입력하세요..."
-							value={searchInput}
-							onChange={(e) => setSearchInput(e.target.value)}
-							onKeyPress={handleKeyPress}
-							onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-							className={styles.searchInput}
-						/>
-						{suggestionsLoading && (
-							<RefreshCw className={`${styles.loadingIcon} ${styles.spinning}`} size={16}/>
-						)}
-
-						{/* 자동완성 드롭다운 */}
-						{showSuggestions && suggestions.length > 0 && (
-							<div className={styles.suggestionsDropdown}>
-								{suggestions.map((item) => (
-									<div
-										key={item.itemId}
-										className={styles.suggestionItem}
-										onClick={() => handleSuggestionClick(item)}
-									>
-										<Package size={16}/>
-										<span className={styles.suggestionName}>{item.itemName}</span>
-										<span className={styles.suggestionType}>{item.itemType}</span>
-									</div>
-								))}
-							</div>
-						)}
-					</div>
-					<button
-						onClick={() => handleSearch(searchInput)}
-						className={styles.searchBtn}
-						disabled={loading || !searchInput.trim()}
-					>
-						{loading ? <RefreshCw className={styles.spinning} size={16}/> : "검색"}
-					</button>
-					<button
-						onClick={handleReset}
-						className={styles.resetBtn}
-						disabled={loading}
-					>
-						초기화
-					</button>
+				<div className="oYV5kUSv">
+					<h1>아이템 검색</h1>
+					<p className="-v1-aGH7">아이템을 검색하여 물물교환, 제작 정보를 확인하세요</p>
 				</div>
-			</div>
 
-			{/* 에러 메시지 */}
-			{error && (
-				<div className={styles.errorMessage}>
-					{error}
-				</div>
-			)}
+				<div className={styles.searchSection}>
+					<div className={styles.searchContainer}>
+						<div className={styles.searchBox}>
+							<Search size={20} className={styles.searchIcon}/>
+							<input
+								type="text"
+								placeholder="아이템 이름을 입력하세요..."
+								value={searchInput}
+								onChange={(e) => setSearchInput(e.target.value)}
+								onKeyPress={handleKeyPress}
+								onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+								className={styles.searchInput}
+							/>
+							{suggestionsLoading && (
+								<RefreshCw className={`${styles.loadingIcon} ${styles.spinning}`} size={16}/>
+							)}
 
-			{/* 검색 결과 */}
-			{itemData && (
-				<div className={styles.resultsSection}>
-					{/* 아이템 정보 헤더 */}
-					<div className={styles.itemInfoHeader}>
-						<Package size={24}/>
-						<h2>{itemData.itemName}</h2>
-					</div>
-
-					{/* 물물교환 - 이 아이템을 제공하는 경우 */}
-					{renderBarterTable(
-						itemData.bartersByItemId,
-						"물물교환 (이 아이템 획득)",
-						"bartersByItem"
-					)}
-
-					{/* 물물교환 - 이 아이템을 사용하는 경우 */}
-					{renderBarterTable(
-						itemData.bartersByExchangeId,
-						"물물교환 (이 아이템 사용)",
-						"bartersByExchange"
-					)}
-
-					{/* 제작 정보 */}
-					{renderCraftTable(itemData.craftsBySubId)}
-
-					{/* 데이터가 없는 경우 */}
-					{(!itemData.bartersByItemId || itemData.bartersByItemId.length === 0) &&
-					 (!itemData.bartersByExchangeId || itemData.bartersByExchangeId.length === 0) &&
-					 (!itemData.craftsBySubId || Object.keys(itemData.craftsBySubId).length === 0) && (
-						<div className={styles.noRelatedData}>
-							이 아이템에 대한 물물교환/제작 정보가 없습니다.
+							{showSuggestions && suggestions.length > 0 && (
+								<div className={styles.suggestionsDropdown}>
+									{suggestions.map((item) => (
+										<div
+											key={item.itemId}
+											className={styles.suggestionItem}
+											onClick={() => handleSuggestionClick(item)}
+										>
+											<Package size={16}/>
+											<span className={styles.suggestionName}>{item.itemName}</span>
+											<span className={styles.suggestionType}>{item.itemType}</span>
+										</div>
+									))}
+								</div>
+							)}
 						</div>
-					)}
+						<button
+							onClick={() => handleSearch(searchInput)}
+							className={styles.searchBtn}
+							disabled={loading || !searchInput.trim()}
+						>
+							{loading ? <RefreshCw className={styles.spinning} size={16}/> : "검색"}
+						</button>
+						<button onClick={handleReset} className={styles.resetBtn} disabled={loading}>
+							초기화
+						</button>
+					</div>
 				</div>
-			)}
 
-			{/* 초기 상태 안내 */}
-			{!itemData && !error && !loading && (
-				<div className={styles.initialGuide}>
-					<Package size={48}/>
-					<p>아이템 이름을 검색하면 물물교환, 제작 정보를 확인할 수 있습니다.</p>
-				</div>
-			)}
+				{error && (
+					<div className={styles.errorMessage}>
+						{error}
+					</div>
+				)}
 
-			{/* 로딩 상태 */}
-			{loading && (
-				<div className={styles.loadingContainer}>
-					<RefreshCw className={styles.spinning} size={24}/>
-					<span>아이템 정보를 불러오는 중...</span>
-				</div>
-			)}
+				{itemData && (
+					<div className={styles.resultsSection}>
+						<div className={styles.itemInfoHeader}>
+							<Package size={24}/>
+							<h2>{itemData.itemName}</h2>
+						</div>
+
+						{renderBarterTable(itemData.bartersByItemId, "물물교환 (해당 아이템 획득)", "bartersByItem")}
+						{renderBarterTable(itemData.bartersByExchangeId, "물물교환 (해당 아이템 사용)", "bartersByExchange")}
+						{renderCraftTable(itemData.craftsBySubId)}
+
+						{(!itemData.bartersByItemId || itemData.bartersByItemId.length === 0)
+							&& (!itemData.bartersByExchangeId || itemData.bartersByExchangeId.length === 0)
+							&& (!itemData.craftsBySubId || Object.keys(itemData.craftsBySubId).length === 0) && (
+								<div className={styles.noRelatedData}>
+									이 아이템에 대한 물물교환/제작 정보가 없습니다.
+								</div>
+							)}
+					</div>
+				)}
+
+				{!itemData && !error && !loading && (
+					<div className={styles.initialGuide}>
+						<Package size={48}/>
+						<p>아이템 이름을 검색하면 물물교환, 제작 정보를 확인할 수 있습니다.</p>
+					</div>
+				)}
+
+				{loading && (
+					<div className={styles.loadingContainer}>
+						<RefreshCw className={styles.spinning} size={24}/>
+						<span>아이템 정보를 불러오는 중...</span>
+					</div>
+				)}
 			</div>
 		</div>
 	);

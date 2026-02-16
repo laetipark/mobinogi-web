@@ -7,7 +7,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,7 +36,7 @@ public class RedisConfig {
 		config.setPort(redisPort);
 		config.setDatabase(redisDatabase);
 
-		if (redisPassword != null && !redisPassword.isEmpty()) {
+		if(redisPassword != null && !redisPassword.isEmpty()){
 			config.setPassword(redisPassword);
 		}
 
@@ -60,8 +60,7 @@ public class RedisConfig {
 		mapper.registerModule(new JavaTimeModule());
 		mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-		Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(Object.class);
-		serializer.setObjectMapper(mapper);
+		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(mapper);
 
 		template.setValueSerializer(serializer);
 		template.setHashValueSerializer(serializer);

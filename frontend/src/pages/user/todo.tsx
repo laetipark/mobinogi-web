@@ -13,7 +13,7 @@ import SortableCharacterList from "../../components/user/sortable-character-list
 import EventChecklist from "../../components/todo/event-checklist";
 import styles from "./todo.module.scss";
 
-const AUTO_SAVE_DEBOUNCE_MS = 20 * 1000; // 20초
+const AUTO_SAVE_DEBOUNCE_MS = 5 * 1000; // 5초
 
 const TodoPage:React.FC = () => {
 	const [todos, setTodos] = useState<UserTodo[]>([]);

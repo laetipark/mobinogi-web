@@ -29,6 +29,7 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<skip.frontend>false</skip.frontend>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -151,6 +152,13 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>-Xshare:off -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar</argLine>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
 					<annotationProcessorPaths>
@@ -181,6 +189,7 @@
 				<version>1.15.0</version>
 				<configuration>
 					<workingDirectory>frontend</workingDirectory>
+					<skip>${skip.frontend}</skip>
 				</configuration>
 				<executions>
 					<!-- Install Node.js and npm -->

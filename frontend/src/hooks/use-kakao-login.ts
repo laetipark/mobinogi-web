@@ -2,7 +2,6 @@ import {useState, useEffect} from "react";
 import axios from "axios";
 import {KakaoUser, KakaoLoginRequest, AuthResponse} from "../types/kakao";
 import type {User, PendingKakaoUser} from "../types";
-import {config} from "../config/env";
 
 export const useKakaoLogin = () => {
 	const [user, setUser] = useState<User | null>(null);
@@ -53,7 +52,7 @@ export const useKakaoLogin = () => {
 			const token = localStorage.getItem("accessToken");
 			if(!token) return;
 
-			const response = await axios.get(`${config.api.baseUrl}/auth/me`, {
+			const response = await axios.get("/auth/me", {
 				headers : {Authorization : `Bearer ${token}`}
 			});
 
@@ -120,7 +119,7 @@ export const useKakaoLogin = () => {
 	const checkAndProcessKakaoUser = async(kakaoUser:KakaoUser) => {
 		try{
 			// 서버에 회원 존재 여부 확인
-			const checkResponse = await axios.get(`${config.api.baseUrl}/auth/kakao/check`, {
+			const checkResponse = await axios.get("/auth/kakao/check", {
 				params : {kakaoId : kakaoUser.id}
 			});
 
@@ -163,7 +162,7 @@ export const useKakaoLogin = () => {
 			console.log("Completing registration with:", userInfo);
 
 			const response = await axios.post<AuthResponse>(
-				`${config.api.baseUrl}/auth/kakao`,
+				"/auth/kakao",
 				userInfo
 			);
 
@@ -204,7 +203,7 @@ export const useKakaoLogin = () => {
 			console.log("Sending user info to server:", userInfo);
 
 			const response = await axios.post<AuthResponse>(
-				`${config.api.baseUrl}/auth/kakao`,
+				"/auth/kakao",
 				userInfo
 			);
 

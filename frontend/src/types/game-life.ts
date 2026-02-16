@@ -34,8 +34,14 @@ export interface LifeBarter{
 
 export interface LifeCraft{
 	craftId:number;
-	craftSubId:number;
+	craftSubId:number | null;
 	itemId:number;
+	craftType:string;
+	craftName:string;
+	itemName:string;
+	ingredientName:string;
+	craftableLevel:number | null;
+	processingTime:number | null;
 	craftIngredientId:number;
 	craftIngredientCost:number;
 	gameItem?:GameItem;

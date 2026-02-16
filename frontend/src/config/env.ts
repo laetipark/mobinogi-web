@@ -21,9 +21,9 @@ export const config:AppConfig = {
 		env : getEnvVar("VITE_APP_ENV", "development")
 	},
 	api : {
-		baseUrl : getEnvVar("VITE_API_BASE_URL", ""),
+		baseUrl : getEnvVar("VITE_API_BASE_URL", getEnvVar("VITE_API_PREFIX", "/api")),
 		get fullUrl(){
-			return this.baseUrl;
+			return (this.baseUrl || getEnvVar("VITE_API_PREFIX", "/api")).replace(/\/+$/, "");
 		}
 	},
 	kakao : {

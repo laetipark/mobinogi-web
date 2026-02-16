@@ -314,11 +314,29 @@
 	.craftGroupHeader{
 		background:var(--surface-hover);
 		padding:10px 14px;
+		display:flex;
+		flex-direction:column;
+		gap:6px;
 
 		.craftSubId{
 			font-weight:700;
 			color:var(--text);
 			font-size:13px;
+		}
+
+		.craftMeta{
+			display:flex;
+			flex-wrap:wrap;
+			gap:6px;
+
+			span{
+				font-size:11px;
+				color:var(--text-muted);
+				border:1px dashed var(--border);
+				border-radius:999px;
+				padding:3px 8px;
+				background:var(--surface);
+			}
 		}
 	}
 

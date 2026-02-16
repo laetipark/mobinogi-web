@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import {GameItemData, LifeBarter, LifeCraft} from "@/types";
 import GameItemService from "@/services/game-item-service";
 import {getItemRarityInfo} from "@/utils";
@@ -6,11 +6,34 @@ import {X, ArrowRight, Hammer, ArrowLeftRight, Package, MapPin, User, RefreshCw}
 import styles from "./item-detail-modal.module.scss";
 import type {ItemDetailModalProps} from "@/types/ui";
 
+const formatCraftLevel = (craftableLevel:number | null | undefined):string => {
+	if(craftableLevel === null || craftableLevel === undefined){
+		return "-";
+	}
+	return `${craftableLevel}`;
+};
+
+const formatProcessingTime = (processingTime:number | null | undefined):string => {
+	if(processingTime === null || processingTime === undefined){
+		return "-";
+	}
+
+	const minutes = Math.floor(processingTime / 60);
+	const seconds = processingTime % 60;
+	if(minutes <= 0){
+		return `${seconds}초`;
+	}
+	if(seconds === 0){
+		return `${minutes}분`;
+	}
+	return `${minutes}분 ${seconds}초`;
+};
+
 const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 	const [itemData, setItemData] = useState<GameItemData | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [activeTab, setActiveTab] = useState<"barter" | "craft">("barter");
-	
+
 	useEffect(() => {
 		const fetchItemData = async() => {
 			setLoading(true);
@@ -23,37 +46,35 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 				setLoading(false);
 			}
 		};
-		
+
 		fetchItemData();
 	}, [item.itemName]);
-	
-	// 배경 클릭시 닫기
+
 	const handleBackdropClick = (e:React.MouseEvent) => {
 		if(e.target === e.currentTarget){
 			onClose();
 		}
 	};
-	
-	// ESC 키로 닫기 및 body 스크롤 방지 (레이아웃 시프트 방지)
+
 	useEffect(() => {
 		const handleEsc = (e:KeyboardEvent) => {
-			if(e.key === "Escape") onClose();
+			if(e.key === "Escape"){
+				onClose();
+			}
 		};
+
 		window.addEventListener("keydown", handleEsc);
-		
-		// 스크롤바 너비 계산 및 body 패딩 추가로 레이아웃 시프트 방지
 		const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
 		document.body.style.overflow = "hidden";
 		document.body.style.paddingRight = `${scrollbarWidth}px`;
-		
+
 		return () => {
 			window.removeEventListener("keydown", handleEsc);
 			document.body.style.overflow = "";
 			document.body.style.paddingRight = "";
 		};
 	}, [onClose]);
-	
-	// 물물교환 카드 렌더링
+
 	const renderBarterCard = (barter:LifeBarter) => (
 		<div key={barter.barterId} className={styles.barterCard}>
 			<div className={styles.barterLocation}>
@@ -82,25 +103,31 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 			)}
 		</div>
 	);
-	
-	// 제작 그룹 렌더링
+
 	const renderCraftGroup = (subId:number, crafts:LifeCraft[]) => (
 		<div key={subId} className={styles.craftGroup}>
 			<div className={styles.craftResult}>
 				<Hammer size={16}/>
-				<span className={styles.resultName}>{crafts[0]?.gameItem?.itemName || "N/A"}</span>
+				<span className={styles.resultName}>{crafts[0]?.itemName || crafts[0]?.gameItem?.itemName || "N/A"}</span>
+			</div>
+			<div className={styles.craftMeta}>
+				<span>{crafts[0]?.craftType || "-"}</span>
+				<span>{crafts[0]?.craftName || "-"}</span>
+				<span>레벨 {formatCraftLevel(crafts[0]?.craftableLevel)}</span>
+				<span>소요 {formatProcessingTime(crafts[0]?.processingTime)}</span>
+				<span>서브 #{subId}</span>
 			</div>
 			<div className={styles.craftIngredients}>
 				{crafts.map((craft, idx) => (
 					<div key={idx} className={styles.ingredient}>
-						<span className={styles.ingredientName}>{craft.ingredientItem?.itemName || "N/A"}</span>
+						<span className={styles.ingredientName}>{craft.ingredientName || craft.ingredientItem?.itemName || "N/A"}</span>
 						<span className={styles.ingredientCount}>x{craft.craftIngredientCost}</span>
 					</div>
 				))}
 			</div>
 		</div>
 	);
-	
+
 	const bartersByItemId = itemData?.bartersByItemId || [];
 	const bartersByExchangeId = itemData?.bartersByExchangeId || [];
 	const craftsBySubId = itemData?.craftsBySubId || {};
@@ -111,11 +138,10 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 		"--rarity-color" : rarityInfo.color,
 		"--rarity-bg" : rarityInfo.bg
 	} as React.CSSProperties;
-	
+
 	return (
 		<div className={styles.modalBackdrop} onClick={handleBackdropClick}>
 			<div className={styles.modalContent}>
-				{/* 헤더 */}
 				<div className={styles.modalHeader}>
 					<div className={styles.itemInfo}>
 						<Package size={24}/>
@@ -123,10 +149,7 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 							<h2>{item.itemName}</h2>
 							<div className={styles.itemMeta}>
 								<span className={styles.itemType}>{item.itemType}</span>
-								<span
-									className={styles.itemRarity}
-									style={rarityStyle}
-								>
+								<span className={styles.itemRarity} style={rarityStyle}>
 									{rarityInfo.label}
 								</span>
 							</div>
@@ -136,23 +159,20 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 						<X size={24}/>
 					</button>
 				</div>
-				
-				{/* 아이템 설명 */}
+
 				{item.itemEffect && (
 					<div className={styles.itemEffect}>
 						{item.itemEffect}
 					</div>
 				)}
-				
-				{/* 로딩 */}
+
 				{loading && (
 					<div className={styles.loading}>
 						<RefreshCw className={styles.spinning} size={24}/>
 						<span>정보를 불러오는 중...</span>
 					</div>
 				)}
-				
-				{/* 탭 네비게이션 */}
+
 				{!loading && (hasBarters || hasCrafts) && (
 					<>
 						<div className={styles.tabs}>
@@ -177,8 +197,7 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 								</span>
 							</button>
 						</div>
-						
-						{/* 물물교환 탭 */}
+
 						{activeTab === "barter" && (
 							<div className={styles.tabContent}>
 								{bartersByItemId.length > 0 && (
@@ -191,7 +210,7 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 										</div>
 									</div>
 								)}
-								
+
 								{bartersByExchangeId.length > 0 && (
 									<div className={styles.section}>
 										<h3 className={styles.sectionTitle}>
@@ -202,14 +221,13 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 										</div>
 									</div>
 								)}
-								
+
 								{!hasBarters && (
 									<div className={styles.empty}>물물교환 정보가 없습니다.</div>
 								)}
 							</div>
 						)}
-						
-						{/* 제작 탭 */}
+
 						{activeTab === "craft" && (
 							<div className={styles.tabContent}>
 								{hasCrafts ? (
@@ -225,8 +243,7 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 						)}
 					</>
 				)}
-				
-				{/* 데이터 없음 */}
+
 				{!loading && !hasBarters && !hasCrafts && (
 					<div className={styles.noData}>
 						이 아이템에 대한 물물교환 및 제작 정보가 없습니다.

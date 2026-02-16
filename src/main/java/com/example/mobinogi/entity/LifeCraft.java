@@ -18,17 +18,35 @@ public class LifeCraft{
 	@Column(name = "craft_id", columnDefinition = "BIGINT UNSIGNED")
 	private Long craftId;
 
-	@Column(name = "craft_sub_id")
-	private Integer craftSubId;
-
 	@Column(name = "item_id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
 	private Long itemId;
+
+	@Column(name = "craft_type", nullable = false, length = 30)
+	private String craftType;
+
+	@Column(name = "craft_name", nullable = false, length = 100)
+	private String craftName;
+
+	@Column(name = "item_name", nullable = false, length = 200)
+	private String itemName;
 
 	@Column(name = "ingredient_id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
 	private Long craftIngredientId;
 
+	@Column(name = "ingredient_name", nullable = false, length = 200)
+	private String ingredientName;
+
 	@Column(name = "ingredient_cost", nullable = false)
 	private Integer craftIngredientCost;
+	
+	@Column(name = "craftable_level")
+	private Integer craftableLevel;
+	
+	@Column(name = "processing_time")
+	private Integer processingTime;
+	
+	@Column(name = "craft_sub_id")
+	private Integer craftSubId;
 
 	@Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
 	private LocalDateTime createdAt;

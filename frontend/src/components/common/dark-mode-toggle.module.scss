@@ -36,10 +36,10 @@
 	}
 }
 
-@include mobile{
+@media (max-width:940px){
 	.darkModeToggle{
-		bottom:1rem;
-		right:1rem;
+		bottom:max(1rem, env(safe-area-inset-bottom, 0px));
+		right:0.75rem;
 		width:48px;
 		height:48px;
 
@@ -47,5 +47,13 @@
 			width:20px;
 			height:20px;
 		}
+	}
+}
+
+@include mobile{
+	.darkModeToggle{
+		right:0.6rem;
+		width:44px;
+		height:44px;
 	}
 }

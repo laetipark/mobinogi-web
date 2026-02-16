@@ -279,6 +279,21 @@
 	}
 }
 
+.craftMeta{
+	display:flex;
+	flex-wrap:wrap;
+	gap:6px;
+	margin-bottom:10px;
+
+	span{
+		font-size:0.75rem;
+		color:var(--text-muted);
+		border:1px dashed var(--border);
+		border-radius:999px;
+		padding:4px 8px;
+	}
+}
+
 .craftIngredients{
 	display:flex;
 	flex-wrap:wrap;

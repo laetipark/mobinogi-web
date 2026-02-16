@@ -50,7 +50,7 @@ public class GameItemService{
 		
 		// ✅ 그룹화: craftSubId → LifeCraft 리스트
 		Map<Integer, List<LifeCraft>> craftsGroupedBySubId = craftsByItemId.stream()
-			.collect(Collectors.groupingBy(LifeCraft::getCraftSubId));
+			.collect(Collectors.groupingBy(craft -> craft.getCraftSubId() == null ? 0 : craft.getCraftSubId()));
 		
 		GameItemDataDto dto = new GameItemDataDto();
 		dto.setItemName(itemName);
@@ -142,7 +142,10 @@ public class GameItemService{
 			// 제작 정보 조회 (이 아이템을 제작할 수 있는지)
 			List<LifeCraft> crafts = lifeCraftRepository.findByItemId(item.getItemId());
 			dto.setHasCraftSource(!crafts.isEmpty());
-			dto.setCraftRecipeCount((int) crafts.stream().map(LifeCraft::getCraftSubId).distinct().count());
+			dto.setCraftRecipeCount((int) crafts.stream()
+				.map(craft -> craft.getCraftSubId() == null ? 0 : craft.getCraftSubId())
+				.distinct()
+				.count());
 			
 			return dto;
 		});
