@@ -10,19 +10,19 @@ import BarterCart from "./barter-cart";
 import type {WeeklyTaskSectionProps} from "@/types/ui";
 
 const TXT = {
-	summoningBarrier : "\uC18C\uD658\uC758 \uACB0\uACC4",
-	blackHole : "\uAC80\uC740 \uAD6C\uBA4D",
-	fieldBoss : "\uD544\uB4DC \uBCF4\uC2A4",
-	abyssReward : "\uC5B4\uBE44\uC2A4 \uC8FC\uAC04 \uBCF4\uC0C1",
-	raid : "\uB808\uC774\uB4DC",
-	vanguard : "\uBC45\uAC00\uB4DC",
-	barter : "\uBB3C\uBB3C\uAD50\uD658",
-	emergencyQuest : "\uAE34\uAE09 \uC758\uB8B0",
-	weeklyTitle : "\uC8FC\uAC04 \uC219\uC81C",
-	memoManage : "\uBA54\uBAA8 \uAD00\uB9AC",
-	settings : "\uC124\uC815",
-	weeklySettings : "\uC8FC\uAC04 \uC219\uC81C \uC124\uC815",
-	weeklyMemoManage : "\uC8FC\uAC04 \uBA54\uBAA8 \uAD00\uB9AC"
+	summoningBarrier : "소환의 결계",
+	blackHole : "검은 구멍",
+	fieldBoss : "필드 보스",
+	abyssReward : "어비스 주간 보상",
+	raid : "레이드",
+	vanguard : "뱅가드",
+	barter : "물물교환",
+	emergencyQuest : "긴급 의뢰",
+	weeklyTitle : "주간 숙제",
+	memoManage : "메모 관리",
+	settings : "설정",
+	weeklySettings : "주간 숙제 설정",
+	weeklyMemoManage : "주간 메모 관리"
 } as const;
 
 const SUMMONING_BARRIER_MAX = 7;
@@ -51,7 +51,7 @@ function getBlackHoleInfo(totalDone:number):{
 	const kstOffset = 9 * 60;
 	const utc = now.getTime() + now.getTimezoneOffset() * 60000;
 	const kst = new Date(utc + kstOffset * 60000);
-	
+
 	let day = kst.getDay();
 	if(kst.getHours() < 6){
 		day = (day + 6) % 7;
@@ -98,6 +98,7 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 	abyssBossMonsters,
 	settings,
 	characterId,
+	favoriteItems,
 	weeklyMemos,
 	onChange,
 	onSettingsChange,
@@ -108,33 +109,33 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 	const [showAbyssSettings, setShowAbyssSettings] = useState(false);
 	const [showTaskSettings, setShowTaskSettings] = useState(false);
 	const [showMemo, setShowMemo] = useState(false);
-	
+
 	const abyss = weekly.abyss ?? {completed : [], tracked : []};
 	const abyssRewardMax = weekly.abyssRewardMax ?? ABYSS_REWARD_DEFAULT_MAX;
 	const abyssCompletedSlots = useMemo(
 		() => normalizeAbyssCompletedSlots(abyss.completed, abyss.tracked),
 		[abyss.completed, abyss.tracked]
 	);
-	
+
 	const trackedAbyssMonsters = useMemo(() => {
 		if(!abyss.tracked || abyss.tracked.length === 0) return [];
 		const uniqueIds = [...new Set(abyss.tracked)];
 		return uniqueIds.map(id => abyssBossMonsters.find(m => m.monsterId === id)).filter((m):m is GameMonster => !!m);
 	}, [abyssBossMonsters, abyss.tracked]);
-	
+
 	const trackedFieldBossMonsters = useMemo(() => {
 		if(!weekly.fieldBoss.tracked || weekly.fieldBoss.tracked.length === 0) return [];
 		return fieldBossMonsters.filter(m => weekly.fieldBoss.tracked.includes(m.monsterId));
 	}, [fieldBossMonsters, weekly.fieldBoss.tracked]);
-	
+
 	const trackedRaidMonsters = useMemo(() => {
 		if(!weekly.raid.tracked || weekly.raid.tracked.length === 0) return [];
 		return raidMonsters.filter(m => weekly.raid.tracked.includes(m.monsterId));
 	}, [raidMonsters, weekly.raid.tracked]);
-	
+
 	const blackHole = useMemo(() => getBlackHoleInfo(weekly.blackHole), [weekly.blackHole]);
 	const hidden = useMemo(() => new Set(settings?.hiddenTasks || []), [settings]);
-	
+
 	const allDefs = useMemo(() => {
 		const defs:{key:string; label:string; isMemo?:boolean}[] = [
 			...WEEKLY_TASK_DEFS,
@@ -142,7 +143,7 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 		];
 		return defs;
 	}, [weeklyMemos]);
-	
+
 	const visibleItems = useMemo(() => {
 		let items = allDefs.filter(t => !hidden.has(t.key));
 		if(settings?.weeklyOrder && settings.weeklyOrder.length > 0){
@@ -155,7 +156,7 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 		}
 		return items;
 	}, [allDefs, settings, hidden]);
-	
+
 	const getCompletedCount = () => {
 		let completed = 0;
 		let total = 0;
@@ -210,14 +211,14 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 		});
 		return {completed, total};
 	};
-	
+
 	const {completed : completedCount, total : totalItems} = getCompletedCount();
-	
+
 	const toggleMemo = (id:string) => {
 		const updated = (weeklyMemos || []).map(m => (m.id === id ? {...m, completed : !m.completed} : m));
 		onMemosChange(updated);
 	};
-	
+
 	const renderBlackHole = () => {
 		const totalDone = weekly.blackHole;
 		const {maxForWeek, todayAvailable, todayWindowCount, passedCount} = blackHole;
@@ -259,124 +260,159 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 						);
 					})}
 				</div>
-				<div
-					className={styles.blackHoleInfo}>{`\uC624\uB298 \uAC00\uB2A5 ${todayAvailable}\uAC1C | \uC774\uBC88 \uC8FC ${totalDone}/${maxForWeek}`}</div>
+				<div className={styles.blackHoleInfo}>{`오늘 가능 ${todayAvailable}개 | 이번 주 ${totalDone}/${maxForWeek}`}</div>
 			</div>
 		);
 	};
-	
+
 	const renderItem = (item:{key:string; label:string; isMemo?:boolean}) => {
 		switch(item.key){
 			case "summoningBarrier":
-				return <TaskCounter key={item.key} label={TXT.summoningBarrier} current={weekly.summoningBarrier}
-									max={SUMMONING_BARRIER_MAX}
-									onChange={(value) => onChange({...weekly, summoningBarrier : value})}/>;
+				return (
+					<div key={item.key} className={styles.taskVariantSummoning}>
+						<TaskCounter
+							label={TXT.summoningBarrier}
+							current={weekly.summoningBarrier}
+							max={SUMMONING_BARRIER_MAX}
+							onChange={(value) => onChange({...weekly, summoningBarrier : value})}
+						/>
+					</div>
+				);
 			case "blackHole":
-				return <React.Fragment key={item.key}>{renderBlackHole()}</React.Fragment>;
+				return (
+					<div key={item.key} className={styles.taskVariantBlackHole}>
+						{renderBlackHole()}
+					</div>
+				);
 			case "fieldBoss":
 				return (
-					<div key={item.key} className={styles.taskItemWithSettings}>
-						<BossChecklist label={TXT.fieldBoss} monsters={trackedFieldBossMonsters}
-									   completedIds={weekly.fieldBoss.completed} onChange={(completed) => onChange({
-							...weekly,
-							fieldBoss : {...weekly.fieldBoss, completed}
-						})} visualGroup/>
-						<button className={styles.settingsBtn} onClick={() => setShowFieldBossSettings(true)}
-								title={`${TXT.fieldBoss} ${TXT.settings}`}>&#9881;</button>
+					<div key={item.key} className={styles.taskVariantFieldBoss}>
+						<div className={styles.taskItemWithSettings}>
+							<BossChecklist
+								label={TXT.fieldBoss}
+								monsters={trackedFieldBossMonsters}
+								completedIds={weekly.fieldBoss.completed}
+								onChange={(completed) => onChange({
+									...weekly,
+									fieldBoss : {...weekly.fieldBoss, completed}
+								})}
+								visualGroup
+							/>
+							<button className={styles.settingsBtn} onClick={() => setShowFieldBossSettings(true)} title={`${TXT.fieldBoss} ${TXT.settings}`}>&#9881;</button>
+						</div>
 					</div>
 				);
 			case "abyssReward":
 				return (
-					<div key={item.key} className={styles.taskItemWithSettings}>
-						<BossChecklist label={TXT.abyssReward} monsters={trackedAbyssMonsters}
-									   completedIds={abyssCompletedSlots} onChange={(completed) => onChange({
-							...weekly,
-							abyss : {...abyss, completed},
-							abyssReward : completed.length
-						})} allowDuplicates trackedIds={abyss.tracked} maxCompleted={abyssRewardMax}/>
-						<button className={styles.settingsBtn} onClick={() => setShowAbyssSettings(true)}
-								title={`\uC5B4\uBE44\uC2A4 \uBCF4\uC2A4 ${TXT.settings}`}>&#9881;</button>
+					<div key={item.key} className={styles.taskVariantAbyss}>
+						<div className={styles.taskItemWithSettings}>
+							<BossChecklist
+								label={TXT.abyssReward}
+								monsters={trackedAbyssMonsters}
+								completedIds={abyssCompletedSlots}
+								onChange={(completed) => onChange({
+									...weekly,
+									abyss : {...abyss, completed},
+									abyssReward : completed.length
+								})}
+								allowDuplicates
+								trackedIds={abyss.tracked}
+								maxCompleted={abyssRewardMax}
+							/>
+							<button className={styles.settingsBtn} onClick={() => setShowAbyssSettings(true)} title={`어비스 보스 ${TXT.settings}`}>&#9881;</button>
+						</div>
 					</div>
 				);
 			case "raid":
 				return (
-					<div key={item.key} className={styles.taskItemWithSettings}>
-						<BossChecklist label={TXT.raid} monsters={trackedRaidMonsters}
-									   completedIds={weekly.raid.completed} onChange={(completed) => onChange({
-							...weekly,
-							raid : {...weekly.raid, completed}
-						})} groupByName/>
-						<button className={styles.settingsBtn} onClick={() => setShowRaidSettings(true)}
-								title={`${TXT.raid} ${TXT.settings}`}>&#9881;</button>
+					<div key={item.key} className={styles.taskVariantRaid}>
+						<div className={styles.taskItemWithSettings}>
+							<BossChecklist
+								label={TXT.raid}
+								monsters={trackedRaidMonsters}
+								completedIds={weekly.raid.completed}
+								onChange={(completed) => onChange({
+									...weekly,
+									raid : {...weekly.raid, completed}
+								})}
+								groupByName
+							/>
+							<button className={styles.settingsBtn} onClick={() => setShowRaidSettings(true)} title={`${TXT.raid} ${TXT.settings}`}>&#9881;</button>
+						</div>
 					</div>
 				);
 			case "vanguard":
 				return (
-					<div key={item.key} className={styles.taskItem}>
-						<div className={styles.taskLabelRow}>
-							<span className={styles.taskLabel}>
-								{TXT.vanguard}
-								<span className={styles.vanguardEmergencyInline}>
-									<span className={styles.vanguardSubLabel}>{TXT.emergencyQuest}</span>
+					<div key={item.key} className={styles.taskVariantVanguard}>
+						<div className={styles.taskItem}>
+							<div className={styles.taskLabelRow}>
+								<span className={styles.taskLabel}>
+									{TXT.vanguard}
+									<span className={styles.vanguardEmergencyInline}>
+										<span className={styles.vanguardSubLabel}>{TXT.emergencyQuest}</span>
+										<button
+											className={`${styles.checkCircle} ${styles.small} ${weekly.vanguard?.quest ? styles.completed : ""}`}
+											onClick={(e) => {
+												e.stopPropagation();
+												onChange({
+													...weekly,
+													vanguard : {
+														...(weekly.vanguard ?? {reward : 0, emergency : 0, quest : false}),
+														quest : !(weekly.vanguard?.quest ?? false)
+													}
+												});
+											}}
+											title={TXT.emergencyQuest}
+										/>
+									</span>
+								</span>
+								<span className={styles.counterText}>{weekly.vanguard?.reward ?? 0}/{VANGUARD_REWARD_MAX}</span>
+							</div>
+							<div className={styles.checkCircles}>
+								{Array.from({length : VANGUARD_REWARD_MAX}, (_, i) => (
 									<button
-										className={`${styles.checkCircle} ${styles.small} ${weekly.vanguard?.quest ? styles.completed : ""}`}
-										onClick={(e) => {
-											e.stopPropagation();
+										key={i}
+										className={`${styles.checkCircle} ${i < (weekly.vanguard?.reward ?? 0) ? styles.completed : ""}`}
+										onClick={() => {
+											const cur = weekly.vanguard?.reward ?? 0;
+											const val = i < cur ? i : i + 1;
 											onChange({
 												...weekly,
 												vanguard : {
-													...(weekly.vanguard ?? {
-														reward : 0,
-														emergency : 0,
-														quest : false
-													}), quest : !(weekly.vanguard?.quest ?? false)
+													...(weekly.vanguard ?? {reward : 0, emergency : 0, quest : false}),
+													reward : val
 												}
 											});
 										}}
-										title={TXT.emergencyQuest}
 									/>
-								</span>
-							</span>
-							<span
-								className={styles.counterText}>{weekly.vanguard?.reward ?? 0}/{VANGUARD_REWARD_MAX}</span>
-						</div>
-						<div className={styles.checkCircles}>
-							{Array.from({length : VANGUARD_REWARD_MAX}, (_, i) => (
-								<button
-									key={i}
-									className={`${styles.checkCircle} ${i < (weekly.vanguard?.reward ?? 0) ? styles.completed : ""}`}
-									onClick={() => {
-										const cur = weekly.vanguard?.reward ?? 0;
-										const val = i < cur ? i : i + 1;
-										onChange({
-											...weekly,
-											vanguard : {
-												...(weekly.vanguard ?? {
-													reward : 0,
-													emergency : 0,
-													quest : false
-												}), reward : val
-											}
-										});
-									}}
-								/>
-							))}
+								))}
+							</div>
 						</div>
 					</div>
 				);
 			case "barter":
-				return <BarterCart key={item.key} characterId={characterId} cycle={7} cycleLabel={TXT.barter}/>;
+				return (
+					<div key={item.key} className={styles.taskVariantBarter}>
+						<BarterCart
+							characterId={characterId}
+							cycle={7}
+							cycleLabel={TXT.barter}
+							favoriteItems={favoriteItems}
+						/>
+					</div>
+				);
 			default:
 				if(item.isMemo){
 					const memoId = item.key.replace("memo_", "");
 					const memo = (weeklyMemos || []).find(m => m.id === memoId);
 					if(!memo) return null;
 					return (
-						<div key={item.key} className={styles.taskItem}>
-							<span className={styles.taskLabel}>{memo.label}</span>
-							<div className={styles.checkCircles}>
-								<button className={`${styles.checkCircle} ${memo.completed ? styles.completed : ""}`}
-										onClick={() => toggleMemo(memo.id)}/>
+						<div key={item.key} className={styles.taskVariantMemo}>
+							<div className={styles.taskItem}>
+								<span className={styles.taskLabel}>{memo.label}</span>
+								<div className={styles.checkCircles}>
+									<button className={`${styles.checkCircle} ${memo.completed ? styles.completed : ""}`} onClick={() => toggleMemo(memo.id)}/>
+								</div>
 							</div>
 						</div>
 					);
@@ -384,26 +420,23 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 				return null;
 		}
 	};
-	
+
 	return (
 		<div className={styles.taskSection}>
 			<div className={styles.sectionHeader}>
 				<h4>{TXT.weeklyTitle}</h4>
 				<div className={styles.sectionHeaderRight}>
 					<span className={styles.progressText}>{completedCount}/{totalItems}</span>
-					<button className={styles.headerSettingsBtn} onClick={() => setShowMemo(true)}
-							title={TXT.memoManage}>&#9998;</button>
-					<button className={styles.headerSettingsBtn} onClick={() => setShowTaskSettings(true)}
-							title={TXT.settings}>&#9881;</button>
+					<button className={styles.headerSettingsBtn} onClick={() => setShowMemo(true)} title={TXT.memoManage}>&#9998;</button>
+					<button className={styles.headerSettingsBtn} onClick={() => setShowTaskSettings(true)} title={TXT.settings}>&#9881;</button>
 				</div>
 			</div>
 			<div className={styles.progressBar}>
-				<div className={styles.progressFill}
-					 style={{width : `${totalItems > 0 ? (completedCount / totalItems) * 100 : 0}%`}}/>
+				<div className={styles.progressFill} style={{width : `${totalItems > 0 ? (completedCount / totalItems) * 100 : 0}%`}}/>
 			</div>
-			
+
 			<div className={styles.taskList}>{visibleItems.map(item => renderItem(item))}</div>
-			
+
 			{showFieldBossSettings && (
 				<BossSettingsModal
 					title={TXT.fieldBoss}
@@ -420,7 +453,7 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 					onClose={() => setShowFieldBossSettings(false)}
 				/>
 			)}
-			
+
 			{showRaidSettings && (
 				<BossSettingsModal
 					title={TXT.raid}
@@ -435,10 +468,10 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 					onClose={() => setShowRaidSettings(false)}
 				/>
 			)}
-			
+
 			{showAbyssSettings && (
 				<BossSettingsModal
-					title="\uC5B4\uBE44\uC2A4 \uBCF4\uC2A4"
+					title="어비스 보스"
 					monsters={abyssBossMonsters}
 					trackedIds={abyss.tracked || []}
 					allowMultiple
@@ -453,9 +486,7 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 						const usedSlots = new Set<number>();
 						const remappedCompletedSlots:number[] = [];
 						for(const monsterId of previousCompletedMonsterIds){
-							const nextSlotIndex = tracked.findIndex((trackedMonsterId, idx) =>
-								trackedMonsterId === monsterId && !usedSlots.has(idx)
-							);
+							const nextSlotIndex = tracked.findIndex((trackedMonsterId, idx) => trackedMonsterId === monsterId && !usedSlots.has(idx));
 							if(nextSlotIndex !== -1){
 								usedSlots.add(nextSlotIndex);
 								remappedCompletedSlots.push(nextSlotIndex);
@@ -472,7 +503,7 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 					onClose={() => setShowAbyssSettings(false)}
 				/>
 			)}
-			
+
 			{showTaskSettings && (
 				<TaskSettingsModal
 					title={TXT.weeklySettings}
@@ -492,7 +523,7 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 					onClose={() => setShowTaskSettings(false)}
 				/>
 			)}
-			
+
 			{showMemo && (
 				<MemoTaskModal
 					title={TXT.weeklyMemoManage}

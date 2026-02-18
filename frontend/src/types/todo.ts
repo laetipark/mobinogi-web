@@ -89,9 +89,21 @@ export interface UserTodoBarter{
 	regionName:string;
 	barterCycle:string;
 	completed:boolean;
+	checkedByUserId?:number;
+	checkedByNickname?:string;
+	checkedByCharacterId?:number;
+	checkedByCharacterName?:string;
+	checkedAt?:string;
 	exchangeCost?:number;
 	barterQty?:number;
 	barterInitCycle?:number;
 	barterServer?:number;
 	barterNpc?:number;
+}
+
+export interface FavoriteGameItem{
+	itemId:number;
+	itemName:string;
+	itemType?:string;
+	itemRarity?:string;
 }

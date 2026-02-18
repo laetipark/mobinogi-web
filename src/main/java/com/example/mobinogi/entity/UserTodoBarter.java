@@ -48,6 +48,21 @@ public class UserTodoBarter{
 	@Column(name = "completed", nullable = false)
 	private Boolean completed;
 
+	@Column(name = "checked_by_user_id", columnDefinition = "BIGINT UNSIGNED")
+	private Long checkedByUserId;
+
+	@Column(name = "checked_by_nickname", length = 100)
+	private String checkedByNickname;
+
+	@Column(name = "checked_by_character_id", columnDefinition = "BIGINT UNSIGNED")
+	private Long checkedByCharacterId;
+
+	@Column(name = "checked_by_character_name", length = 100)
+	private String checkedByCharacterName;
+
+	@Column(name = "checked_at", columnDefinition = "TIMESTAMP")
+	private LocalDateTime checkedAt;
+
 	@Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
 	private LocalDateTime createdAt;
 

@@ -9,6 +9,7 @@ import type {NoticeCategory} from "./notice";
 import type {
 	CounterTask,
 	DailyTasks,
+	FavoriteGameItem,
 	PhantomTower,
 	Resources,
 	TodoMemo,
@@ -76,6 +77,7 @@ export interface BarterCartProps{
 	characterId:number;
 	cycle:number;
 	cycleLabel:string;
+	favoriteItems?:FavoriteGameItem[];
 }
 
 export interface BarterSettingsModalProps{
@@ -83,6 +85,7 @@ export interface BarterSettingsModalProps{
 	cycle:number;
 	cycleLabel:string;
 	existingBarters:UserTodoBarter[];
+	favoriteItems?:FavoriteGameItem[];
 	onUpdate:(barters:UserTodoBarter[]) => void;
 	onClose:() => void;
 }
@@ -192,6 +195,7 @@ export interface WeeklyTaskSectionProps{
 	abyssBossMonsters:GameMonster[];
 	settings?:TodoSettings;
 	characterId:number;
+	favoriteItems?:FavoriteGameItem[];
 	weeklyMemos?:TodoMemo[];
 	onChange:(weekly:WeeklyTasks) => void;
 	onSettingsChange:(settings:TodoSettings) => void;

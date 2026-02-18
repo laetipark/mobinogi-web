@@ -14,4 +14,8 @@ public interface UserRankRepository extends JpaRepository<UserRank, Integer> {
 	List<UserRank> findByUserNameContainingIgnoreCase(String userName);
 
 	Optional<UserRank> findByServerIdAndUserNameAndDeletedAtIsNull(Integer serverId, String userName);
+
+	List<UserRank> findByUserNameIgnoreCaseAndDeletedAtIsNullOrderByUpdatedAtDescServerIdAsc(String userName);
+
+	List<UserRank> findTop5ByUserNameContainingIgnoreCaseAndDeletedAtIsNullOrderByUpdatedAtDesc(String userName);
 }

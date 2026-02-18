@@ -6,12 +6,12 @@ import BarterSettingsModal from "./barter-settings-modal";
 import type {BarterCartProps} from "@/types/ui";
 
 const TXT = {
-	barter : "\uBB3C\uBB3C\uAD50\uD658",
-	loading : "\uB85C\uB529 \uC911...",
-	empty : "\uC124\uC815\uC5D0\uC11C \uBB3C\uBB3C\uAD50\uD658\uC744 \uCD94\uAC00\uD558\uC138\uC694"
+	barter : "물물교환",
+	loading : "로딩 중...",
+	empty : "설정에서 물물교환을 추가하세요"
 } as const;
 
-const BarterCart:React.FC<BarterCartProps> = ({characterId, cycle, cycleLabel}) => {
+const BarterCart:React.FC<BarterCartProps> = ({characterId, cycle, cycleLabel, favoriteItems}) => {
 	const [barters, setBarters] = useState<UserTodoBarter[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [showSettings, setShowSettings] = useState(false);
@@ -40,7 +40,8 @@ const BarterCart:React.FC<BarterCartProps> = ({characterId, cycle, cycleLabel}) 
 		setBarters(prev => prev.map(b => (b.id === id ? {...b, completed : !b.completed} : b)));
 		
 		try{
-			await todoService.toggleBarterComplete(characterId, id);
+			const updated = await todoService.toggleBarterComplete(characterId, id);
+			setBarters(prev => prev.map(b => (b.id === id ? {...b, ...updated} : b)));
 		}catch(err){
 			setBarters(prev => prev.map(b => (b.id === id ? {...b, completed : !b.completed} : b)));
 			console.error("Failed to toggle barter:", err);
@@ -60,6 +61,18 @@ const BarterCart:React.FC<BarterCartProps> = ({characterId, cycle, cycleLabel}) 
 		if(cycle === 1) return b.barterCycle === "daily";
 		return b.barterCycle === "weekly";
 	});
+
+	const getCheckedByLabel = (barter:UserTodoBarter):string => {
+		if(!barter.completed){
+			return "";
+		}
+		const nickname = barter.checkedByNickname?.trim();
+		const characterName = barter.checkedByCharacterName?.trim();
+		if(nickname && characterName){
+			return `${nickname} (${characterName})`;
+		}
+		return nickname || characterName || "";
+	};
 	
 	if(loading){
 		return <div className={styles.loading}>{TXT.loading}</div>;
@@ -68,7 +81,7 @@ const BarterCart:React.FC<BarterCartProps> = ({characterId, cycle, cycleLabel}) 
 	const completedCount = filteredBarters.filter(b => b.completed).length;
 	
 	return (
-		<div className={styles.barterCart}>
+		<div className={`${styles.barterCart} ${cycle === 1 ? styles.dailyBarterCart : styles.weeklyBarterCart}`}>
 			<div className={styles.sectionHeader}>
 				<div className={styles.progressInfo}>
 					<span className={styles.taskLabel}>{cycleLabel}</span>
@@ -80,21 +93,25 @@ const BarterCart:React.FC<BarterCartProps> = ({characterId, cycle, cycleLabel}) 
 			</div>
 			{filteredBarters.length > 0 ? (
 				<div className={styles.bossGrid}>
-					{filteredBarters.map(barter => (
+					{filteredBarters.map(barter => {
+						const checkedBy = getCheckedByLabel(barter);
+						return (
 						<button
 							key={barter.id}
 							className={`${styles.bossItem} ${barter.completed ? styles.completed : ""}`}
 							onClick={() => handleToggle(barter.id)}
 							title={[barter.regionName, barter.npcName].filter(Boolean).join(" - ")}
 						>
-							<span className={styles.bossCheckmark}>{barter.completed && "\u2713"}</span>
+							<span className={styles.bossCheckmark}>{barter.completed && "✓"}</span>
 							<span className={styles.bossName}>{barter.itemName || TXT.barter}</span>
 							<span
 								className={styles.bossRegion}>{[barter.regionName, barter.npcName].filter(Boolean).join(" - ") || "N/A"}</span>
 							<span
 								className={styles.bossDifficulty}>{barter.exchangeItemName ? `${barter.exchangeItemName} x${barter.exchangeCost}` : "N/A"}</span>
+							{checkedBy && <span className={styles.barterCheckedBy}>체크: {checkedBy}</span>}
 						</button>
-					))}
+						);
+					})}
 				</div>
 			) : (
 				<div className={styles.emptyTracked}>{TXT.empty}</div>
@@ -106,6 +123,7 @@ const BarterCart:React.FC<BarterCartProps> = ({characterId, cycle, cycleLabel}) 
 					cycle={cycle}
 					cycleLabel={cycleLabel}
 					existingBarters={filteredBarters}
+					favoriteItems={favoriteItems}
 					onUpdate={(updated) => {
 						const otherBarters = barters.filter(b => {
 							if(b.barterInitCycle !== undefined && b.barterInitCycle !== null){

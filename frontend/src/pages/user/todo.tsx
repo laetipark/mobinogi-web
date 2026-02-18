@@ -1,19 +1,71 @@
 import React, {useState, useEffect, useRef, useCallback, useMemo} from "react";
-import {UserTodo, TodoData, GameMonster, Resources, UserCharacterRequest, GameClassItem} from "../../types";
+import {
+	UserTodo,
+	TodoData,
+	GameMonster,
+	Resources,
+	UserCharacterRequest,
+	GameClassItem,
+	FavoriteGameItem,
+	GameItemSummary
+} from "../../types";
 import {todoService} from "@/services/todo-service.ts";
 import {characterService} from "@/services/character-service.ts";
 import {gameClassService} from "@/services/game-class-service.ts";
+import {GameItemService} from "@/services/game-item-service.ts";
 import {getGameClassColorStyle} from "@/utils";
 import DailyTaskSection from "../../components/todo/daily-task-section";
 import WeeklyTaskSection from "../../components/todo/weekly-task-section";
 import ResourceDisplay from "../../components/todo/resource-display";
 import PhantomTowerSelector from "../../components/todo/phantom-tower-selector";
-import {Plus, X, Save, GripVertical} from "lucide-react";
+import ItemDetailModal from "../../components/game/item-detail-modal";
+import {Plus, X, Save, GripVertical, Info} from "lucide-react";
 import SortableCharacterList from "../../components/user/sortable-character-list";
 import EventChecklist from "../../components/todo/event-checklist";
 import styles from "./todo.module.scss";
 
 const AUTO_SAVE_DEBOUNCE_MS = 5 * 1000; // 5초
+const FAVORITE_STORAGE_KEY = "mobinogi:todoFavoriteItems";
+const FAVORITE_SEARCH_DEBOUNCE_MS = 300;
+
+const loadFavoriteItems = ():FavoriteGameItem[] => {
+	if(typeof window === "undefined"){
+		return [];
+	}
+	try{
+		const raw = window.localStorage.getItem(FAVORITE_STORAGE_KEY);
+		if(!raw){
+			return [];
+		}
+		const parsed = JSON.parse(raw);
+		if(!Array.isArray(parsed)){
+			return [];
+		}
+		return parsed
+			.filter((item):item is FavoriteGameItem =>
+				typeof item?.itemId === "number" && typeof item?.itemName === "string"
+			)
+			.map(item => ({
+				itemId : item.itemId,
+				itemName : item.itemName,
+				itemType : item.itemType,
+				itemRarity : item.itemRarity
+			}));
+	}catch{
+		return [];
+	}
+};
+
+const saveFavoriteItems = (items:FavoriteGameItem[]) => {
+	if(typeof window === "undefined"){
+		return;
+	}
+	try{
+		window.localStorage.setItem(FAVORITE_STORAGE_KEY, JSON.stringify(items));
+	}catch{
+		// Ignore write errors (private mode/quota issues)
+	}
+};
 
 const TodoPage:React.FC = () => {
 	const [todos, setTodos] = useState<UserTodo[]>([]);
@@ -28,6 +80,12 @@ const TodoPage:React.FC = () => {
 	const [toastMessage, setToastMessage] = useState("");
 	const [saving, setSaving] = useState(false);
 	const [rankLoading, setRankLoading] = useState<Set<number>>(new Set());
+	const [favoriteItems, setFavoriteItems] = useState<FavoriteGameItem[]>(loadFavoriteItems);
+	const [favoriteSearchInput, setFavoriteSearchInput] = useState("");
+	const [favoriteKeyword, setFavoriteKeyword] = useState("");
+	const [favoriteCandidates, setFavoriteCandidates] = useState<GameItemSummary[]>([]);
+	const [favoriteLoading, setFavoriteLoading] = useState(false);
+	const [selectedFavoriteItem, setSelectedFavoriteItem] = useState<GameItemSummary | null>(null);
 	
 	// 캐릭터 추가 팝업
 	const [showAddCharacter, setShowAddCharacter] = useState(false);
@@ -69,10 +127,17 @@ const TodoPage:React.FC = () => {
 	const dirtyRef = useRef<Set<number>>(new Set());
 	const todosRef = useRef<UserTodo[]>([]);
 	const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const touchStartXRef = useRef<number | null>(null);
+	const touchStartYRef = useRef<number | null>(null);
+	const touchStartTimeRef = useRef<number>(0);
 	
 	useEffect(() => {
 		todosRef.current = todos;
 	}, [todos]);
+
+	useEffect(() => {
+		saveFavoriteItems(favoriteItems);
+	}, [favoriteItems]);
 	
 	useEffect(() => {
 		loadData();
@@ -133,6 +198,50 @@ const TodoPage:React.FC = () => {
 		const interval = setInterval(updateCountdown, 1000);
 		return () => clearInterval(interval);
 	}, []);
+
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			setFavoriteKeyword(favoriteSearchInput.trim());
+		}, FAVORITE_SEARCH_DEBOUNCE_MS);
+		return () => clearTimeout(timer);
+	}, [favoriteSearchInput]);
+
+	useEffect(() => {
+		let active = true;
+		const searchFavoriteItems = async() => {
+			if(!favoriteKeyword){
+				setFavoriteCandidates([]);
+				setFavoriteLoading(false);
+				return;
+			}
+			setFavoriteLoading(true);
+			try{
+				const result = await GameItemService.getGameItems({
+					keyword : favoriteKeyword,
+					page : 0,
+					size : 20,
+					sortBy : "itemName",
+					sortDir : "asc"
+				});
+				if(active){
+					setFavoriteCandidates(result.content);
+				}
+			}catch(err){
+				console.error("Failed to search game items:", err);
+				if(active){
+					setFavoriteCandidates([]);
+				}
+			}finally{
+				if(active){
+					setFavoriteLoading(false);
+				}
+			}
+		};
+		searchFavoriteItems();
+		return () => {
+			active = false;
+		};
+	}, [favoriteKeyword]);
 	
 	const fetchRanks = (todosData:UserTodo[]) => {
 		const targets = todosData.filter(t => t.serverId != null);
@@ -326,6 +435,110 @@ const TodoPage:React.FC = () => {
 			setReorderSaving(false);
 		}
 	};
+
+	const favoriteItemIdSet = useMemo(
+		() => new Set(favoriteItems.map(item => item.itemId)),
+		[favoriteItems]
+	);
+
+	const filteredFavoriteCandidates = useMemo(
+		() => favoriteCandidates.filter(item => !favoriteItemIdSet.has(item.itemId)),
+		[favoriteCandidates, favoriteItemIdSet]
+	);
+
+	const handleAddFavoriteItem = (item:GameItemSummary) => {
+		setFavoriteItems(prev => {
+			if(prev.some(favorite => favorite.itemId === item.itemId)){
+				return prev;
+			}
+			return [
+				...prev,
+				{
+					itemId : item.itemId,
+					itemName : item.itemName,
+					itemType : item.itemType,
+					itemRarity : item.itemRarity
+				}
+			];
+		});
+		setFavoriteSearchInput("");
+		setFavoriteKeyword("");
+		setFavoriteCandidates([]);
+	};
+
+	const handleRemoveFavoriteItem = (itemId:number) => {
+		setFavoriteItems(prev => prev.filter(item => item.itemId !== itemId));
+	};
+
+	const moveSelectedCharacter = useCallback((direction:1 | -1) => {
+		if(todos.length <= 1){
+			return;
+		}
+		const currentIndex = todos.findIndex(todo => todo.characterId === selectedCharacterId);
+		if(currentIndex < 0){
+			setSelectedCharacterId(todos[0].characterId);
+			return;
+		}
+		const nextIndex = (currentIndex + direction + todos.length) % todos.length;
+		setSelectedCharacterId(todos[nextIndex].characterId);
+	}, [todos, selectedCharacterId]);
+
+	useEffect(() => {
+		if(todos.length <= 1){
+			return;
+		}
+		const handleKeyDown = (event:KeyboardEvent) => {
+			const target = event.target as HTMLElement | null;
+			if(target){
+				const tag = target.tagName;
+				if(target.isContentEditable || tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON"){
+					return;
+				}
+			}
+			if(event.key === "ArrowLeft"){
+				event.preventDefault();
+				moveSelectedCharacter(-1);
+			}else if(event.key === "ArrowRight"){
+				event.preventDefault();
+				moveSelectedCharacter(1);
+			}
+		};
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [todos.length, moveSelectedCharacter]);
+
+	const handleCharacterSwipeStart = (event:React.TouchEvent<HTMLDivElement>) => {
+		if(todos.length <= 1){
+			return;
+		}
+		const touch = event.changedTouches[0];
+		touchStartXRef.current = touch.clientX;
+		touchStartYRef.current = touch.clientY;
+		touchStartTimeRef.current = Date.now();
+	};
+
+	const handleCharacterSwipeEnd = (event:React.TouchEvent<HTMLDivElement>) => {
+		if(todos.length <= 1 || touchStartXRef.current == null || touchStartYRef.current == null){
+			return;
+		}
+		const touch = event.changedTouches[0];
+		const dx = touch.clientX - touchStartXRef.current;
+		const dy = touch.clientY - touchStartYRef.current;
+		const elapsed = Date.now() - touchStartTimeRef.current;
+		touchStartXRef.current = null;
+		touchStartYRef.current = null;
+		if(elapsed > 700){
+			return;
+		}
+		if(Math.abs(dx) < 48 || Math.abs(dx) <= Math.abs(dy)){
+			return;
+		}
+		if(dx < 0){
+			moveSelectedCharacter(1);
+		}else{
+			moveSelectedCharacter(-1);
+		}
+	};
 	
 	const selectedTodo = todos.find(t => t.characterId === selectedCharacterId);
 	
@@ -353,9 +566,9 @@ const TodoPage:React.FC = () => {
 		<div className={styles.todoPage}>
 			<div className={styles.container}>
 			<div className={styles.pageHeader}>
-				<div className="oYV5kUSv">
-					<h1>숙제 관리</h1>
-					<p className="-v1-aGH7">캐릭터별 일일/주간 진행도를 체크하고 이벤트 일정을 관리하세요</p>
+				<div className={styles.pageTitleBlock}>
+					<h1 className={styles.pageTitle}>숙제 관리</h1>
+					<p className={styles.pageSubtitle}>캐릭터별 일일/주간 진행도를 체크하고 이벤트 일정을 관리하세요</p>
 				</div>
 				<div className={styles.resetTimers}>
 					<div className={styles.resetTimer}>
@@ -532,7 +745,11 @@ const TodoPage:React.FC = () => {
 					)}
 					
 					{selectedTodo && (
-						<div className={styles.characterView}>
+						<div
+							className={styles.characterView}
+							onTouchStart={handleCharacterSwipeStart}
+							onTouchEnd={handleCharacterSwipeEnd}
+						>
 							{/* 캐릭터 정보 + 리소스 */}
 							<div className={styles.characterHeader}>
 								<div className={styles.characterInfo}>
@@ -609,6 +826,7 @@ const TodoPage:React.FC = () => {
 										abyssBossMonsters={abyssBossMonsters}
 										settings={selectedTodo.todoData.settings}
 										characterId={selectedTodo.characterId}
+										favoriteItems={favoriteItems}
 										weeklyMemos={selectedTodo.todoData.weeklyMemos}
 										onChange={(weekly) => handleTodoChange(selectedTodo.characterId, {
 											...selectedTodo.todoData,
@@ -626,6 +844,96 @@ const TodoPage:React.FC = () => {
 								</div>
 							</div>
 						</div>
+					)}
+
+					<div className={styles.favoriteSection}>
+						<div className={styles.favoriteHeader}>
+							<h4>아이템 즐겨찾기</h4>
+							<span className={styles.favoriteCount}>{favoriteItems.length}개</span>
+						</div>
+						<div className={styles.favoriteSearch}>
+							<input
+								type="text"
+								placeholder="즐겨찾기에 추가할 아이템 검색..."
+								value={favoriteSearchInput}
+								onChange={(e) => setFavoriteSearchInput(e.target.value)}
+							/>
+							{favoriteLoading && <span className={styles.favoriteSearchState}>검색 중...</span>}
+						</div>
+
+						{favoriteKeyword && !favoriteLoading && filteredFavoriteCandidates.length === 0 && (
+							<div className={styles.favoriteSearchEmpty}>검색 결과가 없습니다.</div>
+						)}
+
+						{filteredFavoriteCandidates.length > 0 && (
+							<div className={styles.favoriteSearchResults}>
+								{filteredFavoriteCandidates.map(item => (
+									<button
+										key={item.itemId}
+										type="button"
+										className={styles.favoriteSearchItem}
+										onClick={() => handleAddFavoriteItem(item)}
+									>
+										<div className={styles.favoriteSearchItemInfo}>
+											<span className={styles.favoriteSearchName}>{item.itemName}</span>
+											<span className={styles.favoriteSearchMeta}>
+												{[item.itemType, item.itemRarity].filter(Boolean).join(" / ")}
+											</span>
+										</div>
+										<Plus size={14}/>
+									</button>
+								))}
+							</div>
+						)}
+
+						{favoriteItems.length > 0 ? (
+							<div className={styles.favoriteList}>
+								{favoriteItems.map(item => (
+									<div key={item.itemId} className={styles.favoriteCard}>
+										<div className={styles.favoriteCardInfo}>
+											<span className={styles.favoriteCardName}>{item.itemName}</span>
+											<span className={styles.favoriteCardMeta}>
+												{[item.itemType, item.itemRarity].filter(Boolean).join(" / ") || "-"}
+											</span>
+										</div>
+										<div className={styles.favoriteCardActions}>
+											<button
+												type="button"
+												className={styles.favoriteInfoBtn}
+												onClick={() => setSelectedFavoriteItem({
+													itemId : item.itemId,
+													itemName : item.itemName,
+													itemType : item.itemType,
+													itemRarity : item.itemRarity
+												})}
+												aria-label={`${item.itemName} 정보 보기`}
+											>
+												<Info size={14}/>
+											</button>
+											<button
+												type="button"
+												className={styles.favoriteRemoveBtn}
+												onClick={() => handleRemoveFavoriteItem(item.itemId)}
+												aria-label={`${item.itemName} 제거`}
+											>
+												<X size={14}/>
+											</button>
+										</div>
+									</div>
+								))}
+							</div>
+						) : (
+							<div className={styles.favoriteEmpty}>
+								즐겨찾기 아이템을 추가하면 물물교환 아이템 설정에서 추천 목록으로 표시됩니다.
+							</div>
+						)}
+					</div>
+
+					{selectedFavoriteItem && (
+						<ItemDetailModal
+							item={selectedFavoriteItem}
+							onClose={() => setSelectedFavoriteItem(null)}
+						/>
 					)}
 					
 					<EventChecklist/>

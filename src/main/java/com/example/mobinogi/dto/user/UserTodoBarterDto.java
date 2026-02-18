@@ -21,6 +21,11 @@ public class UserTodoBarterDto{
 	private Integer exchangeCost;
 	private String barterCycle;
 	private Boolean completed;
+	private Long checkedByUserId;
+	private String checkedByNickname;
+	private Long checkedByCharacterId;
+	private String checkedByCharacterName;
+	private String checkedAt;
 	private Integer barterQty;
 	private Integer barterInitCycle;
 	private Integer barterServer;
@@ -38,6 +43,11 @@ public class UserTodoBarterDto{
 			.exchangeCost(entity.getExchangeCost())
 			.barterCycle(entity.getBarterCycle())
 			.completed(entity.getCompleted())
+			.checkedByUserId(entity.getCheckedByUserId())
+			.checkedByNickname(entity.getCheckedByNickname())
+			.checkedByCharacterId(entity.getCheckedByCharacterId())
+			.checkedByCharacterName(entity.getCheckedByCharacterName())
+			.checkedAt(entity.getCheckedAt() != null ? entity.getCheckedAt().toString() : null)
 			.build();
 	}
 
@@ -52,7 +62,12 @@ public class UserTodoBarterDto{
 			.regionName(entity.getRegionName())
 			.exchangeCost(entity.getExchangeCost())
 			.barterCycle(entity.getBarterCycle())
-			.completed(entity.getCompleted());
+			.completed(entity.getCompleted())
+			.checkedByUserId(entity.getCheckedByUserId())
+			.checkedByNickname(entity.getCheckedByNickname())
+			.checkedByCharacterId(entity.getCheckedByCharacterId())
+			.checkedByCharacterName(entity.getCheckedByCharacterName())
+			.checkedAt(entity.getCheckedAt() != null ? entity.getCheckedAt().toString() : null);
 
 		if(lifeBarter != null){
 			builder.barterQty(lifeBarter.getBarterQty());

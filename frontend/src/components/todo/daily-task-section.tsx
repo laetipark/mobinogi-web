@@ -1,4 +1,4 @@
-import React, {useState, useMemo} from "react";
+import React, {useMemo, useState} from "react";
 import styles from "./todo.module.scss";
 import TaskSettingsModal from "./task-settings-modal";
 import MemoTaskModal from "./memo-task-modal";
@@ -75,13 +75,15 @@ const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({daily, settings, char
 	const renderItem = (item:{key:string; label:string; isMemo?:boolean}) => {
 		if(item.key === "dayDungeon"){
 			return (
-				<div key={item.key} className={styles.taskItem}>
-					<span className={styles.taskLabel}>요일 던전</span>
-					<div className={styles.checkCircles}>
-						<button
-							className={`${styles.checkCircle} ${daily.dayDungeon ? styles.completed : ""}`}
-							onClick={() => onChange({...daily, dayDungeon: !daily.dayDungeon})}
-						/>
+				<div key={item.key} className={styles.taskVariantDayDungeon}>
+					<div className={styles.taskItem}>
+						<span className={styles.taskLabel}>요일 던전</span>
+						<div className={styles.checkCircles}>
+							<button
+								className={`${styles.checkCircle} ${daily.dayDungeon ? styles.completed : ""}`}
+								onClick={() => onChange({...daily, dayDungeon: !daily.dayDungeon})}
+							/>
+						</div>
 					</div>
 				</div>
 			);
@@ -89,25 +91,27 @@ const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({daily, settings, char
 
 		if(item.key === "cashShop"){
 			return (
-				<div key={item.key} className={styles.taskItem}>
-					<span className={styles.taskLabel}>
-						캐시샵
-						<span className={styles.serverSharedTag}>서버 공유</span>
-					</span>
-					<div className={styles.cashShopChecks}>
-						<div className={styles.cashShopItem}>
-							<button
-								className={`${styles.checkCircle} ${daily.freeShopPurchase ? styles.completed : ""}`}
-								onClick={() => onChange({...daily, freeShopPurchase: !daily.freeShopPurchase}, "freeShopPurchase")}
-							/>
-							<span className={styles.cashShopLabel}>무료 상품</span>
-						</div>
-						<div className={styles.cashShopItem}>
-							<button
-								className={`${styles.checkCircle} ${daily.gemTreasureChest ? styles.completed : ""}`}
-								onClick={() => onChange({...daily, gemTreasureChest: !daily.gemTreasureChest}, "gemTreasureChest")}
-							/>
-							<span className={styles.cashShopLabel}>보석 상자</span>
+				<div key={item.key} className={styles.taskVariantCashShop}>
+					<div className={styles.taskItem}>
+						<span className={styles.taskLabel}>
+							캐시샵
+							<span className={styles.serverSharedTag}>서버 공유</span>
+						</span>
+						<div className={styles.cashShopChecks}>
+							<div className={styles.cashShopItem}>
+								<button
+									className={`${styles.checkCircle} ${daily.freeShopPurchase ? styles.completed : ""}`}
+									onClick={() => onChange({...daily, freeShopPurchase: !daily.freeShopPurchase}, "freeShopPurchase")}
+								/>
+								<span className={styles.cashShopLabel}>무료 상품</span>
+							</div>
+							<div className={styles.cashShopItem}>
+								<button
+									className={`${styles.checkCircle} ${daily.gemTreasureChest ? styles.completed : ""}`}
+									onClick={() => onChange({...daily, gemTreasureChest: !daily.gemTreasureChest}, "gemTreasureChest")}
+								/>
+								<span className={styles.cashShopLabel}>보석 상자</span>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -115,7 +119,11 @@ const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({daily, settings, char
 		}
 
 		if(item.key === "barter"){
-			return <BarterCart key={item.key} characterId={characterId} cycle={1} cycleLabel="물물교환"/>;
+			return (
+				<div key={item.key} className={styles.taskVariantBarter}>
+					<BarterCart characterId={characterId} cycle={1} cycleLabel="물물교환"/>
+				</div>
+			);
 		}
 
 		if(item.isMemo){
@@ -123,13 +131,15 @@ const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({daily, settings, char
 			const memo = (dailyMemos || []).find(m => m.id === memoId);
 			if(!memo) return null;
 			return (
-				<div key={item.key} className={styles.taskItem}>
-					<span className={styles.taskLabel}>{memo.label}</span>
-					<div className={styles.checkCircles}>
-						<button
-							className={`${styles.checkCircle} ${memo.completed ? styles.completed : ""}`}
-							onClick={() => toggleMemo(memo.id)}
-						/>
+				<div key={item.key} className={styles.taskVariantMemo}>
+					<div className={styles.taskItem}>
+						<span className={styles.taskLabel}>{memo.label}</span>
+						<div className={styles.checkCircles}>
+							<button
+								className={`${styles.checkCircle} ${memo.completed ? styles.completed : ""}`}
+								onClick={() => toggleMemo(memo.id)}
+							/>
+						</div>
 					</div>
 				</div>
 			);

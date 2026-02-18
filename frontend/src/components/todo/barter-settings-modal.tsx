@@ -6,14 +6,20 @@ import {todoService} from "@/services/todo-service.ts";
 import {ArrowRight, Search, RefreshCw} from "lucide-react";
 import type {BarterSettingsModalProps} from "@/types/ui";
 
-const barterKey = (itemName:string, exchangeItemName:string, npcName:string) =>
+const barterBaseKey = (itemName:string, exchangeItemName:string) =>
+	`${itemName}|${exchangeItemName}`;
+
+const barterNpcKey = (itemName:string, exchangeItemName:string, npcName:string) =>
 	`${itemName}|${exchangeItemName}|${npcName}`;
+
+const isNpcShared = (barterNpc?:number) => Boolean(barterNpc);
 
 const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({
 	characterId,
 	cycle,
 	cycleLabel,
 	existingBarters,
+	favoriteItems,
 	onUpdate,
 	onClose
 }) => {
@@ -24,12 +30,141 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({
 	const [currentPage, setCurrentPage] = useState(0);
 	const [hasMore, setHasMore] = useState(true);
 	const [totalElements, setTotalElements] = useState(0);
+	const [recommendations, setRecommendations] = useState<LifeBarter[]>([]);
+	const [recommendationLoading, setRecommendationLoading] = useState(false);
 	const listRef = useRef<HTMLDivElement>(null);
-	
-	const existingKeys = useMemo(
-		() => new Set(existingBarters.map(b => barterKey(b.itemName, b.exchangeItemName, b.npcName))),
-		[existingBarters]
+	const favoriteItemNames = useMemo(
+		() => [...new Set((favoriteItems || []).map(item => item.itemName.trim()).filter(Boolean))],
+		[favoriteItems]
 	);
+	
+	const existingBarterLookup = useMemo(() => {
+		const baseKeys = new Set<string>();
+		const sharedBaseKeys = new Set<string>();
+		const npcKeys = new Set<string>();
+
+		for(const barter of existingBarters){
+			const itemName = barter.itemName || "";
+			const exchangeItemName = barter.exchangeItemName || "";
+			const npcName = barter.npcName || "";
+			const baseKey = barterBaseKey(itemName, exchangeItemName);
+			baseKeys.add(baseKey);
+			if(isNpcShared(barter.barterNpc)){
+				sharedBaseKeys.add(baseKey);
+			}else{
+				npcKeys.add(barterNpcKey(itemName, exchangeItemName, npcName));
+			}
+		}
+
+		return {
+			baseKeys,
+			sharedBaseKeys,
+			npcKeys
+		};
+	}, [existingBarters]);
+
+	const isBarterRegistered = useCallback((barter:LifeBarter) => {
+		const itemName = barter.gameItem?.itemName || "";
+		const exchangeItemName = barter.exchangeItem?.itemName || "";
+		const npcName = barter.gameNpc?.npcName || "";
+		const baseKey = barterBaseKey(itemName, exchangeItemName);
+
+		if(isNpcShared(barter.barterNpc)){
+			return existingBarterLookup.baseKeys.has(baseKey);
+		}
+
+		return existingBarterLookup.sharedBaseKeys.has(baseKey)
+			|| existingBarterLookup.npcKeys.has(barterNpcKey(itemName, exchangeItemName, npcName));
+	}, [existingBarterLookup]);
+
+	const findRegisteredBarter = useCallback((barter:LifeBarter) => {
+		const itemName = barter.gameItem?.itemName || "";
+		const exchangeItemName = barter.exchangeItem?.itemName || "";
+		const npcName = barter.gameNpc?.npcName || "";
+		const candidateBaseKey = barterBaseKey(itemName, exchangeItemName);
+		const candidateNpcShared = isNpcShared(barter.barterNpc);
+
+		return existingBarters.find((currentBarter) => {
+			const currentItemName = currentBarter.itemName || "";
+			const currentExchangeItemName = currentBarter.exchangeItemName || "";
+			const currentNpcName = currentBarter.npcName || "";
+			const currentBaseKey = barterBaseKey(currentItemName, currentExchangeItemName);
+			if(currentBaseKey !== candidateBaseKey){
+				return false;
+			}
+			if(candidateNpcShared || isNpcShared(currentBarter.barterNpc)){
+				return true;
+			}
+			return currentNpcName === npcName;
+		});
+	}, [existingBarters]);
+	const {availableSearchResults, registeredSearchResults} = useMemo(() => {
+		const available:LifeBarter[] = [];
+		const registered:LifeBarter[] = [];
+		for(const barter of searchResults){
+			if(isBarterRegistered(barter)){
+				registered.push(barter);
+			}else{
+				available.push(barter);
+			}
+		}
+		return {
+			availableSearchResults : available,
+			registeredSearchResults : registered
+		};
+	}, [searchResults, isBarterRegistered]);
+	const recommendedAvailableResults = useMemo(() => {
+		const recommended:LifeBarter[] = [];
+		const seen = new Set<string>();
+		for(const barter of recommendations){
+			const iName = barter.gameItem?.itemName || "";
+			const eName = barter.exchangeItem?.itemName || "";
+			const nName = barter.gameNpc?.npcName || "";
+			const key = isNpcShared(barter.barterNpc)
+				? barterBaseKey(iName, eName)
+				: barterNpcKey(iName, eName, nName);
+			if(isBarterRegistered(barter) || seen.has(key)){
+				continue;
+			}
+			seen.add(key);
+			recommended.push(barter);
+		}
+		return recommended;
+	}, [recommendations, isBarterRegistered]);
+	const mergedAvailableResults = useMemo(() => {
+		const merged:{barter:LifeBarter; source:"recommend" | "available"}[] = [];
+		const seen = new Set<string>();
+		for(const barter of recommendedAvailableResults){
+			const iName = barter.gameItem?.itemName || "";
+			const eName = barter.exchangeItem?.itemName || "";
+			const nName = barter.gameNpc?.npcName || "";
+			const key = isNpcShared(barter.barterNpc)
+				? barterBaseKey(iName, eName)
+				: barterNpcKey(iName, eName, nName);
+			if(seen.has(key)){
+				continue;
+			}
+			seen.add(key);
+			merged.push({barter, source : "recommend"});
+		}
+		for(const barter of availableSearchResults){
+			const iName = barter.gameItem?.itemName || "";
+			const eName = barter.exchangeItem?.itemName || "";
+			const nName = barter.gameNpc?.npcName || "";
+			const key = isNpcShared(barter.barterNpc)
+				? barterBaseKey(iName, eName)
+				: barterNpcKey(iName, eName, nName);
+			if(seen.has(key)){
+				continue;
+			}
+			seen.add(key);
+			merged.push({barter, source : "available"});
+		}
+		return merged;
+	}, [recommendedAvailableResults, availableSearchResults]);
+	const hasFavoriteRecommendations = favoriteItemNames.length > 0;
+	const hasAnyVisibleItem = mergedAvailableResults.length > 0 || registeredSearchResults.length > 0;
+	const shouldShowEmpty = !loading && !hasAnyVisibleItem && !(hasFavoriteRecommendations && recommendationLoading);
 	
 	// 검색어 debounce
 	useEffect(() => {
@@ -75,6 +210,70 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({
 		setHasMore(true);
 		loadData(true);
 	}, [keyword]);
+
+	useEffect(() => {
+		let active = true;
+		const loadRecommendations = async() => {
+			if(favoriteItemNames.length === 0){
+				setRecommendations([]);
+				return;
+			}
+			setRecommendationLoading(true);
+			try{
+				const responses = await Promise.allSettled(
+					favoriteItemNames.map(async(itemName) => {
+						const result = await GameItemService.getBarters({
+							keyword : itemName,
+							page : 0,
+							size : 30,
+							searchMode : "obtained",
+							cycle
+						});
+						return {itemName, result};
+					})
+				);
+				if(!active) return;
+				const seen = new Set<string>();
+				const merged:LifeBarter[] = [];
+				for(const response of responses){
+					if(response.status !== "fulfilled"){
+						continue;
+					}
+					const {itemName, result} = response.value;
+					for(const barter of result.content){
+						const obtainedItemName = barter.gameItem?.itemName;
+						if(!obtainedItemName || obtainedItemName !== itemName){
+							continue;
+						}
+						const exchangeItemName = barter.exchangeItem?.itemName || "";
+						const npcName = barter.gameNpc?.npcName || "";
+						const key = isNpcShared(barter.barterNpc)
+							? barterBaseKey(obtainedItemName, exchangeItemName)
+							: barterNpcKey(obtainedItemName, exchangeItemName, npcName);
+						if(seen.has(key)){
+							continue;
+						}
+						seen.add(key);
+						merged.push(barter);
+					}
+				}
+				setRecommendations(merged);
+			}catch(err){
+				console.error("Failed to load barter recommendations:", err);
+				if(active){
+					setRecommendations([]);
+				}
+			}finally{
+				if(active){
+					setRecommendationLoading(false);
+				}
+			}
+		};
+		loadRecommendations();
+		return () => {
+			active = false;
+		};
+	}, [favoriteItemNames, cycle]);
 	
 	const handleScroll = useCallback(() => {
 		const el = listRef.current;
@@ -117,18 +316,21 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({
 				barterQty : added.barterQty ?? barter.barterQty,
 				barterInitCycle : added.barterInitCycle ?? cycle
 			};
-			onUpdate([...existingBarters, enriched]);
+			const next = [...existingBarters];
+			const existingIndex = next.findIndex(item => item.id === enriched.id);
+			if(existingIndex >= 0){
+				next[existingIndex] = {...next[existingIndex], ...enriched};
+			}else{
+				next.push(enriched);
+			}
+			onUpdate(next);
 		}catch(err){
 			console.error("Failed to add barter:", err);
 		}
 	};
 	
 	const handleRemove = async(barter:LifeBarter) => {
-		const iName = barter.gameItem?.itemName || "";
-		const eName = barter.exchangeItem?.itemName || "";
-		const nName = barter.gameNpc?.npcName || "";
-		const key = barterKey(iName, eName, nName);
-		const existing = existingBarters.find(b => barterKey(b.itemName, b.exchangeItemName, b.npcName) === key);
+		const existing = findRegisteredBarter(barter);
 		if(!existing) return;
 		try{
 			await todoService.removeBarterItem(characterId, existing.id);
@@ -145,6 +347,51 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({
 		}catch(err){
 			console.error("Failed to remove barter:", err);
 		}
+	};
+
+	const renderBarterCard = (barter:LifeBarter, keyPrefix:string) => {
+		const iName = barter.gameItem?.itemName || "";
+		const eName = barter.exchangeItem?.itemName || "";
+		const nName = barter.gameNpc?.npcName || "";
+		const isAdded = isBarterRegistered(barter);
+		return (
+			<div
+				key={`${keyPrefix}-${barter.barterId}-${iName}-${eName}-${nName}`}
+				className={`${styles.barterSettingsCard} ${isAdded ? styles.registered : ""}`}
+			>
+				<div className={styles.barterCardHeader}>
+					<span className={styles.barterCardLocation}>
+						{barter.gameRegion?.regionName || "N/A"} - {barter.gameNpc?.npcName || "N/A"}
+					</span>
+					<button
+						className={`${styles.barterToggleBtn} ${isAdded ? styles.remove : styles.add}`}
+						onClick={() => isAdded ? handleRemove(barter) : handleAdd(barter)}
+					>
+						{isAdded ? "제거" : "추가"}
+					</button>
+				</div>
+				<div className={styles.barterCardExchange}>
+					<div className={styles.barterCardItem}>
+						<span className={styles.barterCardLabel}>교환</span>
+						<span className={styles.barterCardValue}>{barter.exchangeItem?.itemName || "N/A"}</span>
+						<span className={styles.barterCardQty}>x{barter.exchangeCost}</span>
+					</div>
+					<ArrowRight size={20} className={styles.barterCardArrow}/>
+					<div className={styles.barterCardItem}>
+						<span className={styles.barterCardLabel}>획득</span>
+						<span className={styles.barterCardValue}>{barter.gameItem?.itemName || "N/A"}</span>
+						<span className={styles.barterCardQty}>x{barter.barterQty}</span>
+					</div>
+				</div>
+				{(barter.barterServer || barter.barterNpc) && (
+					<div className={styles.barterCardNote}>
+						{barter.barterServer && <span>서버 공유</span>}
+						{barter.barterServer && barter.barterNpc && <span> / </span>}
+						{barter.barterNpc && <span>NPC 공유</span>}
+					</div>
+				)}
+			</div>
+		);
 	};
 	
 	return (
@@ -182,52 +429,23 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({
 					<span className={styles.barterRegisteredCount}>{existingBarters.length}개 등록됨</span>
 				</div>
 				<div className={styles.barterCardList} ref={listRef}>
-					{searchResults.map(barter => {
-						const iName = barter.gameItem?.itemName || "";
-						const eName = barter.exchangeItem?.itemName || "";
-						const nName = barter.gameNpc?.npcName || "";
-						const isAdded = existingKeys.has(barterKey(iName, eName, nName));
-						return (
-							<div
-								key={barter.barterId}
-								className={`${styles.barterSettingsCard} ${isAdded ? styles.registered : ""}`}
-							>
-								<div className={styles.barterCardHeader}>
-									<span className={styles.barterCardLocation}>
-										{barter.gameRegion?.regionName || "N/A"} - {barter.gameNpc?.npcName || "N/A"}
-									</span>
-									<button
-										className={`${styles.barterToggleBtn} ${isAdded ? styles.remove : styles.add}`}
-										onClick={() => isAdded ? handleRemove(barter) : handleAdd(barter)}
-									>
-										{isAdded ? "제거" : "추가"}
-									</button>
+					{(mergedAvailableResults.length > 0 || (hasFavoriteRecommendations && recommendationLoading)) && (
+						<div className={styles.barterListSection}>
+							<div className={styles.barterListSectionTitle}>추가 가능 아이템 ({mergedAvailableResults.length})</div>
+							{hasFavoriteRecommendations && (
+								<div className={styles.barterListSectionTitle}>
+									{recommendationLoading ? "즐겨찾기 추천 불러오는 중..." : `즐겨찾기 추천 ${recommendedAvailableResults.length}개 포함`}
 								</div>
-								<div className={styles.barterCardExchange}>
-									<div className={styles.barterCardItem}>
-										<span className={styles.barterCardLabel}>교환</span>
-										<span
-											className={styles.barterCardValue}>{barter.exchangeItem?.itemName || "N/A"}</span>
-										<span className={styles.barterCardQty}>x{barter.exchangeCost}</span>
-									</div>
-									<ArrowRight size={20} className={styles.barterCardArrow}/>
-									<div className={styles.barterCardItem}>
-										<span className={styles.barterCardLabel}>획득</span>
-										<span
-											className={styles.barterCardValue}>{barter.gameItem?.itemName || "N/A"}</span>
-										<span className={styles.barterCardQty}>x{barter.barterQty}</span>
-									</div>
-								</div>
-								{(barter.barterServer || barter.barterNpc) && (
-									<div className={styles.barterCardNote}>
-										{barter.barterServer && <span>서버 공유</span>}
-										{barter.barterServer && barter.barterNpc && <span> / </span>}
-										{barter.barterNpc && <span>NPC 공유</span>}
-									</div>
-								)}
-							</div>
-						);
-					})}
+							)}
+							{mergedAvailableResults.map(({barter, source}) => renderBarterCard(barter, source))}
+						</div>
+					)}
+					{registeredSearchResults.length > 0 && (
+						<div className={styles.barterListSection}>
+							<div className={styles.barterListSectionTitle}>등록된 아이템 ({registeredSearchResults.length})</div>
+							{registeredSearchResults.map(barter => renderBarterCard(barter, "registered"))}
+						</div>
+					)}
 					
 					{loading && (
 						<div className={styles.barterLoadingMore}>
@@ -240,7 +458,7 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({
 						<div className={styles.barterEndMessage}>더 이상 데이터가 없습니다.</div>
 					)}
 					
-					{!loading && searchResults.length === 0 && (
+					{shouldShowEmpty && (
 						<div className={styles.emptyMessage}>
 							{keyword ? "검색 결과가 없습니다." : "물물교환 데이터가 없습니다."}
 						</div>

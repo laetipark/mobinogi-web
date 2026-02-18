@@ -18,7 +18,7 @@ export type {GameNotice, NoticeCategory} from "./notice";
 export type {PhotoBoardPost, PhotoBoardPostPage, PhotoBoardPostCreateRequest} from "./photo-board";
 export type {
 	CounterTask, PhantomTower, BossProgress, Vanguard, DailyTasks, Resources,
-	WeeklyTasks, TodoSettings, TodoMemo, TodoData, UserTodo, UserTodoBarter
+	WeeklyTasks, TodoSettings, TodoMemo, TodoData, UserTodo, UserTodoBarter, FavoriteGameItem
 } from "./todo";
 export type {AppConfig} from "./config";
 
