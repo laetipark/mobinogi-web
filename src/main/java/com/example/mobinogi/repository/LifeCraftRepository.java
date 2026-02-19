@@ -11,6 +11,8 @@ import java.util.List;
 
 public interface LifeCraftRepository extends JpaRepository<LifeCraft, Long>{
 	List<LifeCraft> findByItemId(Long itemId);
+
+	List<LifeCraft> findByItemIdIn(List<Long> itemIds);
 	
 	void deleteAllByItemId(Long itemId);
 	

@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -48,7 +49,7 @@ public class GameItemService{
 		List<LifeBarter> bartersByExchangeId = lifeBarterRepository.findByExchangeId(itemId);
 		List<LifeCraft> craftsByItemId = lifeCraftRepository.findByItemId(itemId);
 		
-		// ✅ 그룹화: craftSubId → LifeCraft 리스트
+		// Group crafts by craftSubId for response shape.
 		Map<Integer, List<LifeCraft>> craftsGroupedBySubId = craftsByItemId.stream()
 			.collect(Collectors.groupingBy(craft -> craft.getCraftSubId() == null ? 0 : craft.getCraftSubId()));
 		
@@ -61,18 +62,18 @@ public class GameItemService{
 	}
 	
 	public void deleteGameItemSafely(Long rowIndex){
-		// 1. 관련된 life_barter 삭제
+		// 1. Delete related life_barter rows first.
 		lifeBarterRepository.deleteAllByItemId(rowIndex);
 		lifeBarterRepository.deleteAllByExchangeId(rowIndex);
 		
-		// 2. 관련된 life_craft 삭제
+		// 2. Delete related life_craft rows.
 		lifeCraftRepository.deleteAllByItemId(rowIndex);
 		
-		// ✅ rowIndex 이후의 기존 아이템 삭제
+		// 3. Delete game items at and after the target row index.
 		gameItemRepository.deleteByItemIdGreaterThanEqual(rowIndex);
 	}
 
-	// 페이지네이션으로 게임 아이템 목록 조회 (요약 정보 포함)
+	// Paginated game item query with barter/craft summary data.
 	public Page<GameItemSummaryDto> getGameItemsWithSummary(
 		int page,
 		int size,
@@ -81,7 +82,7 @@ public class GameItemService{
 		String keyword,
 		String itemType,
 		List<String> itemRarities){
-		log.info("🔍 GameItems 조회 시작 - page: {}, size: {}, sortBy: {}, sortDir: {}, keyword: {}, itemType: {}, itemRarities: {}",
+		log.info("GameItems query start - page: {}, size: {}, sortBy: {}, sortDir: {}, keyword: {}, itemType: {}, itemRarities: {}",
 			page, size, sortBy, sortDir, keyword, itemType, itemRarities);
 
 		Sort sort = sortDir.equalsIgnoreCase("desc") ?
@@ -117,15 +118,28 @@ public class GameItemService{
 		};
 
 		Page<GameItem> result = gameItemRepository.findAll(specification, pageable);
-		
-		// GameItem을 GameItemSummaryDto로 변환하면서 물물교환/제작 정보 추가
-		Page<GameItemSummaryDto> summaryPage = result.map(item -> {
+		List<GameItem> pageItems = result.getContent();
+		List<Long> pageItemIds = pageItems.stream()
+			.map(GameItem::getItemId)
+			.toList();
+
+		Map<Long, List<LifeBarter>> bartersByItemId = pageItemIds.isEmpty()
+			? Map.of()
+			: lifeBarterRepository.findByItemIdIn(pageItemIds)
+				.stream()
+				.collect(Collectors.groupingBy(LifeBarter::getItemId));
+
+		Map<Long, List<LifeCraft>> craftsByItemId = pageItemIds.isEmpty()
+			? Map.of()
+			: lifeCraftRepository.findByItemIdIn(pageItemIds)
+				.stream()
+				.collect(Collectors.groupingBy(LifeCraft::getItemId));
+
+		List<GameItemSummaryDto> summaryItems = pageItems.stream().map(item -> {
 			GameItemSummaryDto dto = GameItemSummaryDto.fromEntity(item);
-			
-			// 물물교환 정보 조회 (이 아이템을 획득할 수 있는 물물교환)
-			List<LifeBarter> barters = lifeBarterRepository.findByItemId(item.getItemId());
+			List<LifeBarter> barters = bartersByItemId.getOrDefault(item.getItemId(), List.of());
 			dto.setHasBarterSource(!barters.isEmpty());
-			
+
 			if(!barters.isEmpty()){
 				List<GameItemSummaryDto.BarterSourceInfo> barterSources = new ArrayList<>();
 				for(LifeBarter barter : barters){
@@ -138,19 +152,20 @@ public class GameItemService{
 				}
 				dto.setBarterSources(barterSources);
 			}
-			
-			// 제작 정보 조회 (이 아이템을 제작할 수 있는지)
-			List<LifeCraft> crafts = lifeCraftRepository.findByItemId(item.getItemId());
+
+			List<LifeCraft> crafts = craftsByItemId.getOrDefault(item.getItemId(), List.of());
 			dto.setHasCraftSource(!crafts.isEmpty());
 			dto.setCraftRecipeCount((int) crafts.stream()
 				.map(craft -> craft.getCraftSubId() == null ? 0 : craft.getCraftSubId())
 				.distinct()
 				.count());
-			
+
 			return dto;
-		});
+		}).toList();
+
+		Page<GameItemSummaryDto> summaryPage = new PageImpl<>(summaryItems, pageable, result.getTotalElements());
 		
-		log.info("📊 조회 결과: 총 {}개 아이템, 현재 페이지 {}개",
+		log.info("GameItems summary query done - total: {}, current page size: {}",
 			summaryPage.getTotalElements(), summaryPage.getNumberOfElements());
 
 		return summaryPage;
@@ -172,54 +187,55 @@ public class GameItemService{
 		for(String rarity : rarities){
 			String normalized = rarity == null ? "" : rarity.trim().toLowerCase();
 			switch(normalized){
-				case "일반":
-				case "노말":
+				case "\uC77C\uBC18":
+				case "\uB178\uB9D0":
+				case "\uACE0\uAE09":
 				case "normal":
 				case "common":
-					expanded.add("일반");
-					expanded.add("노말");
+					expanded.add("\uC77C\uBC18");
+					expanded.add("\uB178\uB9D0");
+					expanded.add("\uACE0\uAE09");
 					expanded.add("normal");
 					expanded.add("common");
 					break;
-				case "레어":
-				case "희귀":
+				case "\uB808\uC5B4":
+				case "\uD76C\uADC0":
 				case "rare":
-					expanded.add("레어");
-					expanded.add("희귀");
+					expanded.add("\uB808\uC5B4");
+					expanded.add("\uD76C\uADC0");
 					expanded.add("rare");
 					break;
-				case "엘리트":
-				case "영웅":
+				case "\uC5D8\uB9AC\uD2B8":
+				case "\uC601\uC6C5":
 				case "elite":
-					expanded.add("엘리트");
-					expanded.add("영웅");
+					expanded.add("\uC5D8\uB9AC\uD2B8");
+					expanded.add("\uC601\uC6C5");
 					expanded.add("elite");
 					break;
-				case "전설":
+				case "\uC804\uC124":
 				case "legendary":
-					expanded.add("전설");
+					expanded.add("\uC804\uC124");
 					expanded.add("legendary");
 					break;
-				case "신화":
+				case "\uC2E0\uD654":
 				case "mythic":
-					expanded.add("신화");
+					expanded.add("\uC2E0\uD654");
 					expanded.add("mythic");
 					break;
-				case "유니크":
+				case "\uC720\uB2C8\uD06C":
 				case "unique":
-					expanded.add("유니크");
+					expanded.add("\uC720\uB2C8\uD06C");
 					expanded.add("unique");
 					break;
-				case "에픽":
+				case "\uC5D0\uD53D":
 				case "epic":
-					expanded.add("에픽");
+					expanded.add("\uC5D0\uD53D");
 					expanded.add("epic");
 					break;
-				case "고급":
-					expanded.add("고급");
-					break;
 				default:
-					expanded.add(rarity);
+					if(rarity != null && !rarity.trim().isEmpty()){
+						expanded.add(rarity.trim());
+					}
 					break;
 			}
 		}

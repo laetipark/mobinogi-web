@@ -11,6 +11,8 @@ import java.util.List;
 
 public interface LifeBarterRepository extends JpaRepository<LifeBarter, Long>{
 	List<LifeBarter> findByItemId(Long itemId);
+
+	List<LifeBarter> findByItemIdIn(List<Long> itemIds);
 	
 	List<LifeBarter> findByExchangeId(Long itemId);
 	
