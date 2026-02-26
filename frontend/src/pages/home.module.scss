@@ -916,6 +916,13 @@
 
 	.gameFeedRightColumn{
 		gap:10px;
+		height:auto;
+		justify-content:flex-start;
+	}
+
+	.timerPanel,
+	.gameEventPanel{
+		max-height:none;
 	}
 }
 

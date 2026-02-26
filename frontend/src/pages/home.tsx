@@ -887,7 +887,7 @@ const HomePage:React.FC = () => {
 								</div>
 							</article>
 
-							<article className={`${styles.feedPanel} ${styles.eventPanel} ${styles.gameEventPanel}`}>
+							<article className={`${styles.feedPanel} ${styles.gameEventPanel}`}>
 								<div className={styles.feedHeader}>
 									<h2>이벤트 목록</h2>
 									<button type="button" onClick={() => navigate("/events")}>

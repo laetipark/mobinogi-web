@@ -23,11 +23,14 @@ import {Plus, X, Save, GripVertical, Info} from "lucide-react";
 import SortableCharacterList from "../../components/user/sortable-character-list";
 import EventChecklist from "../../components/todo/event-checklist";
 import {useSeo} from "@/hooks/use-seo";
+import {UNSAFE_NavigationContext, useBeforeUnload} from "react-router-dom";
 import styles from "./todo.module.scss";
 
-const AUTO_SAVE_DEBOUNCE_MS = 5 * 1000; // 5초
+const AUTO_SAVE_DEBOUNCE_MS = 5 * 1000; // 5s
+const HOMEWORK_SAVE_DEBOUNCE_MS = 2 * 1000; // Homework checkbox changes use 2s debounce
 const FAVORITE_STORAGE_KEY = "mobinogi:todoFavoriteItems";
 const FAVORITE_SEARCH_DEBOUNCE_MS = 300;
+type AutoSaveStrategy = "debounce" | "leadingTrailingThrottle";
 
 const loadFavoriteItems = ():FavoriteGameItem[] => {
 	if(typeof window === "undefined"){
@@ -146,6 +149,9 @@ const TodoPage:React.FC = () => {
 		return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
 	})());
 	const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const activeAutoSaveStrategyRef = useRef<AutoSaveStrategy | null>(null);
+	const autoSaveThrottleHasPendingRef = useRef(false);
+	const routeLeaveGuardInFlightRef = useRef(false);
 	const touchStartXRef = useRef<number | null>(null);
 	const touchStartYRef = useRef<number | null>(null);
 	const touchStartTimeRef = useRef<number>(0);
@@ -167,6 +173,8 @@ const TodoPage:React.FC = () => {
 				clearTimeout(autoSaveTimer.current);
 				autoSaveTimer.current = null;
 			}
+			activeAutoSaveStrategyRef.current = null;
+			autoSaveThrottleHasPendingRef.current = false;
 		};
 	}, []);
 	
@@ -323,69 +331,208 @@ const TodoPage:React.FC = () => {
 		}
 	};
 	
-	const saveAllDirty = useCallback(async() => {
-		const dirtyIds = Array.from(dirtyRef.current);
-		if(dirtyIds.length === 0) return;
+	const saveAllDirty = useCallback(async(options?:{targetIds?:number[]; silent?:boolean}) => {
+		const dirtyIds = (options?.targetIds ?? Array.from(dirtyRef.current))
+			.filter((charId, index, array) => array.indexOf(charId) === index)
+			.filter(charId => dirtyRef.current.has(charId));
+		if(dirtyIds.length === 0) return true;
+		
+		const currentTodos = todosRef.current;
+		const saveTargets = dirtyIds
+			.map(charId => {
+				const todo = currentTodos.find(t => t.characterId === charId);
+				if(!todo){
+					return null;
+				}
+				return {charId, todoData : todo.todoData};
+			})
+			.filter((target):target is {charId:number; todoData:TodoData} => target != null);
+		if(saveTargets.length === 0) return true;
 		
 		setSaving(true);
 		try{
-			const currentTodos = todosRef.current;
 			await Promise.all(
-				dirtyIds.map(charId => {
-					const todo = currentTodos.find(t => t.characterId === charId);
-					if(todo){
-						return todoService.updateTodo(charId, todo.todoData);
-					}
-					return Promise.resolve();
-				})
+				saveTargets.map(({charId, todoData}) => todoService.updateTodo(charId, todoData))
 			);
-			dirtyRef.current.clear();
-			setIsDirty(false);
-			showToast("저장되었습니다");
+			const latestTodos = todosRef.current;
+			saveTargets.forEach(({charId, todoData}) => {
+				const latestTodo = latestTodos.find(t => t.characterId === charId);
+				if(latestTodo?.todoData === todoData){
+					dirtyRef.current.delete(charId);
+				}
+			});
+			const hasDirty = dirtyRef.current.size > 0;
+			setIsDirty(hasDirty);
+			if(!options?.silent){
+				showToast("저장되었습니다");
+			}
+			return true;
 		}catch(err){
 			console.error("Failed to save:", err);
-			showToast("저장에 실패했습니다");
+			if(!options?.silent){
+				showToast("저장에 실패했습니다");
+			}
+			return false;
 		}finally{
 			setSaving(false);
 		}
 	}, []);
 	
-	useEffect(() => {
-		if(!isDirty){
-			if(autoSaveTimer.current){
-				clearTimeout(autoSaveTimer.current);
-				autoSaveTimer.current = null;
-			}
-			return;
-		}
-		
-		if(autoSaveTimer.current){
-			clearTimeout(autoSaveTimer.current);
-		}
-		autoSaveTimer.current = setTimeout(() => {
-			saveAllDirty();
-		}, AUTO_SAVE_DEBOUNCE_MS);
-		
-		return () => {
-			if(autoSaveTimer.current){
-				clearTimeout(autoSaveTimer.current);
-				autoSaveTimer.current = null;
-			}
-		};
-	}, [todos, isDirty, saveAllDirty]);
-	
-	const handleManualSave = () => {
+	const clearAutoSaveTimer = useCallback(() => {
 		if(autoSaveTimer.current){
 			clearTimeout(autoSaveTimer.current);
 			autoSaveTimer.current = null;
 		}
+		activeAutoSaveStrategyRef.current = null;
+	}, []);
+	
+	const scheduleThrottleCooldown = useCallback((intervalMs:number) => {
+		activeAutoSaveStrategyRef.current = "leadingTrailingThrottle";
+		autoSaveTimer.current = setTimeout(() => {
+			autoSaveTimer.current = null;
+			if(!autoSaveThrottleHasPendingRef.current){
+				activeAutoSaveStrategyRef.current = null;
+				return;
+			}
+			autoSaveThrottleHasPendingRef.current = false;
+			void saveAllDirty();
+			scheduleThrottleCooldown(intervalMs);
+		}, intervalMs);
+	}, [saveAllDirty]);
+	
+	const scheduleAutoSave = useCallback((options?:{debounceMs?:number; strategy?:AutoSaveStrategy}) => {
+		const debounceMs = options?.debounceMs ?? AUTO_SAVE_DEBOUNCE_MS;
+		const strategy = options?.strategy ?? "debounce";
+		const activeStrategy = activeAutoSaveStrategyRef.current;
+		
+		if(activeStrategy && activeStrategy !== strategy){
+			autoSaveThrottleHasPendingRef.current = false;
+			clearAutoSaveTimer();
+		}
+		
+		if(strategy === "leadingTrailingThrottle"){
+			if(autoSaveTimer.current && activeAutoSaveStrategyRef.current === "leadingTrailingThrottle"){
+				autoSaveThrottleHasPendingRef.current = true;
+				return;
+			}
+			autoSaveThrottleHasPendingRef.current = false;
+			void saveAllDirty();
+			scheduleThrottleCooldown(debounceMs);
+			return;
+		}
+		
+		autoSaveThrottleHasPendingRef.current = false;
+		clearAutoSaveTimer();
+		activeAutoSaveStrategyRef.current = "debounce";
+		autoSaveTimer.current = setTimeout(() => {
+			autoSaveTimer.current = null;
+			activeAutoSaveStrategyRef.current = null;
+			void saveAllDirty();
+		}, debounceMs);
+	}, [clearAutoSaveTimer, saveAllDirty, scheduleThrottleCooldown]);
+	
+	const handleManualSave = () => {
+		autoSaveThrottleHasPendingRef.current = false;
+		clearAutoSaveTimer();
 		saveAllDirty();
 	};
+	
+	const handleSelectCharacter = useCallback(async(nextCharacterId:number) => {
+		if(nextCharacterId === selectedCharacterId){
+			return;
+		}
+		if(dirtyRef.current.size > 0){
+			autoSaveThrottleHasPendingRef.current = false;
+			clearAutoSaveTimer();
+			const saved = await saveAllDirty({silent : true});
+			if(!saved){
+				showToast("??μ뿉 ?ㅽ뙣?덉뒿?덈떎");
+				return;
+			}
+		}
+		setSelectedCharacterId(nextCharacterId);
+	}, [clearAutoSaveTimer, saveAllDirty, selectedCharacterId]);
 	
 	const showToast = (msg:string) => {
 		setToastMessage(msg);
 		setTimeout(() => setToastMessage(""), 3000);
 	};
+	
+	const navigationContext = React.useContext(UNSAFE_NavigationContext);
+	const routeBlocker = useMemo(() => ({
+		state : "unblocked" as const,
+		proceed : () => {
+		},
+		reset : () => {
+		}
+	}), []);
+	
+	useBeforeUnload(
+		useCallback((event) => {
+			if(dirtyRef.current.size === 0){
+				return;
+			}
+			event.preventDefault();
+			event.returnValue = "";
+		}, [])
+	);
+	
+	useEffect(() => {
+		if(routeBlocker.state !== "blocked"){
+			routeLeaveGuardInFlightRef.current = false;
+			return;
+		}
+		if(routeLeaveGuardInFlightRef.current){
+			return;
+		}
+		routeLeaveGuardInFlightRef.current = true;
+		void (async() => {
+			autoSaveThrottleHasPendingRef.current = false;
+			clearAutoSaveTimer();
+			const saved = await saveAllDirty({silent : true});
+			if(saved){
+				routeBlocker.proceed();
+				return;
+			}
+			showToast("???關肉???쎈솭??됰뮸??덈뼄");
+			routeBlocker.reset();
+			routeLeaveGuardInFlightRef.current = false;
+		})();
+	}, [clearAutoSaveTimer, routeBlocker, saveAllDirty]);
+	
+	useEffect(() => {
+		const navigator = navigationContext?.navigator as {block?:(cb:(tx:{retry:() => void}) => void) => () => void} | undefined;
+		if(!navigator?.block){
+			return;
+		}
+		const unblock = navigator.block((tx) => {
+			if(routeLeaveGuardInFlightRef.current){
+				return;
+			}
+			if(dirtyRef.current.size === 0){
+				unblock();
+				tx.retry();
+				return;
+			}
+			routeLeaveGuardInFlightRef.current = true;
+			void (async() => {
+				autoSaveThrottleHasPendingRef.current = false;
+				clearAutoSaveTimer();
+				const saved = await saveAllDirty({silent : true});
+				if(saved){
+					unblock();
+					tx.retry();
+					return;
+				}
+				showToast("????쒑굢????덉넮???곕????덈펲");
+				routeLeaveGuardInFlightRef.current = false;
+			})();
+		});
+		return () => {
+			routeLeaveGuardInFlightRef.current = false;
+			unblock();
+		};
+	}, [clearAutoSaveTimer, navigationContext, saveAllDirty]);
 	
 	const SERVER_SHARED_DAILY = ["freeShopPurchase", "gemTreasureChest"] as const;
 	type ServerSharedDailyField = (typeof SERVER_SHARED_DAILY)[number];
@@ -393,12 +540,20 @@ const TodoPage:React.FC = () => {
 		return !!field && (SERVER_SHARED_DAILY as readonly string[]).includes(field);
 	};
 	
-	const handleTodoChange = (characterId:number, todoData:TodoData, changedField?:string) => {
+	const handleTodoChange = (
+		characterId:number,
+		todoData:TodoData,
+		changedField?:string,
+		options?:{saveDebounceMs?:number; saveStrategy?:AutoSaveStrategy}
+	) => {
+		const currentTodos = todosRef.current;
+		const saveDebounceMs = options?.saveDebounceMs ?? AUTO_SAVE_DEBOUNCE_MS;
+		const saveStrategy = options?.saveStrategy ?? "debounce";
 		if(isServerSharedDailyField(changedField)){
-			const serverId = todos.find(t => t.characterId === characterId)?.serverId;
+			const serverId = currentTodos.find(t => t.characterId === characterId)?.serverId;
 			if(serverId != null){
 				const fieldValue = todoData.daily[changedField];
-				setTodos(prev => prev.map(t => {
+				const nextTodos = currentTodos.map(t => {
 					if(t.serverId === serverId){
 						if(t.characterId === characterId){
 							return {...t, todoData};
@@ -409,17 +564,24 @@ const TodoPage:React.FC = () => {
 						};
 					}
 					return t;
-				}));
-				todos.filter(t => t.serverId === serverId).forEach(t => dirtyRef.current.add(t.characterId));
+				});
+				todosRef.current = nextTodos;
+				setTodos(nextTodos);
+				const affectedIds = currentTodos.filter(t => t.serverId === serverId).map(t => t.characterId);
+				affectedIds.forEach(id => dirtyRef.current.add(id));
 				setIsDirty(true);
+				scheduleAutoSave({debounceMs : saveDebounceMs, strategy : saveStrategy});
 				return;
 			}
 		}
-		setTodos(prev => prev.map(t =>
+		const nextTodos = currentTodos.map(t =>
 			t.characterId === characterId ? {...t, todoData} : t
-		));
+		);
+		todosRef.current = nextTodos;
+		setTodos(nextTodos);
 		dirtyRef.current.add(characterId);
 		setIsDirty(true);
+		scheduleAutoSave({debounceMs : saveDebounceMs, strategy : saveStrategy});
 	};
 	
 	const handleAddCharacter = async() => {
@@ -495,18 +657,18 @@ const TodoPage:React.FC = () => {
 		setFavoriteItems(prev => prev.filter(item => item.itemId !== itemId));
 	};
 
-	const moveSelectedCharacter = useCallback((direction:1 | -1) => {
+	const moveSelectedCharacter = useCallback(async(direction:1 | -1) => {
 		if(todos.length <= 1){
 			return;
 		}
 		const currentIndex = todos.findIndex(todo => todo.characterId === selectedCharacterId);
 		if(currentIndex < 0){
-			setSelectedCharacterId(todos[0].characterId);
+			await handleSelectCharacter(todos[0].characterId);
 			return;
 		}
 		const nextIndex = (currentIndex + direction + todos.length) % todos.length;
-		setSelectedCharacterId(todos[nextIndex].characterId);
-	}, [todos, selectedCharacterId]);
+		await handleSelectCharacter(todos[nextIndex].characterId);
+	}, [todos, selectedCharacterId, handleSelectCharacter]);
 
 	useEffect(() => {
 		if(todos.length <= 1){
@@ -522,10 +684,10 @@ const TodoPage:React.FC = () => {
 			}
 			if(event.key === "ArrowLeft"){
 				event.preventDefault();
-				moveSelectedCharacter(-1);
+				void moveSelectedCharacter(-1);
 			}else if(event.key === "ArrowRight"){
 				event.preventDefault();
-				moveSelectedCharacter(1);
+				void moveSelectedCharacter(1);
 			}
 		};
 		window.addEventListener("keydown", handleKeyDown);
@@ -559,9 +721,9 @@ const TodoPage:React.FC = () => {
 			return;
 		}
 		if(dx < 0){
-			moveSelectedCharacter(1);
+			void moveSelectedCharacter(1);
 		}else{
-			moveSelectedCharacter(-1);
+			void moveSelectedCharacter(-1);
 		}
 	};
 	
@@ -606,7 +768,7 @@ const TodoPage:React.FC = () => {
 								<button
 									key={todo.characterId}
 									className={`${styles.characterTab} ${todo.characterId === selectedCharacterId ? styles.active : ""}`}
-									onClick={() => setSelectedCharacterId(todo.characterId)}
+									onClick={() => void handleSelectCharacter(todo.characterId)}
 								>
 									<span className={styles.charTabName}>{todo.characterName}</span>
 									{todo.serverName && <span className={styles.charTabServer}>{todo.serverName}</span>}
@@ -814,7 +976,10 @@ const TodoPage:React.FC = () => {
 										onChange={(daily, changedField) => handleTodoChange(selectedTodo.characterId, {
 											...selectedTodo.todoData,
 											daily
-										}, changedField)}
+										}, changedField, {
+											saveDebounceMs : HOMEWORK_SAVE_DEBOUNCE_MS,
+											saveStrategy : "leadingTrailingThrottle"
+										})}
 										onSettingsChange={(settings) => handleTodoChange(selectedTodo.characterId, {
 											...selectedTodo.todoData,
 											settings
@@ -822,6 +987,9 @@ const TodoPage:React.FC = () => {
 										onMemosChange={(memos) => handleTodoChange(selectedTodo.characterId, {
 											...selectedTodo.todoData,
 											dailyMemos : memos
+										}, undefined, {
+											saveDebounceMs : HOMEWORK_SAVE_DEBOUNCE_MS,
+											saveStrategy : "leadingTrailingThrottle"
 										})}
 									/>
 								</div>
@@ -838,6 +1006,9 @@ const TodoPage:React.FC = () => {
 										onChange={(weekly) => handleTodoChange(selectedTodo.characterId, {
 											...selectedTodo.todoData,
 											weekly
+										}, undefined, {
+											saveDebounceMs : HOMEWORK_SAVE_DEBOUNCE_MS,
+											saveStrategy : "leadingTrailingThrottle"
 										})}
 										onSettingsChange={(settings) => handleTodoChange(selectedTodo.characterId, {
 											...selectedTodo.todoData,
@@ -846,6 +1017,9 @@ const TodoPage:React.FC = () => {
 										onMemosChange={(memos) => handleTodoChange(selectedTodo.characterId, {
 											...selectedTodo.todoData,
 											weeklyMemos : memos
+										}, undefined, {
+											saveDebounceMs : HOMEWORK_SAVE_DEBOUNCE_MS,
+											saveStrategy : "leadingTrailingThrottle"
 										})}
 									/>
 								</div>
