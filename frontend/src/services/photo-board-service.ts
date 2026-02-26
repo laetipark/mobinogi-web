@@ -12,8 +12,9 @@ export const photoBoardService = {
 		if(keyword && keyword.trim().length > 0){
 			params.keyword = keyword.trim();
 		}
-		if(tag && tag.trim().length > 0 && tag !== "ALL"){
-			params.tag = tag.trim();
+		const normalizedTag = tag?.trim().replace(/^#+/, "").trim() ?? "";
+		if(normalizedTag.length > 0 && normalizedTag !== "ALL"){
+			params.tag = normalizedTag;
 		}
 
 		const response = await apiService.get<ApiResponse & {data:PhotoBoardPostPage}>("/photo-board/posts", params);

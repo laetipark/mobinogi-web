@@ -1,5 +1,6 @@
 package com.example.mobinogi.controller.game;
 
+import com.example.mobinogi.dto.game.CraftFilterOptionsDto;
 import com.example.mobinogi.entity.LifeCraft;
 import com.example.mobinogi.service.game.GameCraftService;
 import lombok.extern.slf4j.Slf4j;
@@ -18,20 +19,27 @@ public class GameCraftController{
 		this.gameCraftService = gameCraftService;
 	}
 
+	@GetMapping("/filters")
+	public CraftFilterOptionsDto getCraftFilters(){
+		return gameCraftService.getCraftFilterOptions();
+	}
+
 	@GetMapping("/list")
 	public Page<LifeCraft> getCrafts(
 		@RequestParam(defaultValue = "0") int page,
 		@RequestParam(defaultValue = "10") int size,
 		@RequestParam(defaultValue = "craftId") String sortBy,
 		@RequestParam(defaultValue = "asc") String sortDir,
-		@RequestParam(required = false) String keyword){
+		@RequestParam(required = false) String keyword,
+		@RequestParam(required = false) String craftType,
+		@RequestParam(required = false) String craftName){
 
-		log.info("API 호출: /craft/list - page: {}, size: {}, sortBy: {}, sortDir: {}, keyword: {}",
-			page, size, sortBy, sortDir, keyword);
+		log.info("API call: /craft/list - page: {}, size: {}, sortBy: {}, sortDir: {}, keyword: {}, craftType: {}, craftName: {}",
+			page, size, sortBy, sortDir, keyword, craftType, craftName);
 
-		Page<LifeCraft> result = gameCraftService.getCrafts(page, size, sortBy, sortDir, keyword);
+		Page<LifeCraft> result = gameCraftService.getCrafts(page, size, sortBy, sortDir, keyword, craftType, craftName);
 
-		log.info("API 응답: 총 {}개 제작, 현재 페이지 {}개 반환",
+		log.info("API response: total {} crafts, current page elements {}",
 			result.getTotalElements(), result.getNumberOfElements());
 
 		return result;

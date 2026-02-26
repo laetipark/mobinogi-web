@@ -48,5 +48,29 @@ export interface LifeCraft{
 	ingredientItem?:GameItem;
 }
 
+export interface BarterFilterNpcOption{
+	npcId:number;
+	npcName:string;
+}
+
+export interface BarterFilterRegionOption{
+	regionId:number;
+	regionName:string;
+	npcs:BarterFilterNpcOption[];
+}
+
+export interface BarterFilterOptions{
+	regions:BarterFilterRegionOption[];
+}
+
+export interface CraftFilterTypeOption{
+	craftType:string;
+	craftNames:string[];
+}
+
+export interface CraftFilterOptions{
+	craftTypes:CraftFilterTypeOption[];
+}
+
 export type LifeBarterPage = PageResponse<LifeBarter>;
 export type LifeCraftPage = PageResponse<LifeCraft>;

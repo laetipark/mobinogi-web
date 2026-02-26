@@ -23,14 +23,26 @@ public class GameItem{
 	@Column(name = "item_type", length = 30)
 	private String itemType;
 
+	@Column(name = "item_main_menu", length = 30)
+	private String itemMainMenu;
+
+	@Column(name = "item_sub_menu", length = 30)
+	private String itemSubMenu;
+
 	@Column(name = "item_rarity", length = 30)
 	private String itemRarity;
 
 	@Column(name = "item_name", length = 30, unique = true)
 	private String itemName;
 
-	@Column(name = "item_effect", length = 200)
+	@Column(name = "item_effect", columnDefinition = "TEXT")
 	private String itemEffect;
+
+	@Column(name = "item_transcendence", columnDefinition = "TEXT")
+	private String itemTranscendence;
+
+	@Column(name = "item_source", columnDefinition = "TEXT")
+	private String itemSource;
 
 	@Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
 	private LocalDateTime createdAt;

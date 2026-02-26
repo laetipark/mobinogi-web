@@ -40,6 +40,18 @@ public class PhotoBoardPost{
 	@Column(name = "like_count")
 	private Integer likeCount;
 
+	@Column(name = "source_type", length = 20)
+	private String sourceType;
+
+	@Column(name = "external_id", length = 255)
+	private String externalId;
+
+	@Column(name = "external_url", length = 500)
+	private String externalUrl;
+
+	@Column(name = "external_author", length = 100)
+	private String externalAuthor;
+
 	@Column(name = "created_at", updatable = false)
 	private LocalDateTime createdAt;
 
@@ -59,6 +71,7 @@ public class PhotoBoardPost{
 		updatedAt = LocalDateTime.now();
 		if(viewCount == null) viewCount = 0;
 		if(likeCount == null) likeCount = 0;
+		if(sourceType == null) sourceType = "USER";
 	}
 
 	@PreUpdate

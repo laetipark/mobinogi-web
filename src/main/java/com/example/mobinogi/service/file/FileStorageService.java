@@ -18,8 +18,8 @@ public class FileStorageService{
 	@Value("${sftp.host}")
 	private String sftpHost;
 
-	@Value("${sftp.port:22}")
-	private int sftpPort;
+	@Value("${sftp.port:}")
+	private String sftpPort;
 
 	@Value("${sftp.username}")
 	private String sftpUsername;
@@ -36,6 +36,7 @@ public class FileStorageService{
 	);
 	private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 	private static final String TEMP_SUBDIR_PREFIX = "_tmp-";
+	private static final int DEFAULT_SFTP_PORT = 22;
 
 	public String storeFile(MultipartFile file, String subDir) throws Exception{
 		validateFile(file);
@@ -178,11 +179,22 @@ public class FileStorageService{
 
 	private Session createSession() throws JSchException{
 		JSch jsch = new JSch();
-		Session session = jsch.getSession(sftpUsername, sftpHost, sftpPort);
+		Session session = jsch.getSession(sftpUsername, sftpHost, resolveSftpPort());
 		session.setPassword(sftpPassword);
 		session.setConfig("StrictHostKeyChecking", "no");
 		session.connect(5000);
 		return session;
+	}
+
+	private int resolveSftpPort(){
+		if(sftpPort == null || sftpPort.isBlank()){
+			return DEFAULT_SFTP_PORT;
+		}
+		try{
+			return Integer.parseInt(sftpPort.trim());
+		}catch(NumberFormatException e){
+			throw new IllegalStateException("Invalid sftp.port: " + sftpPort, e);
+		}
 	}
 
 	private void mkdirs(ChannelSftp channel, String path){

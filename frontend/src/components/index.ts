@@ -2,7 +2,6 @@
 export {default as Header} from "./layout/header";
 
 // Common components
-export {default as LoadingScreen} from "./common/loading-screen";
 export {default as DarkModeToggle} from "./common/dark-mode-toggle";
 
 // Auth components

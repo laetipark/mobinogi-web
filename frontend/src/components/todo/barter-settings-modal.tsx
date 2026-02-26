@@ -14,6 +14,14 @@ const barterNpcKey = (itemName:string, exchangeItemName:string, npcName:string) 
 
 const isNpcShared = (barterNpc?:number) => Boolean(barterNpc);
 
+const toSafeBarterCount = (value:unknown):number => {
+	const parsed = Number(value);
+	if(!Number.isFinite(parsed) || parsed < 0){
+		return 0;
+	}
+	return Math.trunc(parsed);
+};
+
 const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({
 	characterId,
 	cycle,
@@ -354,6 +362,11 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({
 		const eName = barter.exchangeItem?.itemName || "";
 		const nName = barter.gameNpc?.npcName || "";
 		const isAdded = isBarterRegistered(barter);
+		const rewardPerTrade = toSafeBarterCount(barter.itemWeight);
+		const maxTrades = toSafeBarterCount(barter.barterQty);
+		const totalReward = rewardPerTrade * maxTrades;
+		const hasServerShare = Number(barter.barterServer) > 0;
+		const hasNpcShare = Number(barter.barterNpc) > 0;
 		return (
 			<div
 				key={`${keyPrefix}-${barter.barterId}-${iName}-${eName}-${nName}`}
@@ -370,29 +383,30 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({
 						{isAdded ? "제거" : "추가"}
 					</button>
 				</div>
-				<div className={styles.barterCardExchange}>
-					<div className={styles.barterCardItem}>
-						<span className={styles.barterCardLabel}>교환</span>
-						<span className={styles.barterCardValue}>{barter.exchangeItem?.itemName || "N/A"}</span>
-						<span className={styles.barterCardQty}>x{barter.exchangeCost}</span>
+					<div className={styles.barterCardExchange}>
+						<div className={styles.barterCardItem}>
+							<span className={styles.barterCardLabel}>교환</span>
+							<span className={styles.barterCardValue}>{barter.exchangeItem?.itemName || "N/A"}</span>
+							<span className={styles.barterCardQty}>x{barter.exchangeCost}</span>
+						</div>
+						<ArrowRight size={20} className={styles.barterCardArrow}/>
+						<div className={styles.barterCardItem}>
+							<span className={styles.barterCardLabel}>획득</span>
+							<span className={styles.barterCardValue}>{barter.gameItem?.itemName || "N/A"}</span>
+							<span className={styles.barterCardQty}>x{rewardPerTrade}</span>
+							<span className={styles.barterCardSubInfo}>최대 {maxTrades}회 · 총 x{totalReward}</span>
+						</div>
 					</div>
-					<ArrowRight size={20} className={styles.barterCardArrow}/>
-					<div className={styles.barterCardItem}>
-						<span className={styles.barterCardLabel}>획득</span>
-						<span className={styles.barterCardValue}>{barter.gameItem?.itemName || "N/A"}</span>
-						<span className={styles.barterCardQty}>x{barter.barterQty}</span>
-					</div>
+					{(hasServerShare || hasNpcShare) && (
+						<div className={styles.barterCardNote}>
+							{hasServerShare && <span>서버 공유</span>}
+							{hasServerShare && hasNpcShare && <span> / </span>}
+							{hasNpcShare && <span>NPC 공유</span>}
+						</div>
+					)}
 				</div>
-				{(barter.barterServer || barter.barterNpc) && (
-					<div className={styles.barterCardNote}>
-						{barter.barterServer && <span>서버 공유</span>}
-						{barter.barterServer && barter.barterNpc && <span> / </span>}
-						{barter.barterNpc && <span>NPC 공유</span>}
-					</div>
-				)}
-			</div>
-		);
-	};
+			);
+		};
 	
 	return (
 		<div className={styles.modalOverlay} onClick={onClose}>

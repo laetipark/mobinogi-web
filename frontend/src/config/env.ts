@@ -17,7 +17,7 @@ const getBooleanEnvVar = (name:string, defaultValue:boolean = false):boolean => 
 // 애플리케이션 설정
 export const config:AppConfig = {
 	app : {
-		title : getEnvVar("VITE_APP_TITLE", "Mobinogi"),
+		title : getEnvVar("VITE_APP_TITLE", "Sexynogi"),
 		env : getEnvVar("VITE_APP_ENV", "development")
 	},
 	api : {

@@ -4,6 +4,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {GameEvent} from "@/types";
 import {eventService} from "@/services";
+import {useSeo} from "@/hooks/use-seo";
 import styles from "./events.module.scss";
 import type {NormalizedGameEvent, TimelineModel, ParsedSummaryTable, SummaryGroup} from "@/types/ui";
 
@@ -569,6 +570,12 @@ const isSameDay = (a:Date, b:Date) =>
 	a.getDate() === b.getDate();
 
 const EventsPage:React.FC = () => {
+	useSeo({
+		title : "이벤트",
+		description : "진행 중인 마비노기 모바일 이벤트를 타임라인과 2주 달력으로 확인하세요.",
+		canonicalPath : "/events"
+	});
+
 	const [events, setEvents] = useState<GameEvent[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [, setTick] = useState(0);
@@ -818,7 +825,46 @@ const EventsPage:React.FC = () => {
 		return (
 			<div className={styles.eventsPage}>
 				<div className={styles.container}>
-					<div className={styles.loading}>이벤트를 불러오는 중...</div>
+					<div className="page-heading">
+						<h1>이벤트</h1>
+						<p className="page-heading-subtitle">종료 임박 순으로 이벤트를 확인하고 타임라인/2주 달력으로 일정을 보세요</p>
+					</div>
+					<div className={`${styles.layout} ${styles.loadingLayout}`} aria-busy="true" aria-live="polite">
+						<aside className={styles.eventList}>
+							<div className={styles.eventListHeader}>
+								<List size={16}/>
+								<span>이벤트 목록</span>
+								<span className={styles.totalCount}>...</span>
+							</div>
+							<div className={styles.eventListBody}>
+								{Array.from({length: 4}).map((_, index) => (
+									<div key={index} className={styles.skeletonEventItem}>
+										<div className={`${styles.skeletonBlock} ${styles.skeletonThumb}`}/>
+										<div className={`${styles.skeletonBlock} ${styles.skeletonLineLg}`}/>
+										<div className={`${styles.skeletonBlock} ${styles.skeletonLineMd}`}/>
+										<div className={`${styles.skeletonBlock} ${styles.skeletonLineSm}`}/>
+									</div>
+								))}
+							</div>
+						</aside>
+						<section className={styles.eventPanel}>
+							<div className={styles.skeletonPanelHeader}>
+								<div className={styles.skeletonPanelTitleWrap}>
+									<div className={`${styles.skeletonBlock} ${styles.skeletonTitle}`}/>
+									<div className={`${styles.skeletonBlock} ${styles.skeletonMeta}`}/>
+								</div>
+								<div className={styles.skeletonPanelActions}>
+									<div className={`${styles.skeletonBlock} ${styles.skeletonChip}`}/>
+									<div className={`${styles.skeletonBlock} ${styles.skeletonChip}`}/>
+								</div>
+							</div>
+							<div className={styles.skeletonPanelBody}>
+								<div className={`${styles.skeletonBlock} ${styles.skeletonToolbar}`}/>
+								<div className={`${styles.skeletonBlock} ${styles.skeletonBodyBlock}`}/>
+								<div className={`${styles.skeletonBlock} ${styles.skeletonBodyBlock}`}/>
+							</div>
+						</section>
+					</div>
 				</div>
 			</div>
 		);
@@ -827,9 +873,9 @@ const EventsPage:React.FC = () => {
 	return (
 		<div className={styles.eventsPage}>
 			<div className={styles.container}>
-				<div className="oYV5kUSv">
+				<div className="page-heading">
 					<h1>이벤트</h1>
-					<p className="-v1-aGH7">종료 임박 순으로 이벤트를 확인하고 타임라인/2주 달력으로 일정을 보세요</p>
+					<p className="page-heading-subtitle">종료 임박 순으로 이벤트를 확인하고 타임라인/2주 달력으로 일정을 보세요</p>
 				</div>
 
 				{normalizedEvents.length === 0 ? (

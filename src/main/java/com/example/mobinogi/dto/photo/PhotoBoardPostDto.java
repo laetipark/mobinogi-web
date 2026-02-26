@@ -27,6 +27,9 @@ public class PhotoBoardPostDto{
 	private Integer viewCount;
 	private Integer likeCount;
 	private Boolean likedByCurrentUser;
+	private String sourceType;
+	private String externalUrl;
+	private String externalAuthor;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
 
@@ -55,6 +58,9 @@ public class PhotoBoardPostDto{
 			.viewCount(entity.getViewCount())
 			.likeCount(entity.getLikeCount())
 			.likedByCurrentUser(likedByCurrentUser)
+			.sourceType(entity.getSourceType() == null ? "USER" : entity.getSourceType())
+			.externalUrl(entity.getExternalUrl())
+			.externalAuthor(entity.getExternalAuthor())
 			.createdAt(entity.getCreatedAt())
 			.updatedAt(entity.getUpdatedAt())
 			.build();
@@ -65,8 +71,16 @@ public class PhotoBoardPostDto{
 			return Collections.emptyList();
 		}
 		return Arrays.stream(tags.split(","))
-			.map(String::trim)
+			.map(PhotoBoardPostDto::normalizeTag)
 			.filter(tag -> !tag.isEmpty())
+			.distinct()
 			.collect(Collectors.toList());
+	}
+
+	private static String normalizeTag(String tag){
+		if(tag == null){
+			return "";
+		}
+		return tag.trim().replaceFirst("^#+", "").trim();
 	}
 }

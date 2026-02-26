@@ -29,7 +29,11 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<frontend.node.version>v18.18.0</frontend.node.version>
+		<frontend.npm.version>9.8.1</frontend.npm.version>
 		<skip.frontend>false</skip.frontend>
+		<frontend.npm.arguments>run build</frontend.npm.arguments>
+		<skip.frontend.copy>false</skip.frontend.copy>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -106,6 +110,11 @@
 			<version>4.12.0</version>
 		</dependency>
 		<dependency>
+			<groupId>com.google.auth</groupId>
+			<artifactId>google-auth-library-oauth2-http</artifactId>
+			<version>1.30.1</version>
+		</dependency>
+		<dependency>
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
 			<version>1.18.1</version>
@@ -159,7 +168,9 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
-					<argLine>-Xshare:off -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar</argLine>
+					<argLine>-Xshare:off
+						-javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
+					</argLine>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -195,23 +206,27 @@
 				<configuration>
 					<workingDirectory>frontend</workingDirectory>
 					<skip>${skip.frontend}</skip>
+					<nodeVersion>${frontend.node.version}</nodeVersion>
+					<npmVersion>${frontend.npm.version}</npmVersion>
 				</configuration>
 				<executions>
 					<!-- Install Node.js and npm -->
 					<execution>
-						<id>install node and npm</id>
+						<id>install-node-and-npm</id>
+						<phase>generate-resources</phase>
 						<goals>
 							<goal>install-node-and-npm</goal>
 						</goals>
 						<configuration>
-							<nodeVersion>v18.18.0</nodeVersion>
-							<npmVersion>9.8.1</npmVersion>
+							<nodeVersion>${frontend.node.version}</nodeVersion>
+							<npmVersion>${frontend.npm.version}</npmVersion>
 						</configuration>
 					</execution>
 					
 					<!-- Install npm dependencies -->
 					<execution>
-						<id>npm install</id>
+						<id>npm-install</id>
+						<phase>generate-resources</phase>
 						<goals>
 							<goal>npm</goal>
 						</goals>
@@ -222,17 +237,39 @@
 					
 					<!-- Build React app -->
 					<execution>
-						<id>npm run build</id>
+						<id>npm-command</id>
+						<phase>generate-resources</phase>
 						<goals>
 							<goal>npm</goal>
 						</goals>
 						<configuration>
-							<arguments>run build</arguments>
+							<arguments>${frontend.npm.arguments}</arguments>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
 			
+			<!-- Copy frontend build to Spring Boot static folder -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>clean-frontend-static-output</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<delete dir="${project.build.outputDirectory}/static" quiet="true"/>
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
 			<!-- Copy frontend build to Spring Boot static folder -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -246,6 +283,7 @@
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
+							<skip>${skip.frontend.copy}</skip>
 							<outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
 							<resources>
 								<resource>
@@ -259,5 +297,59 @@
 			</plugin>
 		</plugins>
 	</build>
+	
+	<profiles>
+		<!-- Backend run profiles: skip frontend build/copy and only select Spring profile -->
+		<profile>
+			<id>backend-dev</id>
+			<properties>
+				<spring-boot.run.profiles>development</spring-boot.run.profiles>
+				<skip.frontend>true</skip.frontend>
+				<skip.frontend.copy>true</skip.frontend.copy>
+			</properties>
+		</profile>
+		<profile>
+			<id>backend-prod</id>
+			<properties>
+				<spring-boot.run.profiles>production</spring-boot.run.profiles>
+				<skip.frontend>true</skip.frontend>
+				<skip.frontend.copy>true</skip.frontend.copy>
+			</properties>
+		</profile>
+		<!-- Package profiles: include frontend build + copy into Spring static resources -->
+		<profile>
+			<id>package-prod</id>
+			<properties>
+				<skip.frontend>false</skip.frontend>
+				<frontend.npm.arguments>run build</frontend.npm.arguments>
+				<skip.frontend.copy>false</skip.frontend.copy>
+			</properties>
+		</profile>
+		<profile>
+			<id>package-dev</id>
+			<properties>
+				<skip.frontend>false</skip.frontend>
+				<frontend.npm.arguments>run build:dev</frontend.npm.arguments>
+				<skip.frontend.copy>false</skip.frontend.copy>
+			</properties>
+		</profile>
+		<!-- Frontend-only profiles: for IntelliJ Maven run configs -->
+		<profile>
+			<id>frontend-dev</id>
+			<properties>
+				<skip.frontend>false</skip.frontend>
+				<frontend.npm.arguments>run dev</frontend.npm.arguments>
+				<skip.frontend.copy>true</skip.frontend.copy>
+			</properties>
+		</profile>
+		<profile>
+			<id>frontend-prod</id>
+			<properties>
+				<skip.frontend>false</skip.frontend>
+				<frontend.npm.arguments>run build</frontend.npm.arguments>
+				<skip.frontend.copy>false</skip.frontend.copy>
+			</properties>
+		</profile>
+	</profiles>
 
 </project>

@@ -1,5 +1,6 @@
 package com.example.mobinogi.controller.game;
 
+import com.example.mobinogi.dto.game.BarterFilterOptionsDto;
 import com.example.mobinogi.entity.LifeBarter;
 import com.example.mobinogi.service.game.GameBarterService;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,11 @@ public class GameBarterController{
 		return gameBarterService.getBartersByItemName(itemName);
 	}
 
+	@GetMapping("/filters")
+	public BarterFilterOptionsDto getBarterFilters(){
+		return gameBarterService.getBarterFilterOptions();
+	}
+
 	@GetMapping("/list")
 	public Page<LifeBarter> getBarters(
 		@RequestParam(defaultValue = "0") int page,
@@ -32,20 +38,22 @@ public class GameBarterController{
 		@RequestParam(defaultValue = "barterId") String sortBy,
 		@RequestParam(defaultValue = "asc") String sortDir,
 		@RequestParam(required = false) String keyword,
+		@RequestParam(required = false) Long regionId,
+		@RequestParam(required = false) Long npcId,
 		@RequestParam(defaultValue = "all") String searchMode,
 		@RequestParam(required = false) Integer cycle){
 
-		log.info("API 호출: /barter/list - page: {}, size: {}, sortBy: {}, sortDir: {}, keyword: {}, searchMode: {}, cycle: {}",
-			page, size, sortBy, sortDir, keyword, searchMode, cycle);
+		log.info("API call: /barter/list - page: {}, size: {}, sortBy: {}, sortDir: {}, keyword: {}, regionId: {}, npcId: {}, searchMode: {}, cycle: {}",
+			page, size, sortBy, sortDir, keyword, regionId, npcId, searchMode, cycle);
 
 		Page<LifeBarter> result;
 		if("obtained".equals(searchMode)){
 			result = gameBarterService.getBartersByObtainedItem(page, size, sortBy, sortDir, keyword, cycle);
 		}else{
-			result = gameBarterService.getBarters(page, size, sortBy, sortDir, keyword);
+			result = gameBarterService.getBarters(page, size, sortBy, sortDir, keyword, regionId, npcId);
 		}
 
-		log.info("API 응답: 총 {}개 물물교환, 현재 페이지 {}개 반환",
+		log.info("API response: total {} barters, current page elements {}",
 			result.getTotalElements(), result.getNumberOfElements());
 
 		return result;

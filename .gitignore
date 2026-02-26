@@ -34,6 +34,8 @@ build/
 /src/main/resources/google-oauth/credentials.json
 /src/main/resources/properties/env.properties
 /.env
+/.env.development
+/.env.production
 
 ### Frontend ###
 frontend/node_modules/
@@ -48,4 +50,7 @@ nginx/nginx.conf
 docker-compose.yml
 
 ### Claude AI Rules - Local/Private ###
-/.aiassistant/rules/local
+/.aiassistant/rules/local/
+/.aiassistant/rules/local/**
+!/.aiassistant/rules/project/
+!/.aiassistant/rules/project/**

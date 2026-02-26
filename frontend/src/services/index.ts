@@ -9,3 +9,4 @@ export {gameClassService} from "./game-class-service";
 export {eventService} from "./event-service";
 export {noticeService} from "./notice-service";
 export {photoBoardService} from "./photo-board-service";
+export {default as itemEditReportService} from "./item-edit-report-service";

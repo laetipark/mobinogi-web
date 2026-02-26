@@ -1,8 +1,9 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
+import {useNavigate} from "react-router-dom";
 import {GameItemData, LifeBarter, LifeCraft} from "@/types";
 import GameItemService from "@/services/game-item-service";
-import {getItemRarityInfo} from "@/utils";
-import {X, ArrowRight, Hammer, ArrowLeftRight, Package, MapPin, User, RefreshCw} from "lucide-react";
+import {getItemRarityInfo, normalizeMultilineText, parseItemTranscendence, toItemDetailPath} from "@/utils";
+import {X, ArrowRight, Hammer, ArrowLeftRight, Package, MapPin, User, RefreshCw, Pencil} from "lucide-react";
 import styles from "./item-detail-modal.module.scss";
 import type {ItemDetailModalProps} from "@/types/ui";
 
@@ -29,7 +30,26 @@ const formatProcessingTime = (processingTime:number | null | undefined):string =
 	return `${minutes}분 ${seconds}초`;
 };
 
+const toSafeBarterCount = (value:unknown):number => {
+	const parsed = Number(value);
+	if(!Number.isFinite(parsed) || parsed < 0){
+		return 0;
+	}
+	return Math.trunc(parsed);
+};
+
+const getBarterRewardDisplay = (barter:LifeBarter) => {
+	const rewardPerTrade = toSafeBarterCount(barter.itemWeight);
+	const maxTrades = toSafeBarterCount(barter.barterQty);
+	return {
+		rewardPerTrade,
+		maxTrades,
+		totalReward : rewardPerTrade * maxTrades
+	};
+};
+
 const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
+	const navigate = useNavigate();
 	const [itemData, setItemData] = useState<GameItemData | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [activeTab, setActiveTab] = useState<"barter" | "craft">("barter");
@@ -75,8 +95,12 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 		};
 	}, [onClose]);
 
-	const renderBarterCard = (barter:LifeBarter) => (
-		<div key={barter.barterId} className={styles.barterCard}>
+	const renderBarterCard = (barter:LifeBarter) => {
+		const reward = getBarterRewardDisplay(barter);
+		const hasServerShare = Number(barter.barterServer) > 0;
+		const hasNpcShare = Number(barter.barterNpc) > 0;
+		return (
+			<div key={barter.barterId} className={styles.barterCard}>
 			<div className={styles.barterLocation}>
 				<MapPin size={14}/>
 				<span>{barter.gameRegion?.regionName || "N/A"}</span>
@@ -91,18 +115,20 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 				<ArrowRight size={20} className={styles.arrow}/>
 				<div className={styles.exchangeItem}>
 					<span className={styles.itemName}>{barter.gameItem?.itemName || "N/A"}</span>
-					<span className={styles.itemCount}>x{barter.barterQty}</span>
+					<span className={styles.itemCount}>x{reward.rewardPerTrade}</span>
+					<span className={styles.itemMetaHint}>최대 {reward.maxTrades}회 · 총 x{reward.totalReward}</span>
 				</div>
 			</div>
-			{(barter.barterServer || barter.barterNpc) && (
+			{(hasServerShare || hasNpcShare) && (
 				<div className={styles.barterNote}>
-					{barter.barterServer && <span>서버 공유</span>}
-					{barter.barterServer && barter.barterNpc && <span> / </span>}
-					{barter.barterNpc && <span>NPC 공유</span>}
+					{hasServerShare && <span>서버 공유</span>}
+					{hasServerShare && hasNpcShare && <span> / </span>}
+					{hasNpcShare && <span>NPC 공유</span>}
 				</div>
 			)}
-		</div>
-	);
+			</div>
+		);
+	};
 
 	const renderCraftGroup = (subId:number, crafts:LifeCraft[]) => (
 		<div key={subId} className={styles.craftGroup}>
@@ -133,11 +159,32 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 	const craftsBySubId = itemData?.craftsBySubId || {};
 	const hasBarters = bartersByItemId.length > 0 || bartersByExchangeId.length > 0;
 	const hasCrafts = Object.keys(craftsBySubId).length > 0;
-	const rarityInfo = getItemRarityInfo(item.itemRarity);
+	const displayItemType = item.itemType || itemData?.itemType || "-";
+	const displayItemMainMenu = item.itemMainMenu || itemData?.itemMainMenu || "";
+	const displayItemSubMenu = item.itemSubMenu || itemData?.itemSubMenu || "";
+	const isSubMenuSameAsType = useMemo(() => {
+		const normalizedSubMenu = normalizeMultilineText(displayItemSubMenu).trim();
+		const normalizedType = normalizeMultilineText(displayItemType).trim();
+		return Boolean(normalizedSubMenu) && normalizedSubMenu === normalizedType;
+	}, [displayItemSubMenu, displayItemType]);
+	const displayItemRarity = item.itemRarity || itemData?.itemRarity || "";
+	const displayItemEffect = normalizeMultilineText(item.itemEffect || itemData?.itemEffect || "");
+	const displayItemSource = normalizeMultilineText(item.itemSource || itemData?.itemSource || "");
+	const parsedTranscendence = useMemo(
+		() => parseItemTranscendence(item.itemTranscendence ?? itemData?.itemTranscendence),
+		[item.itemTranscendence, itemData?.itemTranscendence]
+	);
+	const rarityInfo = getItemRarityInfo(displayItemRarity);
+	const hasItemMetaDetails = !!displayItemSource;
 	const rarityStyle = {
 		"--rarity-color" : rarityInfo.color,
 		"--rarity-bg" : rarityInfo.bg
 	} as React.CSSProperties;
+	const handleOpenReportPage = () => {
+		navigate(toItemDetailPath(item.itemName), {
+			state : {openReportModal : true}
+		});
+	};
 
 	return (
 		<div className={styles.modalBackdrop} onClick={handleBackdropClick}>
@@ -146,11 +193,36 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 					<div className={styles.itemInfo}>
 						<Package size={24}/>
 						<div>
-							<h2>{item.itemName}</h2>
+							<div className={styles.titleRow}>
+								<h2>{item.itemName}</h2>
+								<button type="button" className={styles.reportBtn} onClick={handleOpenReportPage}>
+									<Pencil size={13}/>
+									<span>{"아이템 제보"}</span>
+								</button>
+							</div>
 							<div className={styles.itemMeta}>
-								<span className={styles.itemType}>{item.itemType}</span>
 								<span className={styles.itemRarity} style={rarityStyle}>
 									{rarityInfo.label}
+								</span>
+								<span
+									className={`${styles.itemMetaChip} ${styles.itemMetaChipMain}`}
+									title={`상위 메뉴: ${displayItemMainMenu || "-"}`}
+								>
+									{displayItemMainMenu || "-"}
+								</span>
+								{!isSubMenuSameAsType && (
+								<span
+									className={`${styles.itemMetaChip} ${styles.itemMetaChipSub}`}
+									title={`하위 메뉴: ${displayItemSubMenu || "-"}`}
+								>
+									{displayItemSubMenu || "-"}
+								</span>
+								)}
+								<span
+									className={`${styles.itemMetaChip} ${styles.itemMetaChipType}`}
+									title={`유형: ${displayItemType}`}
+								>
+									{displayItemType}
 								</span>
 							</div>
 						</div>
@@ -160,9 +232,51 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 					</button>
 				</div>
 
-				{item.itemEffect && (
+				{hasItemMetaDetails && (
+					<div className={styles.itemExtraMeta}>
+						<div className={styles.metaGrid}>
+							{displayItemSource && (
+								<div className={`${styles.metaRow} ${styles.metaRowBlock}`}>
+									<span className={styles.metaLabel}>{"아이템 출처"}</span>
+									<span className={`${styles.metaValue} ${styles.metaValueBlock}`}>{displayItemSource}</span>
+								</div>
+							)}
+						</div>
+					</div>
+				)}
+
+				{displayItemEffect && (
 					<div className={styles.itemEffect}>
-						{item.itemEffect}
+						{displayItemEffect}
+					</div>
+				)}
+
+				{(parsedTranscendence.rows.length > 0 || parsedTranscendence.parseError) && (
+					<div className={styles.transcendenceSection}>
+						<div className={styles.transcendenceTitle}>초월 수치</div>
+						{parsedTranscendence.rows.length > 0 ? (
+							<div className={styles.transcendenceList}>
+								{parsedTranscendence.rows.map((row) => (
+									<div key={row.key} className={styles.transcendenceRow}>
+										<span className={styles.transcendenceLabel}>{row.label}</span>
+										{row.tierValues ? (
+											<div className={styles.transcendenceTierValues}>
+												{row.tierValues.map((tier) => (
+													<span key={`${row.key}-${tier.tier}`} className={styles.transcendenceChip}>
+														<span className={styles.transcendenceChipTier}>{tier.tier}</span>
+														<span>{tier.value}</span>
+													</span>
+												))}
+											</div>
+										) : (
+											<span className={styles.transcendenceValue}>{row.value}</span>
+										)}
+									</div>
+								))}
+							</div>
+						) : (
+							<pre className={styles.transcendenceRaw}>{parsedTranscendence.rawText}</pre>
+						)}
 					</div>
 				)}
 

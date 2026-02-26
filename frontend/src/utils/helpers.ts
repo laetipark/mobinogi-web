@@ -56,6 +56,16 @@ export const getDifficultyLabel = (difficulty: string): string => {
 	return DIFFICULTY_LABELS[difficulty] || difficulty;
 };
 
+export const normalizeMultilineText = (value:string | null | undefined):string => {
+	if(!value){
+		return "";
+	}
+	return value
+		.replace(/\\r\\n/g, "\n")
+		.replace(/\\n/g, "\n")
+		.replace(/\r\n/g, "\n");
+};
+
 export const storage = {
 	get : <T>(key:string):T | null => {
 		try{

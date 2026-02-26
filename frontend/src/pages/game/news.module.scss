@@ -1,17 +1,11 @@
 @use "../../styles/index" as *;
 
 .newsPage{
-	min-height:calc(100vh - 80px);
-	padding:28px 20px 40px;
-	background:
-		radial-gradient(circle at 12% 8%, rgba(168, 213, 229, 0.25), transparent 40%),
-		radial-gradient(circle at 85% 15%, rgba(212, 197, 240, 0.24), transparent 35%),
-		var(--background);
+	@include page-shell();
 }
 
 .container{
-	max-width:1080px;
-	margin:0 auto;
+	@include page-container();
 }
 
 .tabContainer{
@@ -135,7 +129,7 @@
 
 :global(.dark-mode) .noticeType{
 	color:#f6f8ff;
-	background:linear-gradient(135deg, #405a8d 0%, #5e4b84 100%);
+	background:#4b568d;
 	border-color:#8fa8d6;
 	box-shadow:0 1px 6px rgba(25, 36, 56, 0.45);
 }

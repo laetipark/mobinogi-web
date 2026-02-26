@@ -9,7 +9,7 @@ const SiteFooter:React.FC = () => {
 		<footer className={styles.footer}>
 			<div className={`container ${styles.footerInner}`}>
 				<div className={styles.brand}>
-					<strong>MobiNogi</strong>
+					<strong>Sexynogi</strong>
 					<span>마비노기 모바일 정보 허브</span>
 				</div>
 
@@ -21,7 +21,7 @@ const SiteFooter:React.FC = () => {
 					<Link to="/gallery">갤러리</Link>
 				</nav>
 
-				<small className={styles.copy}>© {currentYear} MobiNogi</small>
+				<small className={styles.copy}>© {currentYear} Sexynogi</small>
 			</div>
 		</footer>
 	);

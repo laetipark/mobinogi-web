@@ -16,8 +16,12 @@ public class GameItemSummaryDto{
 	private Long itemId;
 	private String itemName;
 	private String itemType;
+	private String itemMainMenu;
+	private String itemSubMenu;
 	private String itemRarity;
 	private String itemEffect;
+	private String itemTranscendence;
+	private String itemSource;
 
 	// 물물교환 요약 정보
 	private boolean hasBarterSource;  // 물물교환으로 획득 가능한지
@@ -43,8 +47,12 @@ public class GameItemSummaryDto{
 		dto.setItemId(item.getItemId());
 		dto.setItemName(item.getItemName());
 		dto.setItemType(item.getItemType());
+		dto.setItemMainMenu(item.getItemMainMenu());
+		dto.setItemSubMenu(item.getItemSubMenu());
 		dto.setItemRarity(item.getItemRarity());
 		dto.setItemEffect(item.getItemEffect());
+		dto.setItemTranscendence(item.getItemTranscendence());
+		dto.setItemSource(item.getItemSource());
 		return dto;
 	}
 }

@@ -33,7 +33,7 @@ public class PhotoBoardService{
 	public Page<PhotoBoardPostDto> getPosts(Long currentUserId, String keyword, String tag, int page, int size){
 		Pageable pageable = PageRequest.of(page, size);
 		String normalizedKeyword = normalize(keyword);
-		String normalizedTag = normalize(tag);
+		String normalizedTag = normalizeTagFilter(tag);
 
 		Page<PhotoBoardPost> posts = photoBoardPostRepository.searchPosts(normalizedKeyword, normalizedTag, pageable);
 		Set<Long> likedPostIds = resolveLikedPostIds(currentUserId, posts);
@@ -135,13 +135,26 @@ public class PhotoBoardService{
 		return value.trim();
 	}
 
+	private String normalizeTagFilter(String value){
+		String normalizedTag = normalizeTag(value);
+		return normalizedTag.isEmpty() ? null : normalizedTag;
+	}
+
+	private String normalizeTag(String value){
+		if(value == null){
+			return "";
+		}
+		return value.trim().replaceFirst("^#+", "").trim();
+	}
+
 	private String joinTags(List<String> tags){
 		if(tags == null || tags.isEmpty()){
 			return null;
 		}
 		List<String> normalized = tags.stream()
-			.map(tag -> tag == null ? "" : tag.trim())
+			.map(this::normalizeTag)
 			.filter(tag -> !tag.isEmpty())
+			.distinct()
 			.collect(Collectors.toList());
 
 		if(normalized.isEmpty()){

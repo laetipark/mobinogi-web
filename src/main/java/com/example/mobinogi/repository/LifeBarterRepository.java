@@ -10,6 +10,16 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface LifeBarterRepository extends JpaRepository<LifeBarter, Long>{
+	interface BarterFilterRow{
+		Long getRegionId();
+
+		String getRegionName();
+
+		Long getNpcId();
+
+		String getNpcName();
+	}
+
 	List<LifeBarter> findByItemId(Long itemId);
 
 	List<LifeBarter> findByItemIdIn(List<Long> itemIds);
@@ -27,6 +37,33 @@ public interface LifeBarterRepository extends JpaRepository<LifeBarter, Long>{
 	// 페이지네이션 지원 메서드
 	@Query("SELECT b FROM LifeBarter b WHERE b.gameItem.itemName LIKE %:keyword% OR b.exchangeItem.itemName LIKE %:keyword%")
 	Page<LifeBarter> findByKeyword(@Param("keyword") String keyword, Pageable pageable);
+
+	@Query("""
+		SELECT b
+		FROM LifeBarter b
+		WHERE (:keyword IS NULL
+				OR b.gameItem.itemName LIKE %:keyword%
+				OR b.exchangeItem.itemName LIKE %:keyword%)
+			AND (:regionId IS NULL OR b.regionId = :regionId)
+			AND (:npcId IS NULL OR b.npcId = :npcId)
+		""")
+	Page<LifeBarter> findByFilters(
+		@Param("keyword") String keyword,
+		@Param("regionId") Long regionId,
+		@Param("npcId") Long npcId,
+		Pageable pageable);
+
+	@Query("""
+		SELECT DISTINCT b.regionId AS regionId,
+			COALESCE(r.regionName, '') AS regionName,
+			b.npcId AS npcId,
+			COALESCE(n.npcName, '') AS npcName
+		FROM LifeBarter b
+		LEFT JOIN b.gameRegion r
+		LEFT JOIN b.gameNpc n
+		ORDER BY COALESCE(r.regionName, ''), COALESCE(n.npcName, '')
+		""")
+	List<BarterFilterRow> findFilterRows();
 	
 	// 획득 아이템 기준 검색
 	@Query("SELECT b FROM LifeBarter b WHERE b.gameItem.itemName LIKE %:keyword%")

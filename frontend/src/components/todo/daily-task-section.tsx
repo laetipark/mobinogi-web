@@ -80,7 +80,9 @@ const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({daily, settings, char
 						<span className={styles.taskLabel}>요일 던전</span>
 						<div className={styles.checkCircles}>
 							<button
+								type="button"
 								className={`${styles.checkCircle} ${daily.dayDungeon ? styles.completed : ""}`}
+								aria-pressed={daily.dayDungeon}
 								onClick={() => onChange({...daily, dayDungeon: !daily.dayDungeon})}
 							/>
 						</div>
@@ -100,14 +102,18 @@ const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({daily, settings, char
 						<div className={styles.cashShopChecks}>
 							<div className={styles.cashShopItem}>
 								<button
+									type="button"
 									className={`${styles.checkCircle} ${daily.freeShopPurchase ? styles.completed : ""}`}
+									aria-pressed={daily.freeShopPurchase}
 									onClick={() => onChange({...daily, freeShopPurchase: !daily.freeShopPurchase}, "freeShopPurchase")}
 								/>
 								<span className={styles.cashShopLabel}>무료 상품</span>
 							</div>
 							<div className={styles.cashShopItem}>
 								<button
+									type="button"
 									className={`${styles.checkCircle} ${daily.gemTreasureChest ? styles.completed : ""}`}
+									aria-pressed={daily.gemTreasureChest}
 									onClick={() => onChange({...daily, gemTreasureChest: !daily.gemTreasureChest}, "gemTreasureChest")}
 								/>
 								<span className={styles.cashShopLabel}>보석 상자</span>
@@ -136,7 +142,9 @@ const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({daily, settings, char
 						<span className={styles.taskLabel}>{memo.label}</span>
 						<div className={styles.checkCircles}>
 							<button
+								type="button"
 								className={`${styles.checkCircle} ${memo.completed ? styles.completed : ""}`}
+								aria-pressed={memo.completed}
 								onClick={() => toggleMemo(memo.id)}
 							/>
 						</div>

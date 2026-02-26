@@ -104,6 +104,42 @@ public class BoardController{
 		}
 	}
 
+	// GET /api/board/posts/by-slug?slug={slug}
+	@GetMapping("/posts/by-slug")
+	public ResponseEntity<?> getPostBySlug(@RequestParam String slug){
+		try{
+			BoardPostDto post = boardService.getPostBySlug(slug);
+
+			Map<String, Object> response = new HashMap<>();
+			response.put("success", true);
+			response.put("post", post);
+			return ResponseEntity.ok(response);
+		}catch(Exception e){
+			Map<String, Object> errorResponse = new HashMap<>();
+			errorResponse.put("success", false);
+			errorResponse.put("message", e.getMessage());
+			return ResponseEntity.status(404).body(errorResponse);
+		}
+	}
+
+	// GET /api/board/posts/by-title?title={title}
+	@GetMapping("/posts/by-title")
+	public ResponseEntity<?> getPostByTitle(@RequestParam String title){
+		try{
+			BoardPostDto post = boardService.getPostByTitle(title);
+
+			Map<String, Object> response = new HashMap<>();
+			response.put("success", true);
+			response.put("post", post);
+			return ResponseEntity.ok(response);
+		}catch(Exception e){
+			Map<String, Object> errorResponse = new HashMap<>();
+			errorResponse.put("success", false);
+			errorResponse.put("message", e.getMessage());
+			return ResponseEntity.status(404).body(errorResponse);
+		}
+	}
+
 	// GET /api/board/posts/{postId}
 	@GetMapping("/posts/{postId}")
 	public ResponseEntity<?> getPost(@PathVariable Long postId){

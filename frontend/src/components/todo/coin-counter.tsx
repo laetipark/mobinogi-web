@@ -53,8 +53,10 @@ const CoinCounter:React.FC<CoinCounterProps> = ({
 			<div className={styles.checkCircles}>
 				{Array.from({length : max}, (_, i) => (
 					<button
+						type="button"
 						key={i}
 						className={`${styles.checkCircle} ${i < displayCurrent ? styles.completed : ""}`}
+						aria-pressed={i < displayCurrent}
 						onClick={() => {
 							if(i < displayCurrent){
 								onChange(i);

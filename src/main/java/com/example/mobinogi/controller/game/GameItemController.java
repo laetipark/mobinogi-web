@@ -38,9 +38,11 @@ public class GameItemController{
 	public Page<GameItemSummaryDto> getGameItems(
 		@RequestParam(defaultValue = "0") int page,
 		@RequestParam(defaultValue = "10") int size,
-		@RequestParam(defaultValue = "itemId") String sortBy,
+		@RequestParam(defaultValue = "itemMainMenu") String sortBy,
 		@RequestParam(defaultValue = "asc") String sortDir,
 		@RequestParam(required = false) String keyword,
+		@RequestParam(required = false) String itemMainMenu,
+		@RequestParam(required = false) String itemSubMenu,
 		@RequestParam(required = false) String itemType,
 		@RequestParam(required = false) String itemRarity){
 
@@ -60,6 +62,8 @@ public class GameItemController{
 			sortBy,
 			sortDir,
 			keyword,
+			itemMainMenu,
+			itemSubMenu,
 			itemType,
 			itemRarities
 		);

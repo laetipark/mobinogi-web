@@ -16,6 +16,13 @@ import java.util.Map;
 @AllArgsConstructor
 public class GameItemDataDto{
 	private String itemName;
+	private String itemType;
+	private String itemMainMenu;
+	private String itemSubMenu;
+	private String itemRarity;
+	private String itemEffect;
+	private String itemTranscendence;
+	private String itemSource;
 	private List<LifeBarter> bartersByItemId;
 	private List<LifeBarter> bartersByExchangeId;
 	private Map<Integer, List<LifeCraft>> craftsBySubId;

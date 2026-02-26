@@ -12,8 +12,10 @@ const TaskCounter:React.FC<TaskCounterProps> = ({label, current, max, onChange})
 			<div className={styles.checkCircles}>
 				{Array.from({length : max}, (_, i) => (
 					<button
+						type="button"
 						key={i}
 						className={`${styles.checkCircle} ${i < current ? styles.completed : ""}`}
+						aria-pressed={i < current}
 						onClick={() => {
 							if(i < current){
 								onChange(i);

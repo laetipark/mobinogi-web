@@ -5,8 +5,12 @@ export interface GameItem{
 	itemId:number;
 	itemName:string;
 	itemType:string;
+	itemMainMenu?:string | null;
+	itemSubMenu?:string | null;
 	itemRarity:string;
 	itemEffect:string;
+	itemTranscendence?:string | null;
+	itemSource?:string | null;
 }
 
 export interface BarterSourceInfo{
@@ -20,8 +24,12 @@ export interface GameItemSummary{
 	itemId:number;
 	itemName:string;
 	itemType:string;
+	itemMainMenu?:string | null;
+	itemSubMenu?:string | null;
 	itemRarity:string;
 	itemEffect:string;
+	itemTranscendence?:string | null;
+	itemSource?:string | null;
 	hasBarterSource:boolean;
 	barterSources:BarterSourceInfo[] | null;
 	hasCraftSource:boolean;
@@ -34,17 +42,39 @@ export interface GameItemSearchParams{
 	sortBy?:string;
 	sortDir?:"asc" | "desc";
 	keyword?:string;
+	itemMainMenu?:string;
+	itemSubMenu?:string;
 	itemType?:string;
 	itemRarity?:string[];
 }
 
+export interface GameItemFilterSubMenuOption{
+	itemSubMenu:string;
+	itemTypes:string[];
+}
+
+export interface GameItemFilterMainMenuOption{
+	itemMainMenu:string;
+	subMenus:GameItemFilterSubMenuOption[];
+}
+
 export interface GameItemFilterOptions{
+	itemMainMenus?:string[];
+	itemSubMenus?:string[];
 	itemTypes:string[];
 	itemRarities:string[];
+	itemCategoryTree?:GameItemFilterMainMenuOption[];
 }
 
 export interface GameItemData{
 	itemName:string;
+	itemType?:string | null;
+	itemMainMenu?:string | null;
+	itemSubMenu?:string | null;
+	itemRarity?:string | null;
+	itemEffect?:string | null;
+	itemTranscendence?:string | null;
+	itemSource?:string | null;
 	bartersByItemId:LifeBarter[];
 	bartersByExchangeId:LifeBarter[];
 	craftsBySubId:Record<number, LifeCraft[]>;

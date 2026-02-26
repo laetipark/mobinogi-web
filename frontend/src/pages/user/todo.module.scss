@@ -1,3 +1,5 @@
+@use '../../styles/index' as *;
+
 // Todo Page Styles
 
 html{
@@ -5,53 +7,27 @@ html{
 }
 
 .todoPage{
-	min-height:calc(100vh - 80px);
-	padding:28px 20px 40px;
-	background:
-		radial-gradient(circle at 12% 8%, rgba(168, 213, 229, 0.25), transparent 40%),
-		radial-gradient(circle at 85% 15%, rgba(212, 197, 240, 0.24), transparent 35%),
-		var(--background);
+	@include page-shell();
 	--text-primary:var(--text);
 	--text-secondary:var(--text-muted);
 	--primary-color:var(--primary);
 	--card-bg:var(--surface);
 	--border-color:var(--border);
 	--card-header-bg:var(--surface-hover);
-	--danger-bg:rgba(239, 68, 68, 0.1);
-	--danger-color:#ef4444;
-	--badge-bg:var(--primary-light);
-	--badge-color:var(--primary-dark);
-	--badge-border:rgba(139, 196, 214, 0.35);
-	--badge-bg2:rgba(168, 213, 229, 0.2);
-	--badge-color2:var(--primary-dark);
-	--badge-border2:rgba(143, 184, 159, 0.35);
+	--danger-bg:var(--home-state-danger-bg);
+	--danger-color:var(--home-state-danger-text);
+	--badge-bg:var(--home-state-active-bg);
+	--badge-color:var(--home-state-active-text);
+	--badge-border:var(--home-state-active-border);
+	--badge-bg2:var(--home-state-complete-bg);
+	--badge-color2:var(--home-state-complete-text);
+	--badge-border2:var(--home-state-complete-border);
 	--input-bg:var(--surface);
 	--hover-bg:var(--surface-hover);
-
-	:global(.dark-mode) &{
-		--text-primary:#edf3ff;
-		--text-secondary:#becbde;
-		--primary-color:#9ab8d6;
-		--card-bg:#1f2a39;
-		--input-bg:#1f2a39;
-		--border-color:#4a5d78;
-		--card-header-bg:#273447;
-		--hover-bg:#2f3d52;
-		--danger-bg:rgba(230, 114, 114, 0.2);
-		--danger-color:#ffb4b4;
-		--badge-bg:rgba(142, 185, 201, 0.22);
-		--badge-color:#d9eef5;
-		--badge-border:rgba(142, 185, 201, 0.6);
-		--badge-bg2:rgba(143, 184, 159, 0.22);
-		--badge-color2:#def4e5;
-		--badge-border2:rgba(143, 184, 159, 0.6);
-	}
 }
 
 .container{
-	max-width:1120px;
-	margin:0 auto;
-	padding:0;
+	@include page-container($padding: 0);
 }
 
 .pageHeader{
@@ -61,24 +37,22 @@ html{
 	margin-bottom:24px;
 }
 
-.pageTitleBlock{
-	display:flex;
-	flex-direction:column;
-	gap:6px;
+.pageHeader :global(.page-heading){
 	max-width:680px;
+	margin-bottom:0;
 }
 
 .pageTitle{
 	margin:0;
-	font-size:30px;
+	font-size:2rem;
 	line-height:1.2;
-	letter-spacing:-0.02em;
+	font-weight:700;
 	color:var(--text-primary, #333);
 }
 
 .pageSubtitle{
 	margin:0;
-	font-size:14px;
+	font-size:0.96rem;
 	line-height:1.5;
 	color:var(--text-secondary, #888);
 }
@@ -174,10 +148,10 @@ html{
 	&.active{
 		background:var(--primary-color, #4CAF50);
 		border-color:var(--primary-color, #4CAF50);
-		color:#fff;
+		color:var(--text-on-primary);
 
 		.charTabServer{
-			color:rgba(255, 255, 255, 0.8);
+			color:var(--text-on-primary-muted);
 		}
 	}
 }
@@ -205,7 +179,7 @@ html{
 	border-radius:8px;
 	border:none;
 	background:var(--primary-color, #4CAF50);
-	color:#fff;
+	color:var(--text-on-primary);
 	font-size:14px;
 	font-weight:600;
 	min-height:42px;
@@ -309,26 +283,26 @@ html{
 }
 
 .statPower{
-	background:rgba(239, 68, 68, 0.1);
-	color:#ef4444;
+	background:var(--todo-stat-power-bg);
+	color:var(--todo-stat-power-text);
 }
 
 .statVitality{
-	background:rgba(34, 197, 94, 0.1);
-	color:#16a34a;
+	background:var(--todo-stat-vitality-bg);
+	color:var(--todo-stat-vitality-text);
 }
 
 .statAttractiveness{
-	background:rgba(168, 85, 247, 0.1);
-	color:#a855f7;
+	background:var(--todo-stat-attractiveness-bg);
+	color:var(--todo-stat-attractiveness-text);
 }
 
 .statLoading{
 	font-size:11px;
 	padding:2px 8px;
 	border-radius:10px;
-	background:rgba(156, 163, 175, 0.1);
-	color:#9ca3af;
+	background:var(--todo-stat-loading-bg);
+	color:var(--todo-stat-loading-text);
 }
 
 // Sections Grid (2-column layout)
@@ -385,43 +359,43 @@ html{
 }
 
 :global(.dark-mode) .characterTab{
-	background:#243244;
-	border-color:#4f6380;
+	background:var(--card-bg);
+	border-color:var(--border-color);
 	color:var(--text-primary);
 }
 
 :global(.dark-mode) .characterTab:hover{
-	border-color:#8ea8c8;
+	border-color:var(--primary-color);
 }
 
 :global(.dark-mode) .characterTab.active{
-	background:#6f88a6;
-	border-color:#6f88a6;
-	color:#f4f8ff;
+	background:var(--primary-color);
+	border-color:var(--primary-color);
+	color:var(--text-on-primary);
 }
 
 :global(.dark-mode) .addCharTabBtn{
-	border-color:#4f6380;
-	color:#c6d3e6;
+	border-color:var(--border-color);
+	color:var(--text-secondary);
 }
 
 :global(.dark-mode) .addCharTabBtn:hover{
-	background:#2c3a4f;
-	border-color:#8ea8c8;
-	color:#ecf3ff;
+	background:var(--hover-bg);
+	border-color:var(--primary-color);
+	color:var(--text-primary);
 }
 
 :global(.dark-mode) .saveBtn{
-	background:#6f88a6;
-	color:#f7fbff;
+	background:var(--primary-color);
+	color:var(--text-on-primary);
 }
 
 :global(.dark-mode) .favoriteSearch input,
 :global(.dark-mode) .favoriteSearchItem,
 :global(.dark-mode) .favoriteCard{
-	background:#253245;
-	border-color:#4f6380;
-	color:#e7effd;
+	background:var(--card-bg);
+	border-color:var(--border-color);
+	color:var(--text-primary);
 }
 
 .favoriteHeader{
@@ -626,7 +600,7 @@ html{
 	&:hover{
 		border-color:var(--primary-color, #4CAF50);
 		color:var(--primary-color, #4CAF50);
-		background:rgba(76, 175, 80, 0.05);
+		background:var(--todo-dropzone-hover-bg);
 	}
 }
 
@@ -639,7 +613,7 @@ html{
 	border-radius:8px;
 	border:none;
 	background:var(--primary-color, #4CAF50);
-	color:#fff;
+	color:var(--text-on-primary);
 	font-size:14px;
 	font-weight:600;
 	cursor:pointer;
@@ -657,7 +631,7 @@ html{
 	left:0;
 	right:0;
 	bottom:0;
-	background:rgba(0, 0, 0, 0.5);
+	background:var(--overlay-backdrop);
 	display:flex;
 	align-items:center;
 	justify-content:center;
@@ -757,7 +731,7 @@ html{
 	border-radius:6px;
 	border:none;
 	background:var(--primary-color, #4CAF50);
-	color:#fff;
+	color:var(--text-on-primary);
 	font-size:13px;
 	font-weight:600;
 	cursor:pointer;
@@ -809,12 +783,12 @@ html{
 	}
 
 	.pageTitle{
-		font-size:24px;
+		font-size:1.55rem;
 	}
 
 	.pageSubtitle{
-		font-size:13px;
-		line-height:1.45;
+		font-size:0.88rem;
+		line-height:1.5;
 	}
 
 	.resetTimers{

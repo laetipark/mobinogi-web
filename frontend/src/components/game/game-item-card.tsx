@@ -1,17 +1,16 @@
 import React, {useMemo} from "react";
 import {Info, Package, RefreshCw, Hammer, MapPin, User} from "lucide-react";
-import {getItemRarityInfo} from "@/utils";
+import {getItemRarityInfo, normalizeMultilineText, parseItemTranscendence} from "@/utils";
 import styles from "./game-item-card.module.scss";
 import type {GameItemCardProps, GroupedBarterSource} from "@/types/ui";
 
-// 지역+NPC 기준으로 그룹화된 물물교환 정보
 const GameItemCard:React.FC<GameItemCardProps> = ({item, onClick}) => {
-	// 지역+NPC가 같은 물물교환 정보를 그룹화
 	const groupedBarterSources = useMemo<GroupedBarterSource[]>(() => {
-		if(!item.barterSources || item.barterSources.length === 0) return [];
-		
+		if(!item.barterSources || item.barterSources.length === 0){
+			return [];
+		}
+
 		const groupMap = new Map<string, GroupedBarterSource>();
-		
 		item.barterSources.forEach((barter) => {
 			const key = `${barter.regionName || ""}-${barter.npcName || ""}`;
 			if(groupMap.has(key)){
@@ -24,54 +23,112 @@ const GameItemCard:React.FC<GameItemCardProps> = ({item, onClick}) => {
 				});
 			}
 		});
-		
+
 		return Array.from(groupMap.values());
 	}, [item.barterSources]);
-	
+
 	const rarityInfo = getItemRarityInfo(item.itemRarity);
-	
+	const parsedTranscendence = useMemo(
+		() => parseItemTranscendence(item.itemTranscendence),
+		[item.itemTranscendence]
+	);
+	const displayItemEffect = useMemo(() => normalizeMultilineText(item.itemEffect), [item.itemEffect]);
+	const displayItemSource = useMemo(() => normalizeMultilineText(item.itemSource), [item.itemSource]);
+	const normalizedSubMenu = useMemo(() => normalizeMultilineText(item.itemSubMenu ?? "").trim(), [item.itemSubMenu]);
+	const normalizedItemType = useMemo(() => normalizeMultilineText(item.itemType ?? "").trim(), [item.itemType]);
+	const hideSubMenuBadge = normalizedSubMenu.length > 0 && normalizedSubMenu === normalizedItemType;
+	const transcendencePreviewRows = parsedTranscendence.rows.slice(0, 2);
+
 	return (
 		<div
 			className={`${styles.card} ${onClick ? styles.clickable : ""}`}
 			onClick={() => onClick?.(item)}
 			style={{"--rarity-color" : rarityInfo.color, "--rarity-bg" : rarityInfo.bg} as React.CSSProperties}
 		>
-			{/* 희귀도 인디케이터 */}
 			<div className={styles.rarityIndicator}/>
-			
-			{/* 헤더 */}
+
 			<div className={styles.header}>
 				<div className={styles.iconWrapper}>
 					<Package size={20}/>
 				</div>
-				<div className={styles.meta}>
-					<span className={styles.rarity}>{rarityInfo.label}</span>
-				</div>
+					<div className={styles.metaRow}>
+						<span className={styles.rarity}>{rarityInfo.label}</span>
+						<span
+							className={`${styles.badgeMuted} ${styles.badgeMainMenu}`}
+							title={`상위 메뉴: ${item.itemMainMenu || "-"}`}
+						>
+							{item.itemMainMenu || "-"}
+						</span>
+						{!hideSubMenuBadge && (
+							<span
+								className={`${styles.badgeMuted} ${styles.badgeSubMenu}`}
+								title={`하위 메뉴: ${item.itemSubMenu || "-"}`}
+							>
+								{item.itemSubMenu || "-"}
+							</span>
+						)}
+						<span
+							className={`${styles.badgeMuted} ${styles.badgeType}`}
+							title={hideSubMenuBadge ? `하위 메뉴 / 유형: ${item.itemType || "-"}` : `유형: ${item.itemType || "-"}`}
+						>
+							{item.itemType || "-"}
+						</span>
+					</div>
 			</div>
-			
-			{/* 아이템 이름 */}
+
 			<h3 className={styles.name}>{item.itemName || "Unknown item"}</h3>
-			
-			{/* 타입 */}
-			<div className={styles.type}>
-				<span className={styles.typeLabel}>타입</span>
-				<span className={styles.typeValue}>{item.itemType || "N/A"}</span>
-			</div>
-			
-			{/* 설명 */}
-			{item.itemEffect && (
-				<p className={styles.effect}>{item.itemEffect}</p>
+
+			{displayItemSource && (
+				<div className={styles.itemSourcePreview}>
+					<span className={styles.itemSourceLabel}>{"아이템 출처"}</span>
+					<p className={styles.itemSourceText}>{displayItemSource}</p>
+				</div>
 			)}
-			
-			{/* 획득 방법 섹션 */}
+
+			{displayItemEffect && (
+				<p className={styles.effect}>{displayItemEffect}</p>
+			)}
+
+			{(transcendencePreviewRows.length > 0 || parsedTranscendence.parseError) && (
+				<div className={styles.transcendencePreview}>
+					<div className={styles.transcendencePreviewHeader}>
+						<span className={styles.transcendenceBadge}>초월</span>
+						{parsedTranscendence.rows.length > transcendencePreviewRows.length && (
+							<span className={styles.transcendenceMore}>+{parsedTranscendence.rows.length - transcendencePreviewRows.length}개</span>
+						)}
+					</div>
+					{transcendencePreviewRows.length > 0 ? (
+						<div className={styles.transcendencePreviewList}>
+							{transcendencePreviewRows.map((row) => (
+								<div key={row.key} className={styles.transcendencePreviewRow}>
+									<span className={styles.transcendencePreviewLabel}>{row.label}</span>
+									{row.tierValues ? (
+										<div className={styles.transcendencePreviewValues}>
+											{row.tierValues.map((tier) => (
+												<span key={`${row.key}-${tier.tier}`} className={styles.transcendenceTierChip}>
+													{tier.tier} {tier.value}
+												</span>
+											))}
+										</div>
+									) : (
+										<span className={styles.transcendencePreviewValue}>{row.value}</span>
+									)}
+								</div>
+							))}
+						</div>
+					) : (
+						<div className={styles.transcendenceRawHint}>초월 데이터 형식 확인 필요</div>
+					)}
+				</div>
+			)}
+
 			{(item.hasBarterSource || item.hasCraftSource) && (
 				<div className={styles.sourceSection}>
-					{/* 물물교환 정보 (지역+NPC 그룹) */}
 					{item.hasBarterSource && groupedBarterSources.length > 0 && (
 						<div className={styles.sourceInfo}>
 							<div className={styles.sourceHeader}>
 								<RefreshCw size={14}/>
-								<span>물물교환</span>
+								<span>{"물물교환"}</span>
 							</div>
 							<div className={styles.sourceList}>
 								{groupedBarterSources.slice(0, 3).map((group, idx) => (
@@ -94,34 +151,30 @@ const GameItemCard:React.FC<GameItemCardProps> = ({item, onClick}) => {
 									</div>
 								))}
 								{groupedBarterSources.length > 3 && (
-									<span className={styles.sourceMore}>
-										+{groupedBarterSources.length - 3}개 더
-									</span>
+									<span className={styles.sourceMore}>+{groupedBarterSources.length - 3}{"개"}</span>
 								)}
 							</div>
 						</div>
 					)}
-					
-					{/* 제작 정보 */}
+
 					{item.hasCraftSource && (
 						<div className={styles.sourceInfo}>
 							<div className={styles.sourceHeader}>
 								<Hammer size={14}/>
-								<span>제작 가능</span>
+								<span>{"제작 가능"}</span>
 							</div>
 							<span className={styles.craftCount}>
-								{item.craftRecipeCount}개 레시피
+								{item.craftRecipeCount}{"개 레시피"}
 							</span>
 						</div>
 					)}
 				</div>
 			)}
-			
-			{/* 클릭 힌트 - 최하단 상세 카드 */}
+
 			{onClick && (
 				<div className={styles.clickHint}>
 					<Info size={14}/>
-					<span>상세정보 보기</span>
+					<span>{"상세정보 보기"}</span>
 				</div>
 			)}
 		</div>

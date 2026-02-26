@@ -7,6 +7,7 @@ import {getGameClassColorStyle} from "@/utils";
 import profileService from "@/services/profile-service";
 import {uploadService} from "@/services/upload-service";
 import {discordService} from "@/services/discord-service";
+import {useSeo} from "@/hooks/use-seo";
 import {
 	User,
 	Camera,
@@ -27,6 +28,12 @@ import styles from "./profile.module.scss";
 
 const ProfilePage:React.FC = () => {
 	const {user, checkLoginStatus} = useAuth();
+	useSeo({
+		title : "프로필",
+		description : "프로필, 캐릭터, 디스코드 연동 정보를 관리하세요.",
+		canonicalPath : "/profile",
+		noindex : true
+	});
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	
 	// 프로필 상태
@@ -333,9 +340,9 @@ const ProfilePage:React.FC = () => {
 	return (
 		<div className={styles.profilePage}>
 			<div className={styles.container}>
-				<div className="oYV5kUSv">
+				<div className="page-heading">
 					<h1>프로필 설정</h1>
-					<p className="-v1-aGH7">프로필, Discord 연동, 캐릭터 정보를 한 번에 관리하세요</p>
+					<p className="page-heading-subtitle">프로필, Discord 연동, 캐릭터 정보를 한 번에 관리하세요</p>
 				</div>
 				
 				{/* 프로필 섹션 */}

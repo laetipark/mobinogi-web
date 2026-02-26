@@ -142,10 +142,10 @@ const ItemSearchPage:React.FC = () => {
 									<th>지역</th>
 									<th>NPC</th>
 									<th>제공 아이템</th>
-									<th>무게</th>
-									<th>교환 아이템</th>
-									<th>교환 수량</th>
-									<th>획득 수량</th>
+										<th>1회 획득 수량</th>
+										<th>교환 아이템</th>
+										<th>교환 비용</th>
+										<th>교환 가능 횟수</th>
 									<th>비고</th>
 								</tr>
 							</thead>
@@ -174,8 +174,11 @@ const ItemSearchPage:React.FC = () => {
 										<td>{barter.exchangeCost}</td>
 										<td>{barter.barterQty}</td>
 										<td>
-											{[barter.barterServer && "서버 공유", barter.barterNpc && "NPC 공유"]
-												.filter(Boolean)
+											{[
+												Number(barter.barterServer) > 0 ? "서버 공유" : null,
+												Number(barter.barterNpc) > 0 ? "NPC 공유" : null
+											]
+												.filter((value):value is string => typeof value === "string")
 												.join(" / ") || "-"}
 										</td>
 									</tr>
@@ -267,9 +270,9 @@ const ItemSearchPage:React.FC = () => {
 	return (
 		<div className={styles.itemSearchPage}>
 			<div className={styles.container}>
-				<div className="oYV5kUSv">
+				<div className="page-heading">
 					<h1>아이템 검색</h1>
-					<p className="-v1-aGH7">아이템을 검색하여 물물교환, 제작 정보를 확인하세요</p>
+					<p className="page-heading-subtitle">아이템을 검색하여 물물교환, 제작 정보를 확인하세요</p>
 				</div>
 
 				<div className={styles.searchSection}>

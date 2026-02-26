@@ -2,11 +2,18 @@ import React, {useEffect, useRef, useState} from "react";
 import {useNavigate, useSearchParams} from "react-router-dom";
 import {discordService} from "@/services/discord-service";
 import {useAuth} from "@/hooks/use-auth";
+import {useSeo} from "@/hooks/use-seo";
 
 const DiscordCallbackPage:React.FC = () => {
 	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
 	const {user, loading, checkLoginStatus} = useAuth();
+	useSeo({
+		title : "디스코드 연동 처리",
+		description : "Sexynogi 디스코드 계정 연동을 처리하고 있습니다.",
+		canonicalPath : "/discord-callback",
+		noindex : true
+	});
 	const [error, setError] = useState<string | null>(null);
 	const processedRef = useRef(false);
 

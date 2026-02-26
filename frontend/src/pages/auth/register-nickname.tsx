@@ -1,16 +1,24 @@
-import React, {useState, useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {useAuth} from "@/hooks/use-auth";
+import {useSeo} from "@/hooks/use-seo";
 import styles from "./register-nickname.module.scss";
 
 const RegisterNicknamePage:React.FC = () => {
 	const navigate = useNavigate();
 	const {pendingKakaoUser, completeKakaoRegistration, kakaoLoading, kakaoError} = useAuth();
+
+	useSeo({
+		title : "닉네임 등록",
+		description : "Sexynogi 가입을 완료하려면 사용할 닉네임을 설정하세요.",
+		canonicalPath : "/register/nickname",
+		noindex : true
+	});
+
 	const [nickname, setNickname] = useState("");
 	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
-		// 대기 중인 카카오 사용자 정보가 없으면 로그인 페이지로 이동
 		if(!pendingKakaoUser){
 			navigate("/login");
 		}
@@ -21,12 +29,12 @@ const RegisterNicknamePage:React.FC = () => {
 		setError(null);
 
 		if(!nickname.trim()){
-			setError("닉네임을 입력해주세요.");
+			setError("닉네임을 입력해 주세요.");
 			return;
 		}
 
 		if(nickname.length < 2 || nickname.length > 20){
-			setError("닉네임은 2~20자 사이로 입력해주세요.");
+			setError("닉네임은 2~20자 사이로 입력해 주세요.");
 			return;
 		}
 
@@ -34,7 +42,7 @@ const RegisterNicknamePage:React.FC = () => {
 			await completeKakaoRegistration(nickname);
 			navigate("/");
 		}catch(err:any){
-			setError(err.message || "회원가입 중 오류가 발생했습니다.");
+			setError(err.message || "닉네임 등록 중 오류가 발생했습니다.");
 		}
 	};
 
@@ -47,14 +55,14 @@ const RegisterNicknamePage:React.FC = () => {
 			<div className={styles.registerContainer}>
 				<h2>닉네임 설정</h2>
 				<p className={styles.description}>
-					Mobinogi에서 사용할 닉네임을 입력해주세요.
+					Sexynogi에서 사용할 닉네임을 입력해 주세요.
 				</p>
 
 				{pendingKakaoUser.profileImage && (
 					<div className={styles.profilePreview}>
 						<img
 							src={pendingKakaoUser.profileImage}
-							alt="프로필"
+							alt="프로필 이미지"
 							onError={(e) => {
 								(e.target as HTMLImageElement).style.display = "none";
 							}}
@@ -70,7 +78,7 @@ const RegisterNicknamePage:React.FC = () => {
 							id="nickname"
 							value={nickname}
 							onChange={(e) => setNickname(e.target.value)}
-							placeholder="닉네임을 입력하세요"
+							placeholder="닉네임을 입력해 주세요"
 							maxLength={20}
 							autoFocus
 						/>
@@ -88,7 +96,7 @@ const RegisterNicknamePage:React.FC = () => {
 						className={styles.submitBtn}
 						disabled={kakaoLoading}
 					>
-						{kakaoLoading ? "가입 중..." : "가입 완료"}
+						{kakaoLoading ? "등록 중..." : "등록 완료"}
 					</button>
 				</form>
 

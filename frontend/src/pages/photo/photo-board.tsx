@@ -3,15 +3,22 @@ import {Calendar, Eye, Heart, ImagePlus, LayoutGrid, List, Pencil, Search, Tag, 
 import {photoBoardService} from "@/services/photo-board-service";
 import {uploadService} from "@/services/upload-service";
 import {useAuth} from "@/hooks/use-auth";
+import {useSeo} from "@/hooks/use-seo";
 import type {PhotoBoardPost} from "@/types";
 import styles from "./photo-board.module.scss";
 
 type ViewMode = "board" | "portfolio";
 const GALLERY_VIEW_MODE_STORAGE_KEY = "gallery:view-mode";
 const LEGACY_PHOTO_VIEW_MODE_STORAGE_KEY = "photo-board:view-mode";
+const DISCORD_GALLERY_TAG = "디스코드";
 
 const PhotoBoardPage:React.FC = () => {
 	const {user} = useAuth();
+	useSeo({
+        title : "갤러리",
+        description : "Sexynogi 커뮤니티 이미지 갤러리입니다.",
+		canonicalPath : "/gallery"
+	});
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const editFileInputRef = useRef<HTMLInputElement>(null);
 	const pageDragCounterRef = useRef(0);
@@ -61,20 +68,97 @@ const PhotoBoardPage:React.FC = () => {
 
 	const currentUserId = user?.id ?? user?.userId ?? null;
 
+	const isExternalPost = (post:PhotoBoardPost):boolean =>
+		post.sourceType === "DISCORD" || Boolean(post.externalUrl);
+
+	const isDiscordPost = (post:PhotoBoardPost):boolean =>
+		post.sourceType === "DISCORD";
+
+	const normalizeDiscordFallbackTitle = (title:string):string => {
+		const trimmedTitle = title.trim();
+		if(!trimmedTitle){
+			return "이미지";
+		}
+		if(/^image$/i.test(trimmedTitle)){
+			return "이미지";
+		}
+		return trimmedTitle.replace(/\s+image$/i, " 이미지");
+	};
+
+	const inferDiscordAuthorFromTitle = (title:string):string | null => {
+		const match = title.trim().match(/^(.+)\simage$/i);
+		const inferred = match?.[1]?.trim();
+		return inferred || null;
+	};
+
+	const getDisplayTitle = (post:PhotoBoardPost):string => {
+		if(!isDiscordPost(post)){
+			return post.title;
+		}
+		return normalizeDiscordFallbackTitle(post.title);
+	};
+
+	const getDisplayTags = (post:PhotoBoardPost):string[] => {
+		if(isDiscordPost(post)){
+			return [DISCORD_GALLERY_TAG];
+		}
+		return post.tags;
+	};
+
+	const getAuthorName = (post:PhotoBoardPost):string => {
+		const authorNickname = post.authorNickname?.trim();
+		if(authorNickname){
+			return authorNickname;
+		}
+		const externalAuthor = post.externalAuthor?.trim();
+		if(externalAuthor){
+			if(isDiscordPost(post) && /^\d{17,20}$/.test(externalAuthor)){
+				const inferredAuthor = inferDiscordAuthorFromTitle(post.title);
+				if(inferredAuthor){
+					return inferredAuthor;
+				}
+			}
+			return externalAuthor;
+		}
+		if(isDiscordPost(post)){
+			const inferredAuthor = inferDiscordAuthorFromTitle(post.title);
+			if(inferredAuthor){
+				return inferredAuthor;
+			}
+		}
+		return "익명";
+	};
+
+	const getPostKey = (post:PhotoBoardPost):string =>
+		post.photoPostId !== null
+			? `photo-${post.photoPostId}`
+			: `external-${post.externalUrl ?? post.title}-${post.createdAt}`;
+
 	const loadPosts = useCallback(async() => {
 		try{
 			setLoading(true);
 			setError(null);
-			const pageData = await photoBoardService.getPosts(currentPage, 20, searchKeyword || null, selectedTag);
-			setPosts(pageData.content);
-			setTotalPages(pageData.totalPages);
+			const isDiscordTagFilter = selectedTag === DISCORD_GALLERY_TAG;
+			const requestPage = isDiscordTagFilter ? 0 : currentPage;
+			const requestSize = isDiscordTagFilter ? 100 : 20;
+			const requestTag = isDiscordTagFilter ? null : selectedTag;
+			const pageData = await photoBoardService.getPosts(requestPage, requestSize, searchKeyword || null, requestTag);
+			const normalizedPosts = pageData.content.map((post) => ({
+				...post,
+				tags : getDisplayTags(post)
+			}));
+			const displayedPosts = isDiscordTagFilter
+				? normalizedPosts.filter((post) => isDiscordPost(post))
+				: normalizedPosts;
+			setPosts(displayedPosts);
+			setTotalPages(isDiscordTagFilter ? 1 : pageData.totalPages);
 		}catch(err){
-			console.error("사진 게시글 로드 실패:", err);
-			setError("사진 게시글을 불러오지 못했습니다.");
+			console.error("??彛?野껊슣?녷묾? 嚥≪뮆諭???쎈솭:", err);
+			setError("??彛?野껊슣?녷묾????븍뜄???? 筌륁궢六??щ빍??");
 		}finally{
 			setLoading(false);
 		}
-	}, [currentPage, searchKeyword, selectedTag, currentUserId]);
+	}, [currentPage, searchKeyword, selectedTag]);
 
 	useEffect(() => {
 		loadPosts();
@@ -112,9 +196,9 @@ const PhotoBoardPage:React.FC = () => {
 				setShowCreateModal(true);
 				return;
 			}
-			alert(result.message || "이미지 업로드에 실패했습니다.");
+			alert(result.message || "???筌왖 ??낆쨮??뽯퓠 ??쎈솭??됰뮸??덈뼄.");
 		}catch(err:any){
-			alert(err?.message || "이미지 업로드에 실패했습니다.");
+			alert(err?.message || "???筌왖 ??낆쨮??뽯퓠 ??쎈솭??됰뮸??덈뼄.");
 		}finally{
 			setUploadProgress(null);
 		}
@@ -122,10 +206,18 @@ const PhotoBoardPage:React.FC = () => {
 
 	const handleCreateModalOpenByFile = () => {
 		if(!user){
-			alert("사진을 등록하려면 로그인해 주세요.");
+			alert("??彛???源낆쨯??롮젻筌?嚥≪뮄??紐낅퉸 雅뚯눘苑??");
 			return;
 		}
 		fileInputRef.current?.click();
+	};
+
+	const handleOpenCreateComposer = () => {
+		if(!user){
+			alert("??壤???繹먮굞夷??濡?졎嶺??β돦裕??筌뤿굝???낅슣?섋땻??");
+			return;
+		}
+		setShowCreateModal(true);
 	};
 
 	const handleFileSelect = async(e:React.ChangeEvent<HTMLInputElement>) => {
@@ -186,7 +278,7 @@ const PhotoBoardPage:React.FC = () => {
 		pageDragCounterRef.current = 0;
 		setIsPageDragOver(false);
 		if(!user){
-			alert("사진을 등록하려면 로그인해 주세요.");
+			alert("??彛???源낆쨯??롮젻筌?嚥≪뮄??紐낅퉸 雅뚯눘苑??");
 			return;
 		}
 		const file = e.dataTransfer.files?.[0];
@@ -203,9 +295,9 @@ const PhotoBoardPage:React.FC = () => {
 				setEditImageUrl(result.url);
 				return;
 			}
-			alert(result.message || "이미지 업로드에 실패했습니다.");
+			alert(result.message || "???筌왖 ??낆쨮??뽯퓠 ??쎈솭??됰뮸??덈뼄.");
 		}catch(err:any){
-			alert(err?.message || "이미지 업로드에 실패했습니다.");
+			alert(err?.message || "???筌왖 ??낆쨮??뽯퓠 ??쎈솭??됰뮸??덈뼄.");
 		}finally{
 			setEditUploadProgress(null);
 		}
@@ -228,6 +320,23 @@ const PhotoBoardPage:React.FC = () => {
 		}
 	};
 
+	const normalizeSingleTag = (value:string):string =>
+		value.replace(/^#+/, "").trim();
+
+	const parseTagsInput = (rawValue:string):string[] => {
+		const uniqueTags = new Set<string>();
+		rawValue.split(",").forEach((tag) => {
+			const normalized = normalizeSingleTag(tag);
+			if(normalized){
+				uniqueTags.add(normalized);
+			}
+		});
+		return Array.from(uniqueTags);
+	};
+
+	const normalizeTagInputValue = (rawValue:string):string =>
+		parseTagsInput(rawValue).join(", ");
+
 	const formatDate = (dateString:string) => {
 		const date = new Date(dateString);
 		return date.toLocaleDateString("ko-KR", {year : "numeric", month : "2-digit", day : "2-digit"});
@@ -241,15 +350,15 @@ const PhotoBoardPage:React.FC = () => {
 	const handleCreatePost = async(e:React.FormEvent) => {
 		e.preventDefault();
 		if(!formTitle.trim()){
-			alert("제목을 입력해 주세요.");
+			alert("??뺛걠????낆젾??雅뚯눘苑??");
 			return;
 		}
 		if(!formImageUrl.trim()){
-			alert("이미지 URL을 입력하거나 파일을 업로드해 주세요.");
+			alert("???筌왖 URL????낆젾??띻탢?????뵬????낆쨮??쀫퉸 雅뚯눘苑??");
 			return;
 		}
 
-		const tags = formTags.split(",").map((tag) => tag.trim()).filter((tag) => tag.length > 0);
+		const tags = parseTagsInput(formTags);
 
 		try{
 			setSubmitting(true);
@@ -268,7 +377,7 @@ const PhotoBoardPage:React.FC = () => {
 			setCurrentPage(0);
 			await loadPosts();
 		}catch(err:any){
-			alert(err.message || "사진 게시글 등록에 실패했습니다.");
+			alert(err.message || "??彛?野껊슣?녷묾? ?源낆쨯????쎈솭??됰뮸??덈뼄.");
 		}finally{
 			setSubmitting(false);
 		}
@@ -282,7 +391,7 @@ const PhotoBoardPage:React.FC = () => {
 			setSelectedPost(post);
 			setPosts((prev) => prev.map((item) => item.photoPostId === post.photoPostId ? {...item, viewCount : post.viewCount} : item));
 		}catch(err:any){
-			alert(err.message || "게시글 상세 조회에 실패했습니다.");
+			alert(err.message || "野껊슣?녷묾? ?怨멸쉭 鈺곌퀬?????쎈솭??됰뮸??덈뼄.");
 		}finally{
 			setDetailLoading(false);
 		}
@@ -291,6 +400,19 @@ const PhotoBoardPage:React.FC = () => {
 	const closeDetailModal = () => {
 		setSelectedPost(null);
 		setIsEditing(false);
+	};
+
+	const handlePostClick = (post:PhotoBoardPost) => {
+		if(isExternalPost(post)){
+			if(post.externalUrl){
+				window.open(post.externalUrl, "_blank", "noopener,noreferrer");
+			}
+			return;
+		}
+
+		if(post.photoPostId !== null){
+			void openPostDetail(post.photoPostId);
+		}
 	};
 
 	const canManageSelected = !!selectedPost && !!currentUserId && selectedPost.userId === currentUserId;
@@ -310,18 +432,18 @@ const PhotoBoardPage:React.FC = () => {
 
 	const handleUpdateSelectedPost = async(e:React.FormEvent) => {
 		e.preventDefault();
-		if(!selectedPost) return;
+		if(!selectedPost || selectedPost.photoPostId === null) return;
 
 		if(!editTitle.trim()){
-			alert("제목을 입력해 주세요.");
+			alert("??뺛걠????낆젾??雅뚯눘苑??");
 			return;
 		}
 		if(!editImageUrl.trim()){
-			alert("이미지 URL을 입력하거나 파일을 업로드해 주세요.");
+			alert("???筌왖 URL????낆젾??띻탢?????뵬????낆쨮??쀫퉸 雅뚯눘苑??");
 			return;
 		}
 
-		const tags = editTags.split(",").map((tag) => tag.trim()).filter((tag) => tag.length > 0);
+		const tags = parseTagsInput(editTags);
 
 		try{
 			setEditSubmitting(true);
@@ -335,22 +457,22 @@ const PhotoBoardPage:React.FC = () => {
 			setPosts((prev) => prev.map((item) => item.photoPostId === updated.photoPostId ? updated : item));
 			setIsEditing(false);
 		}catch(err:any){
-			alert(err.message || "게시글 수정에 실패했습니다.");
+			alert(err.message || "野껊슣?녷묾? ??륁젟????쎈솭??됰뮸??덈뼄.");
 		}finally{
 			setEditSubmitting(false);
 		}
 	};
 
 	const handleDeleteSelectedPost = async() => {
-		if(!selectedPost) return;
-		if(!window.confirm("정말 이 게시글을 삭제하시겠습니까?")) return;
+		if(!selectedPost || selectedPost.photoPostId === null) return;
+		if(!window.confirm("?類ｌ춾 ??野껊슣?녷묾????????뤿뻻野껋쥙???뉙돱?")) return;
 
 		try{
 			await photoBoardService.deletePost(selectedPost.photoPostId);
 			setSelectedPost(null);
 			await loadPosts();
 		}catch(err:any){
-			alert(err.message || "게시글 삭제에 실패했습니다.");
+			alert(err.message || "野껊슣?녷묾? ???????쎈솭??됰뮸??덈뼄.");
 		}
 	};
 
@@ -361,7 +483,7 @@ const PhotoBoardPage:React.FC = () => {
 
 	const handleToggleLike = async(photoPostId:number) => {
 		if(!currentUserId){
-			alert("좋아요를 누르려면 로그인해 주세요.");
+			alert("?ル뿭釉?遺? ?袁ⓥ뀮??삠늺 嚥≪뮄??紐낅퉸 雅뚯눘苑??");
 			return;
 		}
 		if(likeLoadingIds.has(photoPostId)){
@@ -388,7 +510,7 @@ const PhotoBoardPage:React.FC = () => {
 			if(current){
 				applyPostUpdate(current);
 			}
-			alert(err.message || "좋아요 처리에 실패했습니다.");
+			alert(err.message || "?ル뿭釉??筌ｌ꼶?????쎈솭??됰뮸??덈뼄.");
 		}finally{
 			setLikeLoadingIds((prev) => {
 				const next = new Set(prev);
@@ -403,30 +525,60 @@ const PhotoBoardPage:React.FC = () => {
 		await handleToggleLike(photoPostId);
 	};
 
-	const renderPostCard = (post:PhotoBoardPost) => (
-		<article key={post.photoPostId} className={styles.photoCard} onClick={() => openPostDetail(post.photoPostId)}>
-			<div className={styles.cardImageWrap}>
-				<img src={post.imageUrl} alt={post.title}/>
-			</div>
-			<div className={styles.cardBody}>
-				<h3>{post.title}</h3>
-				<p>{post.description || "설명이 없습니다."}</p>
-				<div className={styles.cardMeta}>
-					<span>{post.authorNickname || "익명"}</span>
-					<span><Eye size={14}/>{post.viewCount}</span>
-					<button
-						type="button"
-						className={`${styles.likeBtn} ${post.likedByCurrentUser ? styles.liked : ""}`}
-						onClick={(e) => handleToggleLikeClick(e, post.photoPostId)}
-						disabled={likeLoadingIds.has(post.photoPostId)}
-					>
-						<Heart size={14} fill={post.likedByCurrentUser ? "currentColor" : "none"}/>
-						{post.likeCount}
-					</button>
+
+	const renderFeedCard = (post:PhotoBoardPost) => {
+		const externalPost = isExternalPost(post);
+		const displayTags = getDisplayTags(post);
+		const visibleTags = displayTags.slice(0, 4);
+
+		return (
+			<article key={getPostKey(post)} className={styles.photoCard} onClick={() => handlePostClick(post)}>
+				<div className={styles.cardImageWrap}>
+					<img src={post.imageUrl} alt={getDisplayTitle(post)}/>
 				</div>
-			</div>
-		</article>
-	);
+				<div className={styles.cardBody}>
+					<div className={styles.cardTop}>
+						<div className={styles.cardAuthorMeta}>
+							<span className={styles.cardAuthor}>{getAuthorName(post)}</span>
+							<span className={styles.cardDate}>
+								<Calendar size={13}/>
+								{formatDate(post.createdAt)}
+							</span>
+						</div>
+						{externalPost && <span className={styles.externalMeta}>{isDiscordPost(post) ? "디스코드" : "외부"}</span>}
+					</div>
+					<h3 className={styles.postTitle}>
+						<span className={styles.postTitleText}>{getDisplayTitle(post)}</span>
+						{isDiscordPost(post) && <span className={`${styles.sourceBadge} ${styles.discordBadge}`}>디스코드</span>}
+					</h3>
+					<p className={styles.cardDescription}>{post.description || "설명이 없습니다."}</p>
+					{visibleTags.length > 0 && (
+						<div className={styles.cardTags}>
+							{visibleTags.map((tag) => <span key={`${getPostKey(post)}-${tag}`}>#{tag}</span>)}
+							{displayTags.length > visibleTags.length && <span className={styles.moreTag}>+{displayTags.length - visibleTags.length}</span>}
+						</div>
+					)}
+					<div className={styles.cardMeta}>
+						<div className={styles.cardStats}>
+							<span><Eye size={14}/>{post.viewCount}</span>
+							{externalPost && <span className={styles.externalStat}>링크 열기</span>}
+						</div>
+						{!externalPost && post.photoPostId !== null && (
+							<button
+								type="button"
+								className={`${styles.likeBtn} ${post.likedByCurrentUser ? styles.liked : ""}`}
+								onClick={(e) => handleToggleLikeClick(e, post.photoPostId!)}
+								disabled={likeLoadingIds.has(post.photoPostId)}
+							>
+								<Heart size={14} fill={post.likedByCurrentUser ? "currentColor" : "none"}/>
+								{post.likeCount}
+							</button>
+						)}
+					</div>
+				</div>
+			</article>
+		);
+	};
 
 	return (
 		<div
@@ -438,13 +590,54 @@ const PhotoBoardPage:React.FC = () => {
 		>
 			<div className={styles.container}>
 				<section className={styles.hero}>
-					<div className="oYV5kUSv">
-						<h1>갤러리</h1>
-						<p className="-v1-aGH7">페이지에 이미지를 드래그앤드롭하거나 파일을 첨부하면 등록 창이 열립니다.</p>
+					<div className="page-heading">
+<h1>갤러리</h1>
+<p className="page-heading-subtitle">이미지를 빠르게 올리고 피드처럼 둘러볼 수 있는 갤러리입니다.</p>
+					</div>
+
+					<div className={styles.heroCard}>
+						<div className={styles.quickComposer}>
+							<button
+								type="button"
+								className={`${styles.dropZone} ${styles.heroDropZone}`}
+								onClick={user ? handleCreateModalOpenByFile : undefined}
+								disabled={!user}
+							>
+								<ImagePlus size={18}/>
+								<div>
+									<strong>{user ? "이미지를 드롭하거나 클릭해서 빠르게 업로드" : "이미지 업로드는 로그인 후 가능합니다"}</strong>
+									<span>{user ? "JPG / PNG / GIF / WEBP 업로드 후 작성 창에서 캡션과 태그를 입력하세요" : "피드 탐색, 태그 검색, 게시글 열람은 자유롭게 가능합니다"}</span>
+								</div>
+							</button>
+
+							<div className={styles.quickComposerActions}>
+								{user ? (
+									<>
+										<button type="button" className={styles.primaryActionBtn} onClick={handleCreateModalOpenByFile}>
+											<ImagePlus size={16}/>
+											이미지 업로드
+										</button>
+										<button type="button" className={styles.secondaryActionBtn} onClick={handleOpenCreateComposer}>
+											<Pencil size={15}/>
+											글 작성
+										</button>
+									</>
+								) : (
+									<p className={styles.guestHint}>업로드는 로그인 후 가능합니다. 둘러보기와 열람은 계속 사용할 수 있습니다.</p>
+								)}
+							</div>
+						</div>
+
+						{uploadProgress !== null && (
+							<div className={styles.heroUploadProgress}>
+								<div className={styles.heroUploadProgressLabel}>이미지 업로드 중... {uploadProgress}%</div>
+								<div className={styles.progressBar}><div className={styles.progressFill} style={{width : `${uploadProgress}%`}}/></div>
+							</div>
+						)}
 					</div>
 					{user && (
 						<button type="button" className={styles.writeToggle} onClick={handleCreateModalOpenByFile}>
-							사진 등록
+                            사진 등록
 						</button>
 					)}
 					<input
@@ -459,72 +652,77 @@ const PhotoBoardPage:React.FC = () => {
 				<section className={styles.toolbar}>
 					<div className={styles.viewSwitch}>
 						<button type="button" className={viewMode === "board" ? styles.active : ""} onClick={() => setViewMode("board")}>
-							<List size={16}/>리스트형
+<List size={16}/>목록형
 						</button>
 						<button type="button" className={viewMode === "portfolio" ? styles.active : ""} onClick={() => setViewMode("portfolio")}>
-							<LayoutGrid size={16}/>갤러리형
+<LayoutGrid size={16}/>갤러리형
 						</button>
 					</div>
 
 					<div className={styles.searchBox}>
 						<Search size={16}/>
-						<input type="text" placeholder="제목, 태그, 설명 검색" value={searchKeyword} onChange={(e) => handleKeywordChange(e.target.value)}/>
+<input type="text" placeholder="제목, 태그, 설명 검색" value={searchKeyword} onChange={(e) => handleKeywordChange(e.target.value)}/>
 					</div>
 				</section>
 
 				<section className={styles.tagSection}>
 					{allTags.map((tag) => (
 						<button type="button" key={tag} className={selectedTag === tag ? styles.activeTag : ""} onClick={() => handleTagChange(tag)}>
-							<Tag size={12}/>{tag === "ALL" ? "전체" : tag}
+<Tag size={12}/>{tag === "ALL" ? "전체" : tag}
 						</button>
 					))}
 				</section>
 
 				{loading ? (
-					<div className={styles.emptyState}>불러오는 중...</div>
+                    <div className={styles.emptyState}>불러오는 중...</div>
 				) : error ? (
 					<div className={styles.emptyState}>{error}</div>
 				) : posts.length === 0 ? (
-					<div className={styles.emptyState}>등록된 사진 게시글이 없습니다.</div>
+                    <div className={styles.emptyState}>등록된 게시글이 없습니다.</div>
 				) : viewMode === "board" ? (
 					<section className={styles.boardView}>
 						<div className={styles.tableHeader}>
-							<span>썸네일</span><span>제목</span><span>작성자</span><span>날짜</span><span>반응</span>
+<span>미리보기</span><span>제목</span><span>작성자</span><span>날짜</span><span>반응</span>
 						</div>
 						{posts.map((post) => (
-							<article key={post.photoPostId} className={styles.tableRow} onClick={() => openPostDetail(post.photoPostId)}>
-								<img src={post.imageUrl} alt={post.title}/>
-								<div className={styles.rowTitle}>
-									<h3>{post.title}</h3>
-									<p>{post.description || "설명이 없습니다."}</p>
-									<div className={styles.rowTags}>{post.tags.map((tag) => <span key={`${post.photoPostId}-${tag}`}>#{tag}</span>)}</div>
+							<article key={getPostKey(post)} className={styles.tableRow} onClick={() => handlePostClick(post)}>
+									<img src={post.imageUrl} alt={getDisplayTitle(post)}/>
+									<div className={styles.rowTitle}>
+											<h3 className={styles.postTitle}>
+												<span className={styles.postTitleText}>{getDisplayTitle(post)}</span>
+{isDiscordPost(post) && <span className={`${styles.sourceBadge} ${styles.discordBadge}`}>디스코드</span>}
+											</h3>
+                                    <p>{post.description || "설명이 없습니다."}</p>
+										<div className={styles.rowTags}>{getDisplayTags(post).map((tag) => <span key={`${getPostKey(post)}-${tag}`}>#{tag}</span>)}</div>
 								</div>
-								<span>{post.authorNickname || "익명"}</span>
+									<span>{getAuthorName(post)}</span>
 								<span><Calendar size={14}/>{formatDate(post.createdAt)}</span>
 								<span className={styles.reaction}>
 									<span><Eye size={14}/>{post.viewCount}</span>
-									<button
-										type="button"
-										className={`${styles.likeBtn} ${post.likedByCurrentUser ? styles.liked : ""}`}
-										onClick={(e) => handleToggleLikeClick(e, post.photoPostId)}
-										disabled={likeLoadingIds.has(post.photoPostId)}
-									>
-										<Heart size={14} fill={post.likedByCurrentUser ? "currentColor" : "none"}/>
-										{post.likeCount}
-									</button>
+									{!isExternalPost(post) && post.photoPostId !== null && (
+										<button
+											type="button"
+											className={`${styles.likeBtn} ${post.likedByCurrentUser ? styles.liked : ""}`}
+											onClick={(e) => handleToggleLikeClick(e, post.photoPostId!)}
+											disabled={likeLoadingIds.has(post.photoPostId)}
+										>
+											<Heart size={14} fill={post.likedByCurrentUser ? "currentColor" : "none"}/>
+											{post.likeCount}
+										</button>
+									)}
 								</span>
 							</article>
 						))}
 					</section>
 				) : (
-					<section className={styles.portfolioView}>{posts.map(renderPostCard)}</section>
+					<section className={styles.portfolioView}>{posts.map(renderFeedCard)}</section>
 				)}
 
 				{!loading && totalPages > 1 && (
 					<div className={styles.pagination}>
-						<button type="button" onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))} disabled={currentPage === 0}>이전</button>
+                        <button type="button" onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))} disabled={currentPage === 0}>이전</button>
 						<span>{currentPage + 1} / {totalPages}</span>
-						<button type="button" onClick={() => setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))} disabled={currentPage >= totalPages - 1}>다음</button>
+                        <button type="button" onClick={() => setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))} disabled={currentPage >= totalPages - 1}>다음</button>
 					</div>
 				)}
 			</div>
@@ -533,7 +731,7 @@ const PhotoBoardPage:React.FC = () => {
 				<div className={styles.pageDropOverlay}>
 					<div className={styles.pageDropMessage}>
 						<ImagePlus size={24}/>
-						<span>여기에 이미지를 놓으면 등록 창이 열립니다.</span>
+                        <span>페이지 어디에나 이미지를 놓으면 등록 창이 열립니다.</span>
 					</div>
 				</div>
 			)}
@@ -542,11 +740,11 @@ const PhotoBoardPage:React.FC = () => {
 				<div className={styles.modalOverlay} onClick={closeCreateModal}>
 					<div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
 						<div className={styles.modalHeader}>
-							<h2>사진 등록</h2>
+                            <h2>사진 등록</h2>
 							<button type="button" className={styles.closeBtn} onClick={closeCreateModal}><X size={18}/></button>
 						</div>
 						<form className={styles.modalEditForm} onSubmit={handleCreatePost}>
-							<input type="text" placeholder="제목" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} maxLength={200}/>
+                            <input type="text" placeholder="제목" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} maxLength={200}/>
 							<div
 								className={`${styles.dropZone} ${isCreateDragOver ? styles.dragOver : ""}`}
 								onClick={() => fileInputRef.current?.click()}
@@ -567,26 +765,32 @@ const PhotoBoardPage:React.FC = () => {
 							>
 								<ImagePlus size={18}/>
 								<div>
-									<strong>이미지를 드래그앤드롭하거나 클릭해 업로드</strong>
-									<span>JPG, PNG, GIF, WEBP (최대 5MB)</span>
+<strong>이미지를 드래그앤드롭하거나 클릭해 업로드</strong>
+                                    <span>JPG, PNG, GIF, WEBP (최대 5MB)</span>
 								</div>
 							</div>
 							<div className={styles.uploadRow}>
-								<input type="text" placeholder="이미지 URL 또는 /api/files/... 경로 (업로드 시 자동 입력)" value={formImageUrl} onChange={(e) => setFormImageUrl(e.target.value)}/>
+                                <input type="text" placeholder="이미지 URL 또는 /api/files/... 경로 (업로드 시 자동 입력)" value={formImageUrl} onChange={(e) => setFormImageUrl(e.target.value)}/>
 							</div>
 							{uploadProgress !== null && (
 								<div className={styles.progressBar}><div className={styles.progressFill} style={{width : `${uploadProgress}%`}}/></div>
 							)}
 							{formImageUrl && (
 								<div className={styles.createPreview}>
-									<img src={formImageUrl} alt="업로드 미리보기"/>
+                                    <img src={formImageUrl} alt="업로드 미리보기"/>
 								</div>
 							)}
-							<input type="text" placeholder="태그 (쉼표로 구분)" value={formTags} onChange={(e) => setFormTags(e.target.value)}/>
-							<textarea placeholder="설명" value={formDescription} onChange={(e) => setFormDescription(e.target.value)} maxLength={1000}/>
+							<input
+								type="text"
+                                placeholder="태그 (쉼표로 구분)"
+								value={formTags}
+								onChange={(e) => setFormTags(e.target.value)}
+								onBlur={() => setFormTags((prev) => normalizeTagInputValue(prev))}
+							/>
+                            <textarea placeholder="설명" value={formDescription} onChange={(e) => setFormDescription(e.target.value)} maxLength={1000}/>
 							<div className={styles.modalActions}>
-								<button type="button" className={styles.secondaryBtn} onClick={closeCreateModal}>닫기</button>
-								<button type="submit" className={styles.primaryBtn} disabled={submitting || uploadProgress !== null}>{submitting ? "등록 중..." : "등록"}</button>
+                                <button type="button" className={styles.secondaryBtn} onClick={closeCreateModal}>닫기</button>
+                                <button type="submit" className={styles.primaryBtn} disabled={submitting || uploadProgress !== null}>{submitting ? "등록 중..." : "등록"}</button>
 							</div>
 						</form>
 					</div>
@@ -597,15 +801,15 @@ const PhotoBoardPage:React.FC = () => {
 				<div className={styles.modalOverlay} onClick={closeDetailModal}>
 					<div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
 						<div className={styles.modalHeader}>
-							<h2>{isEditing ? "게시글 수정" : "게시글 상세"}</h2>
+                            <h2>{isEditing ? "게시글 수정" : "게시글 상세"}</h2>
 							<button type="button" className={styles.closeBtn} onClick={closeDetailModal}><X size={18}/></button>
 						</div>
 
 						{detailLoading ? (
-							<div className={styles.modalBody}>불러오는 중...</div>
+                            <div className={styles.modalBody}>불러오는 중...</div>
 						) : isEditing ? (
 							<form className={styles.modalEditForm} onSubmit={handleUpdateSelectedPost}>
-								<input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="제목" maxLength={200}/>
+                                <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="제목" maxLength={200}/>
 								<div
 									className={`${styles.dropZone} ${isEditDragOver ? styles.dragOver : ""}`}
 									onClick={() => editFileInputRef.current?.click()}
@@ -626,47 +830,58 @@ const PhotoBoardPage:React.FC = () => {
 								>
 									<ImagePlus size={18}/>
 									<div>
-										<strong>이미지를 드래그앤드롭하거나 클릭해 업로드</strong>
-										<span>JPG, PNG, GIF, WEBP (최대 5MB)</span>
+<strong>이미지를 드래그앤드롭하거나 클릭해 업로드</strong>
+                                        <span>JPG, PNG, GIF, WEBP (최대 5MB)</span>
 									</div>
 								</div>
 								<div className={styles.uploadRow}>
 									<input ref={editFileInputRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={handleEditFileSelect} className={styles.fileInput}/>
-									<button type="button" className={styles.uploadBtn} onClick={() => editFileInputRef.current?.click()} disabled={editUploadProgress !== null}><ImagePlus size={16}/>파일 선택</button>
-									<input type="text" value={editImageUrl} onChange={(e) => setEditImageUrl(e.target.value)} placeholder="이미지 URL 또는 /api/files/..."/>
+                                    <button type="button" className={styles.uploadBtn} onClick={() => editFileInputRef.current?.click()} disabled={editUploadProgress !== null}><ImagePlus size={16}/>파일 선택</button>
+                                    <input type="text" value={editImageUrl} onChange={(e) => setEditImageUrl(e.target.value)} placeholder="이미지 URL 또는 /api/files/..."/>
 								</div>
 								{editUploadProgress !== null && <div className={styles.progressBar}><div className={styles.progressFill} style={{width : `${editUploadProgress}%`}}/></div>}
-								<input type="text" value={editTags} onChange={(e) => setEditTags(e.target.value)} placeholder="태그 (쉼표로 구분)"/>
-								<textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder="설명" maxLength={1000}/>
+								<input
+									type="text"
+									value={editTags}
+									onChange={(e) => setEditTags(e.target.value)}
+									onBlur={() => setEditTags((prev) => normalizeTagInputValue(prev))}
+                                    placeholder="태그 (쉼표로 구분)"
+								/>
+                                <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder="설명" maxLength={1000}/>
 								<div className={styles.modalActions}>
-									<button type="button" className={styles.secondaryBtn} onClick={cancelEditSelectedPost}>취소</button>
-									<button type="submit" className={styles.primaryBtn} disabled={editSubmitting || editUploadProgress !== null}>{editSubmitting ? "저장 중..." : "저장"}</button>
+<button type="button" className={styles.secondaryBtn} onClick={cancelEditSelectedPost}>취소</button>
+<button type="submit" className={styles.primaryBtn} disabled={editSubmitting || editUploadProgress !== null}>{editSubmitting ? "저장 중..." : "저장"}</button>
 								</div>
 							</form>
 						) : (
 							<div className={styles.modalBody}>
-								<img src={selectedPost.imageUrl} alt={selectedPost.title} className={styles.modalImage}/>
-								<h3>{selectedPost.title}</h3>
-								<p>{selectedPost.description || "설명이 없습니다."}</p>
-								<div className={styles.modalTags}>{selectedPost.tags.map((tag) => <span key={`modal-${selectedPost.photoPostId}-${tag}`}>#{tag}</span>)}</div>
+									<img src={selectedPost.imageUrl} alt={getDisplayTitle(selectedPost)} className={styles.modalImage}/>
+									<h3 className={styles.postTitle}>
+										<span className={styles.postTitleText}>{getDisplayTitle(selectedPost)}</span>
+{isDiscordPost(selectedPost) && <span className={`${styles.sourceBadge} ${styles.discordBadge}`}>디스코드</span>}
+									</h3>
+                                <p>{selectedPost.description || "설명이 없습니다."}</p>
+									<div className={styles.modalTags}>{getDisplayTags(selectedPost).map((tag) => <span key={`modal-${selectedPost.photoPostId}-${tag}`}>#{tag}</span>)}</div>
 								<div className={styles.modalMeta}>
-									<span>{selectedPost.authorNickname || "익명"}</span>
+										<span>{getAuthorName(selectedPost)}</span>
 									<span>{formatDate(selectedPost.createdAt)}</span>
 									<span><Eye size={14}/>{selectedPost.viewCount}</span>
-									<button
-										type="button"
-										className={`${styles.likeBtn} ${selectedPost.likedByCurrentUser ? styles.liked : ""}`}
-										onClick={() => handleToggleLike(selectedPost.photoPostId)}
-										disabled={likeLoadingIds.has(selectedPost.photoPostId)}
-									>
-										<Heart size={14} fill={selectedPost.likedByCurrentUser ? "currentColor" : "none"}/>
-										{selectedPost.likeCount}
-									</button>
+									{!isExternalPost(selectedPost) && selectedPost.photoPostId !== null && (
+										<button
+											type="button"
+											className={`${styles.likeBtn} ${selectedPost.likedByCurrentUser ? styles.liked : ""}`}
+											onClick={() => handleToggleLike(selectedPost.photoPostId!)}
+											disabled={likeLoadingIds.has(selectedPost.photoPostId)}
+										>
+											<Heart size={14} fill={selectedPost.likedByCurrentUser ? "currentColor" : "none"}/>
+											{selectedPost.likeCount}
+										</button>
+									)}
 								</div>
 								{canManageSelected && (
 									<div className={styles.modalActions}>
-										<button type="button" className={styles.secondaryBtn} onClick={startEditSelectedPost}><Pencil size={14}/>수정</button>
-										<button type="button" className={styles.dangerBtn} onClick={handleDeleteSelectedPost}><Trash2 size={14}/>삭제</button>
+                                        <button type="button" className={styles.secondaryBtn} onClick={startEditSelectedPost}><Pencil size={14}/>수정</button>
+<button type="button" className={styles.dangerBtn} onClick={handleDeleteSelectedPost}><Trash2 size={14}/>삭제</button>
 									</div>
 								)}
 							</div>

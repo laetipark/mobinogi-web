@@ -1,7 +1,7 @@
 import type {PageResponse} from "./common";
 
 export interface PhotoBoardPost{
-	photoPostId:number;
+	photoPostId:number | null;
 	userId:number | null;
 	authorNickname:string | null;
 	authorProfileImage:string | null;
@@ -12,6 +12,9 @@ export interface PhotoBoardPost{
 	viewCount:number;
 	likeCount:number;
 	likedByCurrentUser?:boolean;
+	sourceType?:string;
+	externalUrl?:string | null;
+	externalAuthor?:string | null;
 	createdAt:string;
 	updatedAt:string;
 }

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -22,6 +23,10 @@ public interface BoardPostRepository extends JpaRepository<BoardPost, Long>{
 		Long categoryId, String sourceType, Pageable pageable);
 
 	Optional<BoardPost> findByPostIdAndDeletedAtIsNull(Long postId);
+
+	List<BoardPost> findAllByDeletedAtIsNullOrderByCreatedAtDesc();
+
+	Optional<BoardPost> findFirstByTitleAndDeletedAtIsNullOrderByCreatedAtDesc(String title);
 
 	@Query("SELECT p FROM BoardPost p WHERE p.deletedAt IS NULL AND " +
 		"(LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +

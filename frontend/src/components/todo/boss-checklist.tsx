@@ -113,8 +113,10 @@ const BossChecklist:React.FC<BossChecklistProps> = ({
 						const completed = completedSet.has(slot.trackedIndex);
 						return (
 							<button
+								type="button"
 								key={slot.key}
 								className={`${styles.bossItem} ${completed ? styles.completed : ""}`}
+								aria-pressed={completed}
 								onClick={() => handleDuplicateSlotToggle(slot.monsterId, slot.trackedIndex, maxCount)}
 								title={`${getDifficultyLabel(monster.monsterDifficulty)} - ${monster.regionName || ""} #${slot.order + 1}`}
 							>
@@ -145,8 +147,10 @@ const BossChecklist:React.FC<BossChecklistProps> = ({
 						const completed = completedIds.includes(monster.monsterId);
 						return (
 							<button
+								type="button"
 								key={monster.monsterId}
 								className={`${styles.bossItem} ${completed ? styles.completed : ""}`}
+								aria-pressed={completed}
 								onClick={() => handleToggle(monster.monsterId)}
 								title={`${monster.regionName || ""}`}
 							>
@@ -174,8 +178,10 @@ const BossChecklist:React.FC<BossChecklistProps> = ({
 					const completed = completedIds.includes(monster.monsterId);
 					return (
 						<button
+							type="button"
 							key={monster.monsterId}
 							className={`${styles.bossItem} ${completed ? styles.completed : ""}`}
+							aria-pressed={completed}
 							onClick={() => handleToggle(monster.monsterId)}
 							title={`${getDifficultyLabel(monster.monsterDifficulty)} - ${monster.regionName || ""}`}
 						>

@@ -29,7 +29,7 @@ The server deploy directory should contain:
 
 - `docker-compose.deploy.yml`
 - `nginx/nginx.conf`
-- `.env`
+- `.env.production`
 - `credentials/` (runtime credential files)
 
 ## 4) Optional Local Check

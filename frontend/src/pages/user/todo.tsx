@@ -22,6 +22,7 @@ import ItemDetailModal from "../../components/game/item-detail-modal";
 import {Plus, X, Save, GripVertical, Info} from "lucide-react";
 import SortableCharacterList from "../../components/user/sortable-character-list";
 import EventChecklist from "../../components/todo/event-checklist";
+import {useSeo} from "@/hooks/use-seo";
 import styles from "./todo.module.scss";
 
 const AUTO_SAVE_DEBOUNCE_MS = 5 * 1000; // 5초
@@ -68,6 +69,13 @@ const saveFavoriteItems = (items:FavoriteGameItem[]) => {
 };
 
 const TodoPage:React.FC = () => {
+	useSeo({
+		title : "숙제 관리",
+		description : "캐릭터별 일일/주간 숙제 진행 상태를 관리하세요.",
+		canonicalPath : "/todo",
+		noindex : true
+	});
+
 	const [todos, setTodos] = useState<UserTodo[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -126,6 +134,17 @@ const TodoPage:React.FC = () => {
 	const [isDirty, setIsDirty] = useState(false);
 	const dirtyRef = useRef<Set<number>>(new Set());
 	const todosRef = useRef<UserTodo[]>([]);
+	const requestedCharacterIdRef = useRef<number | null>((() => {
+		if(typeof window === "undefined"){
+			return null;
+		}
+		const raw = new URLSearchParams(window.location.search).get("characterId");
+		if(!raw){
+			return null;
+		}
+		const parsed = Number(raw);
+		return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+	})());
 	const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const touchStartXRef = useRef<number | null>(null);
 	const touchStartYRef = useRef<number | null>(null);
@@ -287,7 +306,13 @@ const TodoPage:React.FC = () => {
 			setFieldBossMonsters(fieldBoss);
 			setRaidMonsters(raid);
 			setAbyssBossMonsters(abyssBoss);
-			if(todosData.length > 0 && !selectedCharacterId){
+			const requestedCharacterId = requestedCharacterIdRef.current;
+			const requestedTodo = requestedCharacterId == null
+				? null
+				: todosData.find((todo) => todo.characterId === requestedCharacterId) ?? null;
+			if(requestedTodo){
+				setSelectedCharacterId(requestedTodo.characterId);
+			}else if(todosData.length > 0 && !selectedCharacterId){
 				setSelectedCharacterId(todosData[0].characterId);
 			}
 			fetchRanks(todosData);
@@ -542,31 +567,11 @@ const TodoPage:React.FC = () => {
 	
 	const selectedTodo = todos.find(t => t.characterId === selectedCharacterId);
 	
-	if(loading){
-		return (
-			<div className={styles.todoPage}>
-				<div className={styles.container}>
-				<div className={styles.loading}>로딩 중...</div>
-				</div>
-			</div>
-		);
-	}
-	
-	if(error){
-		return (
-			<div className={styles.todoPage}>
-				<div className={styles.container}>
-				<div className={styles.error}>{error}</div>
-				</div>
-			</div>
-		);
-	}
-	
 	return (
 		<div className={styles.todoPage}>
 			<div className={styles.container}>
 			<div className={styles.pageHeader}>
-				<div className={styles.pageTitleBlock}>
+				<div className="page-heading">
 					<h1 className={styles.pageTitle}>숙제 관리</h1>
 					<p className={styles.pageSubtitle}>캐릭터별 일일/주간 진행도를 체크하고 이벤트 일정을 관리하세요</p>
 				</div>
@@ -582,7 +587,9 @@ const TodoPage:React.FC = () => {
 				</div>
 			</div>
 			
-			{todos.length === 0 && !showAddCharacter ? (
+			{error ? (
+				<div className={styles.error}>{error}</div>
+			) : loading ? null : todos.length === 0 && !showAddCharacter ? (
 				<div className={styles.empty}>
 					<p>등록된 캐릭터가 없습니다.</p>
 					<button className={styles.addCharBtn} onClick={() => setShowAddCharacter(true)}>

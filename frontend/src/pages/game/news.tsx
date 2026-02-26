@@ -2,6 +2,7 @@ import React, {useEffect, useMemo, useState} from "react";
 import {ExternalLink, Megaphone, RefreshCw} from "lucide-react";
 import {noticeService} from "@/services";
 import type {GameNotice, NoticeCategory} from "@/types";
+import {useSeo} from "@/hooks/use-seo";
 import styles from "./news.module.scss";
 import type {NoticeTab} from "@/types/ui";
 
@@ -51,6 +52,19 @@ const getNoticeLink = (noticeType:string, noticeId:string) => {
 
 const NewsPage:React.FC = () => {
 	const [activeTab, setActiveTab] = useState<NoticeCategory>("notice");
+
+	const seoTitle = activeTab === "updateNote"
+		? "업데이트 노트"
+		: activeTab === "erinNote"
+			? "에린 노트"
+			: "공지";
+
+	useSeo({
+		title : seoTitle,
+		description : "마비노기 모바일 공식 공지와 업데이트 노트를 확인하세요.",
+		canonicalPath : "/news"
+	});
+
 	const [notices, setNotices] = useState<GameNotice[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -81,9 +95,9 @@ const NewsPage:React.FC = () => {
 	return (
 		<div className={styles.newsPage}>
 			<div className={styles.container}>
-				<div className="oYV5kUSv">
+				<div className="page-heading">
 					<h1>게임 소식</h1>
-					<p className="-v1-aGH7">공지, 업데이트 노트, 에린 노트를 한 화면에서 확인하세요</p>
+					<p className="page-heading-subtitle">공지, 업데이트 노트, 에린 노트를 한 화면에서 확인하세요</p>
 				</div>
 
 				<div className={styles.tabContainer}>

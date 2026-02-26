@@ -44,6 +44,11 @@
   to remove duplication and keep key ordering consistent.
 - Extract repeated response keys (`success`, `message`, `data`) into one code path per controller.
 
+## Module-Specific Rules
+- Do not place feature behavior/invariants directly here.
+- Put feature-specific backend rules in corresponding `modules/*.md` files and keep this file cross-cutting only.
+- For implementation style and snippets, use `backend-patterns.md`.
+
 ## Build and Validation
 - Compile: `./mvnw clean compile -DskipTests -q`
 - Test: `./mvnw test`

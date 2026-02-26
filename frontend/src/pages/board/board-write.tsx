@@ -8,6 +8,9 @@ import type {BoardCategory, BoardPostCreateRequest, BoardPostUpdateRequest} from
 import {boardService} from "@/services/board-service";
 import {uploadService} from "@/services/upload-service";
 import {useAuth} from "@/hooks/use-auth";
+import {useSeo} from "@/hooks/use-seo";
+import {createBoardPostPath} from "@/utils/board-url";
+import {remarkSoftBreaks} from "@/utils/remark-soft-breaks";
 import {ImagePlus} from "lucide-react";
 import MarkdownToolbar from "@/components/board/markdown-toolbar";
 import styles from "./board-write.module.scss";
@@ -20,7 +23,8 @@ const markdownComponents:Components = {
 	)
 };
 
-const markdownRehypePlugins = [rehypeRaw, rehypeSanitize] as const;
+const markdownRehypePlugins = [rehypeRaw, rehypeSanitize];
+const markdownRemarkPlugins = [remarkGfm, remarkSoftBreaks];
 
 const BoardWritePage:React.FC = () => {
 	const {postId} = useParams<{postId:string}>();
@@ -40,6 +44,13 @@ const BoardWritePage:React.FC = () => {
 	const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
 	const isEditMode = !!postId;
+
+	useSeo({
+		title : isEditMode ? "게시글 수정" : "게시글 작성",
+		description : isEditMode ? "게시판 글을 수정하는 페이지입니다." : "새 게시판 글을 작성하는 페이지입니다.",
+		canonicalPath : isEditMode ? `/board/edit/${postId}` : "/board/write",
+		noindex : true
+	});
 
 	useEffect(() => {
 		if(!user){
@@ -172,14 +183,14 @@ const BoardWritePage:React.FC = () => {
 				const request:BoardPostUpdateRequest = {
 					categoryId, title: title.trim(), content: content.trim(), isWiki
 				};
-				await boardService.updatePost(parseInt(postId!), request);
-				navigate(`/board/${postId}`);
+				const updatedPost = await boardService.updatePost(parseInt(postId!), request);
+				navigate(createBoardPostPath(updatedPost.title), {state : {postId : updatedPost.postId}});
 			}else{
 				const request:BoardPostCreateRequest = {
 					categoryId, title: title.trim(), content: content.trim(), isWiki
 				};
 				const newPost = await boardService.createPost(request);
-				navigate(`/board/${newPost.postId}`);
+				navigate(createBoardPostPath(newPost.title), {state : {postId : newPost.postId}});
 			}
 		}catch(err:any){
 			setError(err.message || "게시글 저장에 실패했습니다.");
@@ -287,7 +298,7 @@ const BoardWritePage:React.FC = () => {
 							<div className={styles.preview}>
 								{content.trim() ? (
 									<ReactMarkdown
-										remarkPlugins={[remarkGfm]}
+										remarkPlugins={markdownRemarkPlugins}
 										rehypePlugins={markdownRehypePlugins}
 										components={markdownComponents}
 									>

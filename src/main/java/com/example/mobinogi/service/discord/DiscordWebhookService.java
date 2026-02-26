@@ -24,7 +24,7 @@ public class DiscordWebhookService{
 	@Value("${discord.webhook.url:}")
 	private String webhookUrl;
 
-	@Value("${app.url:http://localhost:3000}")
+	@Value("${app.url:https://laetipark.me}")
 	private String appUrl;
 
 	private final ObjectMapper objectMapper;
@@ -37,7 +37,15 @@ public class DiscordWebhookService{
 		}
 
 		try{
-			String postUrl = appUrl + "/board/" + post.getPostId();
+			String slug = post.getTitle() == null
+				? ""
+				: post.getTitle().trim()
+					.replaceAll("[^\\p{L}\\p{N}]+", "-")
+					.replaceAll("-+", "-")
+					.replaceAll("^-|-$", "");
+			String postUrl = slug.isEmpty()
+				? appUrl + "/board"
+				: appUrl + "/board/" + slug;
 			String authorName = (post.getUser() != null && post.getUser().getNickname() != null)
 				? post.getUser().getNickname()
 				: "익명";

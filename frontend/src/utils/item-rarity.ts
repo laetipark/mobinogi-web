@@ -17,9 +17,9 @@ const ITEM_RARITY_MAP:Record<string, ItemRarityInfo> = {
 
 const ITEM_RARITY_ALIASES:Record<string, string> = {
 	"노말" : "일반",
+	"일반" : "일반",
 	"normal" : "일반",
 	"common" : "일반",
-	"일반" : "일반",
 	"고급" : "고급",
 	"레어" : "레어",
 	"희귀" : "레어",
@@ -39,6 +39,7 @@ const ITEM_RARITY_ALIASES:Record<string, string> = {
 
 export const getItemRarityInfo = (rarity?:string | null):ItemRarityInfo => {
 	const value = (rarity || "").trim();
-	const normalized = ITEM_RARITY_ALIASES[value.toLowerCase()] || ITEM_RARITY_ALIASES[value] || "일반";
+	const lowerValue = value.toLowerCase();
+	const normalized = ITEM_RARITY_ALIASES[lowerValue] || ITEM_RARITY_ALIASES[value] || "일반";
 	return ITEM_RARITY_MAP[normalized] || ITEM_RARITY_MAP["일반"];
 };

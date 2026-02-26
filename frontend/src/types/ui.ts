@@ -43,10 +43,6 @@ export interface ToolbarAction{
 	action:() => void;
 }
 
-export interface LoadingScreenProps{
-	message?:string;
-}
-
 export interface BarterCardProps{
 	barter:LifeBarter;
 	onClick?:(barter:LifeBarter) => void;

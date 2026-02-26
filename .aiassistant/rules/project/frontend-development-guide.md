@@ -30,6 +30,20 @@ apply: always
 - Split large components by feature responsibility.
 - Keep side effects isolated in hooks and lifecycle sections.
 
+## SEO and Metadata
+- Prefer centralized metadata updates via shared hook/utilities.
+- Page-level metadata must include:
+  - `title`
+  - `description`
+  - `canonical`
+  - Open Graph and Twitter image/title/description
+- Feature-specific canonical/slug rules belong to module files.
+
+## Module-Specific Rules
+- Keep this file cross-cutting.
+- Put feature behavior/invariants in `modules/*.md`.
+- For implementation snippets, use `frontend-patterns.md`.
+
 ## Build and Validation
 - Type check: `npx tsc --noEmit`
 - Build: `npm run build`

@@ -1,5 +1,8 @@
 package com.example.mobinogi.service.game;
 
+import com.example.mobinogi.dto.game.BarterFilterNpcDto;
+import com.example.mobinogi.dto.game.BarterFilterOptionsDto;
+import com.example.mobinogi.dto.game.BarterFilterRegionDto;
 import com.example.mobinogi.entity.LifeBarter;
 import com.example.mobinogi.repository.LifeBarterRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +13,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -30,18 +36,25 @@ public class GameBarterService{
 		return lifeBarterRepository.findByGameItem_ItemName(itemName);
 	}
 	
-	public Page<LifeBarter> getBarters(int page, int size, String sortBy, String sortDir, String keyword){
+	public Page<LifeBarter> getBarters(
+		int page,
+		int size,
+		String sortBy,
+		String sortDir,
+		String keyword,
+		Long regionId,
+		Long npcId){
 		Sort sort = sortDir.equalsIgnoreCase("desc")
 			? Sort.by(sortBy).descending()
 			: Sort.by(sortBy).ascending();
 		
 		Pageable pageable = PageRequest.of(page, size, sort);
-		
-		if(keyword != null && !keyword.trim().isEmpty()){
-			return lifeBarterRepository.findByKeyword(keyword.trim(), pageable);
-		}
-		
-		return lifeBarterRepository.findAll(pageable);
+
+		String normalizedKeyword = (keyword != null && !keyword.trim().isEmpty())
+			? keyword.trim()
+			: null;
+
+		return lifeBarterRepository.findByFilters(normalizedKeyword, regionId, npcId, pageable);
 	}
 	
 	public Page<LifeBarter> getBartersByObtainedItem(int page, int size, String sortBy, String sortDir, String keyword){
@@ -67,5 +80,41 @@ public class GameBarterService{
 		}
 		
 		return lifeBarterRepository.findAll(pageable);
+	}
+
+	public BarterFilterOptionsDto getBarterFilterOptions(){
+		List<LifeBarterRepository.BarterFilterRow> rows = lifeBarterRepository.findFilterRows();
+		Map<Long, BarterFilterRegionDto> regions = new LinkedHashMap<>();
+
+		for(LifeBarterRepository.BarterFilterRow row : rows){
+			if(row.getRegionId() == null){
+				continue;
+			}
+
+			BarterFilterRegionDto region = regions.computeIfAbsent(
+				row.getRegionId(),
+				regionId -> new BarterFilterRegionDto(
+					regionId,
+					(row.getRegionName() == null || row.getRegionName().isBlank()) ? "미분류 지역" : row.getRegionName(),
+					new ArrayList<>()
+				)
+			);
+
+			if(row.getNpcId() == null){
+				continue;
+			}
+
+			boolean exists = region.getNpcs().stream().anyMatch((npc) -> npc.getNpcId().equals(row.getNpcId()));
+			if(!exists){
+				region.getNpcs().add(
+					new BarterFilterNpcDto(
+						row.getNpcId(),
+						(row.getNpcName() == null || row.getNpcName().isBlank()) ? "미분류 NPC" : row.getNpcName()
+					)
+				);
+			}
+		}
+
+		return new BarterFilterOptionsDto(new ArrayList<>(regions.values()));
 	}
 }

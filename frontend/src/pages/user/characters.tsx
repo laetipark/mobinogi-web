@@ -1,11 +1,18 @@
 import React from "react";
 import {useAuth} from "@/hooks";
 import {Navigate} from "react-router-dom";
+import {useSeo} from "@/hooks/use-seo";
 import CharacterManager from "../../components/user/character-manager";
 import styles from "./characters.module.scss";
 
 const CharactersPage:React.FC = () => {
 	const {user} = useAuth();
+	useSeo({
+		title : "캐릭터 관리",
+		description : "Sexynogi에서 내 캐릭터 목록을 관리하세요.",
+		canonicalPath : "/characters",
+		noindex : true
+	});
 	
 	if(!user){
 		return <Navigate to="/login" replace/>;

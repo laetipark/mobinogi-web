@@ -97,12 +97,14 @@ const BarterCart:React.FC<BarterCartProps> = ({characterId, cycle, cycleLabel, f
 						const checkedBy = getCheckedByLabel(barter);
 						return (
 						<button
+							type="button"
 							key={barter.id}
 							className={`${styles.bossItem} ${barter.completed ? styles.completed : ""}`}
+							aria-pressed={barter.completed}
 							onClick={() => handleToggle(barter.id)}
 							title={[barter.regionName, barter.npcName].filter(Boolean).join(" - ")}
 						>
-							<span className={styles.bossCheckmark}>{barter.completed && "✓"}</span>
+							<span className={styles.bossCheckmark}>{barter.completed ? "\u2713" : ""}</span>
 							<span className={styles.bossName}>{barter.itemName || TXT.barter}</span>
 							<span
 								className={styles.bossRegion}>{[barter.regionName, barter.npcName].filter(Boolean).join(" - ") || "N/A"}</span>

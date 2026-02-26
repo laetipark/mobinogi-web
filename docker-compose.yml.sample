@@ -14,8 +14,9 @@
         environment:
             SERVER_PORT: 50620
             TZ: Asia/Seoul
+            SPRING_PROFILES_ACTIVE: production
         env_file:
-            - .env
+            - .env.production
         restart: unless-stopped
         networks:
             - mobinogi-network

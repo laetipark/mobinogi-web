@@ -49,9 +49,12 @@
 
 .header{
 	display:flex;
+	justify-content:space-between;
 	align-items:center;
-	gap:12px;
+	gap:10px;
 	margin-bottom:12px;
+	padding-bottom:10px;
+	border-bottom:1px dashed var(--border);
 }
 
 .iconWrapper{
@@ -66,19 +69,76 @@
 	flex-shrink:0;
 }
 
-.meta{
+.metaRow{
 	display:flex;
 	align-items:center;
+	justify-content:flex-end;
+	gap:8px;
+	flex-wrap:wrap;
 }
 
 .rarity{
-	font-size:12px;
-	font-weight:600;
+	font-size:11px;
+	font-weight:700;
 	color:var(--rarity-color);
 	background:var(--rarity-bg);
 	border:1px solid var(--rarity-color);
-	padding:3px 10px;
+	padding:4px 8px;
 	border-radius:999px;
+}
+
+.badgeMuted{
+	display:inline-flex;
+	align-items:center;
+	justify-content:center;
+	max-width:100%;
+	min-width:0;
+	font-size:11px;
+	font-weight:700;
+	padding:4px 8px;
+	border-radius:999px;
+	background:var(--surface-hover);
+	color:var(--text-muted);
+	border:1px solid var(--border);
+	white-space:nowrap;
+	overflow:hidden;
+	text-overflow:ellipsis;
+}
+
+.badgeMainMenu{
+	color:#1d4ed8;
+	background:#dbeafe;
+	border-color:#93c5fd;
+}
+
+.badgeSubMenu{
+	color:#047857;
+	background:#d1fae5;
+	border-color:#6ee7b7;
+}
+
+.badgeType{
+	color:#b45309;
+	background:#fef3c7;
+	border-color:#fcd34d;
+}
+
+:global(.dark-mode) .badgeMainMenu{
+	color:#dbeafe;
+	background:rgba(30, 64, 175, 0.38);
+	border-color:rgba(147, 197, 253, 0.55);
+}
+
+:global(.dark-mode) .badgeSubMenu{
+	color:#dcfce7;
+	background:rgba(5, 150, 105, 0.34);
+	border-color:rgba(110, 231, 183, 0.5);
+}
+
+:global(.dark-mode) .badgeType{
+	color:#fef3c7;
+	background:rgba(180, 83, 9, 0.32);
+	border-color:rgba(252, 211, 77, 0.48);
 }
 
 .name{
@@ -90,27 +150,99 @@
 	word-break:keep-all;
 }
 
-.type{
+.classificationGrid{
+	display:grid;
+	grid-template-columns:repeat(2, minmax(0, 1fr));
+	gap:8px;
+	margin:0 0 12px;
+}
+
+.classificationItem{
+	display:flex;
+	flex-direction:column;
+	gap:4px;
+	padding:8px 10px;
+	border-radius:10px;
+	border:1px solid var(--border-light);
+	background:var(--surface-hover);
+	min-width:0;
+}
+
+.classificationLabel{
+	font-size:10px;
+	font-weight:700;
+	letter-spacing:0.03em;
+	color:var(--text-muted);
+}
+
+.classificationValue{
+	font-size:12px;
+	font-weight:600;
+	color:var(--text);
+	line-height:1.3;
+	word-break:break-word;
+}
+
+.classificationValueRarity{
+	color:var(--rarity-color);
+}
+
+.menuRow{
+	display:flex;
+	flex-wrap:wrap;
+	gap:6px;
+	margin:-2px 0 10px;
+}
+
+.menuBadge{
 	display:inline-flex;
 	align-items:center;
-	gap:6px;
-	background:var(--surface-hover);
-	padding:6px 10px;
-	border-radius:$border-radius-sm;
-	margin-bottom:12px;
-}
-
-.typeLabel{
+	padding:4px 8px;
+	border-radius:999px;
 	font-size:11px;
-	color:var(--text-muted);
-	font-weight:500;
-	text-transform:uppercase;
+	font-weight:700;
+	line-height:1.1;
+	color:var(--primary-dark);
+	background:var(--primary-light);
+	border:1px solid color-mix(in srgb, var(--primary) 45%, var(--border) 55%);
 }
 
-.typeValue{
-	font-size:13px;
+.menuBadgeSub{
 	color:var(--text);
-	font-weight:500;
+	background:var(--surface-hover);
+	border-color:var(--border);
+}
+
+.itemSourcePreview{
+	display:flex;
+	flex-direction:column;
+	gap:6px;
+	margin-bottom:10px;
+	padding:10px;
+	border-radius:12px;
+	border:1px dashed var(--border);
+	background:color-mix(in srgb, var(--surface) 86%, var(--info-soft, #dbeafe) 14%);
+}
+
+.itemSourceLabel{
+	font-size:10px;
+	font-weight:800;
+	letter-spacing:0.04em;
+	text-transform:uppercase;
+	color:var(--text-muted);
+}
+
+.itemSourceText{
+	margin:0;
+	font-size:12px;
+	line-height:1.45;
+	color:var(--text-muted);
+	word-break:break-word;
+	white-space:pre-line;
+	display:-webkit-box;
+	-webkit-line-clamp:2;
+	-webkit-box-orient:vertical;
+	overflow:hidden;
 }
 
 .effect{
@@ -120,6 +252,98 @@
 	margin:0;
 	padding-top:12px;
 	border-top:1px solid var(--border-light);
+	white-space:pre-line;
+	word-break:break-word;
+}
+
+.transcendencePreview{
+	display:flex;
+	flex-direction:column;
+	gap:8px;
+	margin-top:12px;
+	padding:10px;
+	border:1px solid var(--border-light);
+	border-radius:12px;
+	background:color-mix(in srgb, var(--surface) 86%, var(--primary-light) 14%);
+}
+
+.transcendencePreviewHeader{
+	display:flex;
+	align-items:center;
+	justify-content:space-between;
+	gap:8px;
+}
+
+.transcendenceBadge{
+	display:inline-flex;
+	align-items:center;
+	padding:3px 8px;
+	border-radius:999px;
+	border:1px solid var(--home-state-active-border);
+	background:var(--home-state-active-bg);
+	color:var(--home-state-active-text);
+	font-size:11px;
+	font-weight:700;
+	line-height:1.1;
+}
+
+.transcendenceMore{
+	font-size:11px;
+	color:var(--text-muted);
+	font-weight:600;
+}
+
+.transcendencePreviewList{
+	display:flex;
+	flex-direction:column;
+	gap:6px;
+}
+
+.transcendencePreviewRow{
+	display:flex;
+	flex-direction:column;
+	gap:4px;
+	padding:6px 8px;
+	border-radius:10px;
+	background:var(--surface);
+	border:1px solid var(--border);
+}
+
+.transcendencePreviewLabel{
+	font-size:11px;
+	font-weight:700;
+	color:var(--text);
+	line-height:1.3;
+}
+
+.transcendencePreviewValues{
+	display:flex;
+	flex-wrap:wrap;
+	gap:4px;
+}
+
+.transcendenceTierChip{
+	display:inline-flex;
+	align-items:center;
+	padding:2px 6px;
+	border-radius:999px;
+	background:var(--surface-hover);
+	border:1px solid var(--border);
+	color:var(--text-muted);
+	font-size:10px;
+	font-weight:700;
+	line-height:1.15;
+}
+
+.transcendencePreviewValue{
+	font-size:11px;
+	color:var(--text-muted);
+	line-height:1.3;
+}
+
+.transcendenceRawHint{
+	font-size:11px;
+	color:var(--text-muted);
 }
 
 // 획득 방법 섹션
@@ -259,9 +483,18 @@
 	.name{
 		font-size:15px;
 	}
+
+	.itemSourceText{
+		-webkit-line-clamp:3;
+	}
 	
 	.header{
-		gap:10px;
+		flex-wrap:wrap;
+		justify-content:flex-start;
+	}
+
+	.metaRow{
+		justify-content:flex-start;
 	}
 	
 	.iconWrapper{

@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {useNavigate, useLocation} from "react-router-dom";
-import {Gamepad2, Shield, Package, LogOut, ClipboardCheck, MessageSquare, Megaphone, CalendarDays, Image, Menu, X} from "lucide-react";
+import {Shield, Package, LogOut, ClipboardCheck, MessageSquare, Megaphone, CalendarDays, Image, Menu, X} from "lucide-react";
 import {useAuth} from "@/hooks/use-auth";
 
 const MOBILE_MENU_BREAKPOINT = 940;
@@ -100,8 +100,8 @@ const Header:React.FC = () => {
 			<div className="container">
 				<div className="header-content">
 					<div className="logo" onClick={() => handleNavigation("/")}>
-						<Gamepad2 className="logo-icon"/>
-						<span>MobiNogi</span>
+						<img src="/logo.png" alt="Sexynogi 로고" className="logo-icon"/>
+						<span>Sexynogi</span>
 					</div>
 
 					<div className="header-right">

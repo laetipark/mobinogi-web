@@ -5,12 +5,20 @@ import path, {resolve} from "path";
 // https://vitejs.dev/config/
 export default defineConfig(({mode}) => {
 	// 환경 변수 로드
-	const env = loadEnv(mode, process.cwd(), "");
+	const rootEnvDir = resolve(__dirname, "..");
+	// Single source of truth for frontend env: mobinogi-web/.env.{mode}
+	const env = loadEnv(mode, rootEnvDir, "");
 	const isDev = mode === "development";
 	const isProd = mode === "production";
+	const serverPort = parseInt(
+		env.VITE_DEV_SERVER_PORT || env.VITE_SERVER_PORT || "3000",
+		10
+	) || 3000;
+	const serverHost = env.VITE_DEV_SERVER_HOST || env.VITE_SERVER_HOST || "localhost";
 	
 	return {
 		plugins : [react()],
+		envDir : rootEnvDir,
 		
 		// 경로 alias 설정
 		resolve : {
@@ -64,8 +72,8 @@ export default defineConfig(({mode}) => {
 		
 		// 개발 서버 설정
 		server : {
-			port : parseInt(env.VITE_SERVER_PORT) || 3000,
-			host : env.VITE_SERVER_HOST || "localhost",
+			port : serverPort,
+			host : serverHost,
 			open : true,
 			// 개발환경: 모든 호스트 허용 (ngrok 등), production: 특정 호스트만 허용
 			allowedHosts : isDev
@@ -99,8 +107,8 @@ export default defineConfig(({mode}) => {
 		
 		// 프리뷰 서버 설정 (production build preview)
 		preview : {
-			port : parseInt(env.VITE_SERVER_PORT) || 3000,
-			host : env.VITE_SERVER_HOST || "localhost",
+			port : serverPort,
+			host : serverHost,
 			open : false,
 			allowedHosts : [
 				"localhost",
@@ -109,7 +117,7 @@ export default defineConfig(({mode}) => {
 				"www.laetipark.me"
 			]
 		},
-
+		
 		// 빌드 설정
 		build : {
 			outDir : "dist",
@@ -171,6 +179,6 @@ export default defineConfig(({mode}) => {
 		// 최적화 설정
 		optimizeDeps : {
 			include : ["react", "react-dom", "react-router-dom", "axios"]
-		},
+		}
 	};
 });

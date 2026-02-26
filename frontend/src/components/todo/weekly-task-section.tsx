@@ -246,8 +246,10 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 						}
 						return (
 							<button
+								type="button"
 								key={i}
 								className={cls}
+								aria-pressed={i < totalDone}
 								onClick={() => {
 									if(i < totalDone){
 										onChange({...weekly, blackHole : i});
@@ -351,7 +353,9 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 									<span className={styles.vanguardEmergencyInline}>
 										<span className={styles.vanguardSubLabel}>{TXT.emergencyQuest}</span>
 										<button
+											type="button"
 											className={`${styles.checkCircle} ${styles.small} ${weekly.vanguard?.quest ? styles.completed : ""}`}
+											aria-pressed={weekly.vanguard?.quest ?? false}
 											onClick={(e) => {
 												e.stopPropagation();
 												onChange({
@@ -371,8 +375,10 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 							<div className={styles.checkCircles}>
 								{Array.from({length : VANGUARD_REWARD_MAX}, (_, i) => (
 									<button
+										type="button"
 										key={i}
 										className={`${styles.checkCircle} ${i < (weekly.vanguard?.reward ?? 0) ? styles.completed : ""}`}
+										aria-pressed={i < (weekly.vanguard?.reward ?? 0)}
 										onClick={() => {
 											const cur = weekly.vanguard?.reward ?? 0;
 											const val = i < cur ? i : i + 1;
@@ -411,7 +417,12 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 							<div className={styles.taskItem}>
 								<span className={styles.taskLabel}>{memo.label}</span>
 								<div className={styles.checkCircles}>
-									<button className={`${styles.checkCircle} ${memo.completed ? styles.completed : ""}`} onClick={() => toggleMemo(memo.id)}/>
+									<button
+										type="button"
+										className={`${styles.checkCircle} ${memo.completed ? styles.completed : ""}`}
+										aria-pressed={memo.completed}
+										onClick={() => toggleMemo(memo.id)}
+									/>
 								</div>
 							</div>
 						</div>

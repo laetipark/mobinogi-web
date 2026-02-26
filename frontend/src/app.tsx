@@ -17,7 +17,6 @@ import BoardDetailPage from "./pages/board/board-detail";
 import BoardWritePage from "./pages/board/board-write";
 import PhotoBoardPage from "./pages/photo/photo-board";
 import DiscordCallbackPage from "./pages/auth/discord-callback";
-import LoadingScreen from "./components/common/loading-screen";
 import DarkModeToggle from "./components/common/dark-mode-toggle";
 import SiteFooter from "./components/layout/site-footer";
 
@@ -40,9 +39,19 @@ const RegisterNicknameRoute:React.FC<{children:React.ReactNode}> = ({children}) 
 
 const AppContent:React.FC = () => {
 	const {loading, pendingKakaoUser} = useAuth();
+	const renderWithLayout = (content:React.ReactNode) => (
+		<div className="app">
+			<Header/>
+			<main className="main page-bg-shell">
+				{content}
+			</main>
+			<SiteFooter/>
+			<DarkModeToggle/>
+		</div>
+	);
 
 	if(loading){
-		return <LoadingScreen/>;
+		return renderWithLayout(null);
 	}
 
 	// 신규 회원이면 닉네임 입력 페이지로 리다이렉트
@@ -56,36 +65,31 @@ const AppContent:React.FC = () => {
 	}
 
 	return (
-		<>
-			<Header/>
-			<div className="page-bg-shell">
-				<Routes>
-					<Route path="/" element={<HomePage/>}/>
-					<Route path="/login" element={<PublicRoute><LoginPage/></PublicRoute>}/>
-					<Route path="/register/nickname"
-						   element={<RegisterNicknameRoute><RegisterNicknamePage/></RegisterNicknameRoute>}/>
-					<Route path="/discord-callback" element={<DiscordCallbackPage/>}/>
-					<Route path="/items" element={<GameItemsPage/>}/>
-					<Route path="/items/:itemName/detail" element={<GameItemsPage/>}/>
-					<Route path="/item" element={<GameItemsPage/>}/>
-					<Route path="/item/:itemName/detail" element={<GameItemsPage/>}/>
-					<Route path="/events" element={<EventsPage/>}/>
-					<Route path="/news" element={<NewsPage/>}/>
-					<Route path="/profile" element={<PrivateRoute><ProfilePage/></PrivateRoute>}/>
-					<Route path="/characters" element={<CharactersPage/>}/>
-					<Route path="/todo" element={<PrivateRoute><TodoPage/></PrivateRoute>}/>
-					<Route path="/board" element={<BoardListPage/>}/>
-					<Route path="/board/external" element={<BoardDetailPage/>}/>
-					<Route path="/board/write" element={<PrivateRoute><BoardWritePage/></PrivateRoute>}/>
-					<Route path="/board/edit/:postId" element={<PrivateRoute><BoardWritePage/></PrivateRoute>}/>
-					<Route path="/board/:postId" element={<BoardDetailPage/>}/>
-					<Route path="/gallery" element={<PhotoBoardPage/>}/>
-					<Route path="/photo-board" element={<Navigate to="/gallery" replace/>}/>
-				</Routes>
-			</div>
-			<SiteFooter/>
-			<DarkModeToggle/>
-		</>
+		renderWithLayout(
+			<Routes>
+				<Route path="/" element={<HomePage/>}/>
+				<Route path="/login" element={<PublicRoute><LoginPage/></PublicRoute>}/>
+				<Route path="/register/nickname"
+					   element={<RegisterNicknameRoute><RegisterNicknamePage/></RegisterNicknameRoute>}/>
+				<Route path="/discord-callback" element={<DiscordCallbackPage/>}/>
+				<Route path="/items" element={<GameItemsPage/>}/>
+				<Route path="/items/:itemName/detail" element={<GameItemsPage/>}/>
+				<Route path="/item" element={<GameItemsPage/>}/>
+				<Route path="/item/:itemName/detail" element={<GameItemsPage/>}/>
+				<Route path="/events" element={<EventsPage/>}/>
+				<Route path="/news" element={<NewsPage/>}/>
+				<Route path="/profile" element={<PrivateRoute><ProfilePage/></PrivateRoute>}/>
+				<Route path="/characters" element={<CharactersPage/>}/>
+				<Route path="/todo" element={<PrivateRoute><TodoPage/></PrivateRoute>}/>
+				<Route path="/board" element={<BoardListPage/>}/>
+				<Route path="/board/external" element={<BoardDetailPage/>}/>
+				<Route path="/board/write" element={<PrivateRoute><BoardWritePage/></PrivateRoute>}/>
+				<Route path="/board/edit/:postId" element={<PrivateRoute><BoardWritePage/></PrivateRoute>}/>
+				<Route path="/board/:postSlug" element={<BoardDetailPage/>}/>
+				<Route path="/gallery" element={<PhotoBoardPage/>}/>
+				<Route path="/photo-board" element={<Navigate to="/gallery" replace/>}/>
+			</Routes>
+		)
 	);
 };
 
