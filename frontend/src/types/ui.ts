@@ -74,6 +74,7 @@ export interface BarterCartProps{
 	cycle:number;
 	cycleLabel:string;
 	favoriteItems?:FavoriteGameItem[];
+	onProgressChange?:(progress:{completed:number; total:number}) => void;
 }
 
 export interface BarterSettingsModalProps{
