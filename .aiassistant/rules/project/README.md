@@ -15,10 +15,12 @@ Shared rules for assistants working on `mobinogi-web`.
 
 ## Read Order (Global First, Then Area)
 1. `architecture-overview.md`
-2. `backend-development-guide.md` (if backend change)
-3. `frontend-development-guide.md` (if frontend change)
-4. Relevant module file(s) in `modules/`
-5. Relevant implementation patterns:
+2. `text-encoding-policy.md`
+3. `performance-policy.md`
+4. `backend-development-guide.md` (if backend change)
+5. `frontend-development-guide.md` (if frontend change)
+6. Relevant module file(s) in `modules/`
+7. Relevant implementation patterns:
    - `backend-patterns.md`
    - `frontend-patterns.md`
 

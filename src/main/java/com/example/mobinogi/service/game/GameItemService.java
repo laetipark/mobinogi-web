@@ -174,42 +174,45 @@ public class GameItemService{
 			.map(GameItem::getItemId)
 			.toList();
 
-		Map<Long, List<LifeBarter>> bartersByItemId = pageItemIds.isEmpty()
+		Map<Long, List<GameItemSummaryDto.BarterSourceInfo>> barterSourcesByItemId = pageItemIds.isEmpty()
 			? Map.of()
-			: lifeBarterRepository.findByItemIdIn(pageItemIds)
+			: lifeBarterRepository.findSummaryRowsByItemIdIn(pageItemIds)
 				.stream()
-				.collect(Collectors.groupingBy(LifeBarter::getItemId));
+				.collect(Collectors.groupingBy(
+					LifeBarterRepository.BarterSummaryRow::getItemId,
+					Collectors.mapping(
+						row -> new GameItemSummaryDto.BarterSourceInfo(
+							row.getRegionName(),
+							row.getNpcName(),
+							row.getExchangeItemName(),
+							row.getExchangeCost()
+						),
+						Collectors.toList()
+					)
+				));
 
-		Map<Long, List<LifeCraft>> craftsByItemId = pageItemIds.isEmpty()
+		Map<Long, Integer> craftRecipeCountByItemId = pageItemIds.isEmpty()
 			? Map.of()
-			: lifeCraftRepository.findByItemIdIn(pageItemIds)
+			: lifeCraftRepository.findRecipeCountsByItemIdIn(pageItemIds)
 				.stream()
-				.collect(Collectors.groupingBy(LifeCraft::getItemId));
+				.collect(Collectors.toMap(
+					LifeCraftRepository.CraftRecipeCountRow::getItemId,
+					row -> row.getRecipeCount() == null ? 0 : row.getRecipeCount().intValue(),
+					(left, right) -> left,
+					LinkedHashMap::new
+				));
 
 		List<GameItemSummaryDto> summaryItems = pageItems.stream().map(item -> {
 			GameItemSummaryDto dto = GameItemSummaryDto.fromEntity(item);
-			List<LifeBarter> barters = bartersByItemId.getOrDefault(item.getItemId(), List.of());
-			dto.setHasBarterSource(!barters.isEmpty());
-
-			if(!barters.isEmpty()){
-				List<GameItemSummaryDto.BarterSourceInfo> barterSources = new ArrayList<>();
-				for(LifeBarter barter : barters){
-					GameItemSummaryDto.BarterSourceInfo info = new GameItemSummaryDto.BarterSourceInfo();
-					info.setRegionName(barter.getGameRegion() != null ? barter.getGameRegion().getRegionName() : null);
-					info.setNpcName(barter.getGameNpc() != null ? barter.getGameNpc().getNpcName() : null);
-					info.setExchangeItemName(barter.getExchangeItem() != null ? barter.getExchangeItem().getItemName() : null);
-					info.setExchangeCost(barter.getExchangeCost());
-					barterSources.add(info);
-				}
+			List<GameItemSummaryDto.BarterSourceInfo> barterSources = barterSourcesByItemId.getOrDefault(item.getItemId(), List.of());
+			dto.setHasBarterSource(!barterSources.isEmpty());
+			if(!barterSources.isEmpty()){
 				dto.setBarterSources(barterSources);
 			}
 
-			List<LifeCraft> crafts = craftsByItemId.getOrDefault(item.getItemId(), List.of());
-			dto.setHasCraftSource(!crafts.isEmpty());
-			dto.setCraftRecipeCount((int) crafts.stream()
-				.map(craft -> craft.getCraftSubId() == null ? 0 : craft.getCraftSubId())
-				.distinct()
-				.count());
+			int craftRecipeCount = craftRecipeCountByItemId.getOrDefault(item.getItemId(), 0);
+			dto.setHasCraftSource(craftRecipeCount > 0);
+			dto.setCraftRecipeCount(craftRecipeCount);
 
 			return dto;
 		}).toList();
@@ -224,10 +227,10 @@ public class GameItemService{
 
 	public GameItemFilterOptionsDto getGameItemFilterOptions(){
 		GameItemFilterOptionsDto dto = new GameItemFilterOptionsDto();
-		dto.setItemMainMenus(gameItemRepository.findDistinctItemMainMenus());
-		dto.setItemSubMenus(gameItemRepository.findDistinctItemSubMenus());
+		dto.setItemMainMenus(sortMainMenus(new ArrayList<>(gameItemRepository.findDistinctItemMainMenus())));
+		dto.setItemSubMenus(sortItemSubMenus(new ArrayList<>(gameItemRepository.findDistinctItemSubMenus())));
 		dto.setItemTypes(sortItemTypesForCategory(null, null, new ArrayList<>(gameItemRepository.findDistinctItemTypes())));
-		dto.setItemRarities(gameItemRepository.findDistinctItemRarities());
+		dto.setItemRarities(sortItemRarities(new ArrayList<>(gameItemRepository.findDistinctItemRarities())));
 		dto.setItemCategoryTree(buildItemCategoryTree());
 		return dto;
 	}
@@ -252,17 +255,19 @@ public class GameItemService{
 		}
 
 		List<GameItemFilterOptionsDto.ItemMainMenuOptionDto> result = new ArrayList<>();
-		for(Map.Entry<String, Map<String, LinkedHashSet<String>>> mainEntry : tree.entrySet()){
+		for(String mainMenu : sortMainMenus(new ArrayList<>(tree.keySet()))){
+			Map<String, LinkedHashSet<String>> subMenuMap = tree.get(mainMenu);
 			List<GameItemFilterOptionsDto.ItemSubMenuOptionDto> subMenuOptions = new ArrayList<>();
-			for(Map.Entry<String, LinkedHashSet<String>> subEntry : mainEntry.getValue().entrySet()){
+			for(String subMenu : sortSubMenusForMainMenu(mainMenu, new ArrayList<>(subMenuMap.keySet()))){
+				LinkedHashSet<String> itemTypes = subMenuMap.getOrDefault(subMenu, new LinkedHashSet<>());
 				subMenuOptions.add(new GameItemFilterOptionsDto.ItemSubMenuOptionDto(
-					subEntry.getKey(),
-					sortItemTypesForCategory(mainEntry.getKey(), subEntry.getKey(), new ArrayList<>(subEntry.getValue()))
+					subMenu,
+					sortItemTypesForCategory(mainMenu, subMenu, new ArrayList<>(itemTypes))
 				));
 			}
 
 			result.add(new GameItemFilterOptionsDto.ItemMainMenuOptionDto(
-				mainEntry.getKey(),
+				mainMenu,
 				subMenuOptions
 			));
 		}
@@ -270,35 +275,35 @@ public class GameItemService{
 		return result;
 	}
 
-	private static final String MOUNT_PET_MAIN_MENU = "\uD0C8\uAC83/\uD3AB";
-	private static final String PET_MOUNT_MAIN_MENU = "\uD3AB/\uD0C8\uAC83";
-	private static final String COMPANION_PET_SUB_MENU = "\uB3D9\uD589 \uD3AB";
+	private static final String MOUNT_PET_MAIN_MENU = "탈것/펫";
+	private static final String PET_MOUNT_MAIN_MENU = "펫/탈것";
+	private static final String COMPANION_PET_SUB_MENU = "동행 펫";
 
-	private static final String EQUIPMENT_MAIN_MENU = "\uC7A5\uBE44";
-	private static final String WEAPON_SUB_MENU = "\uBB34\uAE30";
-	private static final String WEAPON_RUNE_SUB_MENU = "\uBB34\uAE30 \uB8EC";
+	private static final String EQUIPMENT_MAIN_MENU = "장비";
+	private static final String WEAPON_SUB_MENU = "무기";
+	private static final String WEAPON_RUNE_SUB_MENU = "무기 룬";
 
 	private static final List<String> WEAPON_ITEM_TYPE_PREFIX_ORDER = List.of(
-		"\uC804\uC0AC",
-		"\uB300\uAC80\uC804\uC0AC",
-		"\uAC80\uC220\uC0AC",
-		"\uAD81\uC218",
-		"\uC11D\uAD81\uC0AC\uC218",
-		"\uC7A5\uAD81\uBCD1",
-		"\uB9C8\uBC95\uC0AC",
-		"\uD654\uC5FC\uC220\uC0AC",
-		"\uBE59\uACB0\uC220\uC0AC",
-		"\uC804\uACA9\uC220\uC0AC",
-		"\uD790\uB7EC",
-		"\uC0AC\uC81C",
-		"\uC218\uB3C4\uC0AC",
-		"\uC554\uD751\uC220\uC0AC",
-		"\uC74C\uC720\uC2DC\uC778",
-		"\uC545\uC0AC",
-		"\uB304\uC11C",
-		"\uB3C4\uC801",
-		"\uACA9\uD22C\uAC00",
-		"\uB4C0\uC5BC\uBE14\uB808\uC774\uB4DC"
+		"전사",
+		"대검전사",
+		"검술사",
+		"궁수",
+		"석궁사수",
+		"장궁병",
+		"마법사",
+		"화염술사",
+		"빙결술사",
+		"전격술사",
+		"힐러",
+		"사제",
+		"수도사",
+		"암흑술사",
+		"음유시인",
+		"악사",
+		"댄서",
+		"도적",
+		"격투가",
+		"듀얼블레이드"
 	);
 
 	private static final List<ItemTypePrefixOrderRule> ITEM_TYPE_PREFIX_ORDER_RULES = List.of(
@@ -309,48 +314,218 @@ public class GameItemService{
 	private record ItemTypePrefixOrderRule(String itemMainMenu, String itemSubMenu, List<String> prefixOrder){}
 
 	private static final List<List<String>> ITEM_RARITY_ORDER_ASC_ALIASES = List.of(
-		List.of("\uC77C\uBC18", "\uB178\uB9D0", "normal", "common"),
-		List.of("\uACE0\uAE09"),
-		List.of("\uB808\uC5B4", "\uD76C\uADC0", "rare"),
-		List.of("\uC5D8\uB9AC\uD2B8", "\uC601\uC6C5", "elite"),
-		List.of("\uC5D0\uD53D", "epic"),
-		List.of("\uC720\uB2C8\uD06C", "unique"),
-		List.of("\uC2E0\uD654", "mythic"),
-		List.of("\uC804\uC124", "legendary")
+		List.of("일반", "노말", "normal", "common"),
+		List.of("고급"),
+		List.of("레어", "희귀", "rare"),
+		List.of("엘리트", "영웅", "elite"),
+		List.of("에픽", "epic"),
+		List.of("유니크", "unique"),
+		List.of("신화", "mythic"),
+		List.of("전설", "legendary")
+	);
+
+	private static final List<List<String>> ITEM_RARITY_FILTER_ALIAS_GROUPS = List.of(
+		List.of("일반", "노말", "고급", "normal", "common"),
+		List.of("레어", "희귀", "rare"),
+		List.of("엘리트", "영웅", "elite"),
+		List.of("전설", "legendary"),
+		List.of("신화", "mythic"),
+		List.of("유니크", "unique"),
+		List.of("에픽", "epic")
 	);
 
 	private static final List<String> ITEM_MAIN_MENU_ORDER = List.of(
-		"\uC7A5\uBE44",
-		"\uB3C4\uAD6C",
-		"\uC544\uC774\uD15C",
-		"\uD328\uC158",
+		"장비",
+		"도구",
+		"아이템",
+		"패션",
 		MOUNT_PET_MAIN_MENU
 	);
 
 	private static final Map<String, List<String>> ITEM_SUB_MENU_ORDER_BY_MAIN_MENU = Map.of(
-		"\uC7A5\uBE44", List.of(
-			"\uB8EC",
-			"\uBB34\uAE30 \uB8EC",
-			"\uBC29\uC5B4\uAD6C \uB8EC",
-			"\uC5E0\uBE14\uB7FC \uB8EC",
-			"\uC7A5\uC2E0\uAD6C \uB8EC",
-			"\uBB34\uAE30",
-			"\uBC29\uC5B4\uAD6C",
-			"\uBAA8\uC790",
-			"\uC0C1\uC758",
-			"\uD558\uC758",
-			"\uC7A5\uAC11",
-			"\uC2E0\uBC1C",
-			"\uC7A5\uC2E0\uAD6C",
-			"\uBCF4\uC11D",
-			"\uC5E0\uBE14\uB7FC",
-			"\uC544\uD2F0\uD329\uD2B8"
+		"장비", List.of(
+			"룬",
+			"무기 룬",
+			"방어구 룬",
+			"엠블럼 룬",
+			"장신구 룬",
+			"무기",
+			"방어구",
+			"모자",
+			"상의",
+			"하의",
+			"장갑",
+			"신발",
+			"장신구",
+			"보석",
+			"엠블럼",
+			"아티팩트"
 		),
-		"\uB3C4\uAD6C", List.of("\uC0DD\uD65C\uB3C4\uAD6C", "\uAC00\uBC29", "\uC545\uAE30", "\uC545\uBCF4", "\uB180\uC774", "\uB370\uCF54", "\uAE30\uD0C0"),
-		"\uC544\uC774\uD15C", List.of("\uC18C\uBAA8\uD488", "\uC74C\uC2DD", "\uD035\uC2AC\uB86F", "\uC7AC\uB8CC", "\uC7AC\uD654", "\uD018\uC2A4\uD2B8"),
-		"\uD328\uC158", List.of("\uC758\uC0C1", "\uC7A5\uC2DD", "\uD328\uC158 \uBB34\uAE30", "\uC5FC\uC0C9"),
-		MOUNT_PET_MAIN_MENU, List.of(COMPANION_PET_SUB_MENU, "\uD0C8\uAC83", "\uD0C8\uAC83 \uC7A5\uBE44")
+		"도구", List.of("생활도구", "가방", "악기", "악보", "놀이", "데코", "기타"),
+		"아이템", List.of("소모품", "음식", "펫슬롯", "재료", "재화", "퀘스트"),
+		"패션", List.of("의상", "장식", "패션 무기", "염색"),
+		MOUNT_PET_MAIN_MENU, List.of(COMPANION_PET_SUB_MENU, "탈것", "탈것 장비")
 	);
+
+	private static final Map<String, List<String>> ITEM_RARITY_EXPANSION_BY_ALIAS = buildItemRarityExpansionByAlias();
+	private static final Map<String, Integer> ITEM_MAIN_MENU_RANK = buildItemMainMenuRank();
+	private static final Map<String, Integer> ITEM_SUB_MENU_GLOBAL_RANK = buildItemSubMenuGlobalRank();
+	private static final Map<String, Integer> ITEM_RARITY_RANK = buildItemRarityRank();
+
+	private static Map<String, List<String>> buildItemRarityExpansionByAlias(){
+		Map<String, List<String>> expansions = new LinkedHashMap<>();
+		for(List<String> aliases : ITEM_RARITY_FILTER_ALIAS_GROUPS){
+			List<String> immutableAliases = List.copyOf(aliases);
+			for(String alias : aliases){
+				expansions.put(alias.toLowerCase(), immutableAliases);
+			}
+		}
+		return Map.copyOf(expansions);
+	}
+
+	private static Map<String, Integer> buildItemMainMenuRank(){
+		Map<String, Integer> ranks = new LinkedHashMap<>();
+		for(int index = 0 ; index < ITEM_MAIN_MENU_ORDER.size() ; index++){
+			String menu = ITEM_MAIN_MENU_ORDER.get(index);
+			ranks.put(menu, index);
+			if(MOUNT_PET_MAIN_MENU.equals(menu)){
+				ranks.put(PET_MOUNT_MAIN_MENU, index);
+			}
+		}
+		return Map.copyOf(ranks);
+	}
+
+	private static Map<String, Integer> buildItemSubMenuGlobalRank(){
+		Map<String, Integer> ranks = new LinkedHashMap<>();
+		int rank = 0;
+		for(String mainMenu : ITEM_MAIN_MENU_ORDER){
+			for(String subMenu : ITEM_SUB_MENU_ORDER_BY_MAIN_MENU.getOrDefault(mainMenu, List.of())){
+				if(!ranks.containsKey(subMenu)){
+					ranks.put(subMenu, rank++);
+				}
+			}
+		}
+		return Map.copyOf(ranks);
+	}
+
+	private static Map<String, Integer> buildItemRarityRank(){
+		Map<String, Integer> ranks = new LinkedHashMap<>();
+		for(int rank = 0 ; rank < ITEM_RARITY_ORDER_ASC_ALIASES.size() ; rank++){
+			for(String alias : ITEM_RARITY_ORDER_ASC_ALIASES.get(rank)){
+				ranks.put(alias.toLowerCase(), rank);
+			}
+		}
+		return Map.copyOf(ranks);
+	}
+
+	private List<String> sortMainMenus(List<String> itemMainMenus){
+		itemMainMenus.sort(this::compareMainMenus);
+		return itemMainMenus;
+	}
+
+	private List<String> sortItemSubMenus(List<String> itemSubMenus){
+		itemSubMenus.sort(this::compareSubMenusGlobally);
+		return itemSubMenus;
+	}
+
+	private List<String> sortSubMenusForMainMenu(String mainMenu, List<String> itemSubMenus){
+		itemSubMenus.sort((left, right) -> compareSubMenusForMainMenu(mainMenu, left, right));
+		return itemSubMenus;
+	}
+
+	private List<String> sortItemRarities(List<String> itemRarities){
+		itemRarities.sort(this::compareRarities);
+		return itemRarities;
+	}
+
+	private int compareMainMenus(String left, String right){
+		int leftRank = getMainMenuRank(left);
+		int rightRank = getMainMenuRank(right);
+		if(leftRank != rightRank){
+			return Integer.compare(leftRank, rightRank);
+		}
+		return compareNullableText(left, right);
+	}
+
+	private int compareSubMenusGlobally(String left, String right){
+		int leftRank = getSubMenuGlobalRank(left);
+		int rightRank = getSubMenuGlobalRank(right);
+		if(leftRank != rightRank){
+			return Integer.compare(leftRank, rightRank);
+		}
+		return compareNullableText(left, right);
+	}
+
+	private int compareSubMenusForMainMenu(String mainMenu, String left, String right){
+		int leftRank = getSubMenuRank(mainMenu, left);
+		int rightRank = getSubMenuRank(mainMenu, right);
+		if(leftRank != rightRank){
+			return Integer.compare(leftRank, rightRank);
+		}
+		return compareNullableText(left, right);
+	}
+
+	private int compareRarities(String left, String right){
+		int leftRank = getRarityRank(left);
+		int rightRank = getRarityRank(right);
+		if(leftRank != rightRank){
+			return Integer.compare(leftRank, rightRank);
+		}
+		return compareNullableText(left, right);
+	}
+
+	private int getMainMenuRank(String mainMenu){
+		if(!StringUtils.hasText(mainMenu)){
+			return Integer.MAX_VALUE;
+		}
+		return ITEM_MAIN_MENU_RANK.getOrDefault(normalizeMainMenu(mainMenu), Integer.MAX_VALUE - 1);
+	}
+
+	private int getSubMenuGlobalRank(String subMenu){
+		if(!StringUtils.hasText(subMenu)){
+			return Integer.MAX_VALUE;
+		}
+		return ITEM_SUB_MENU_GLOBAL_RANK.getOrDefault(subMenu.trim(), Integer.MAX_VALUE - 1);
+	}
+
+	private int getSubMenuRank(String mainMenu, String subMenu){
+		if(!StringUtils.hasText(subMenu)){
+			return Integer.MAX_VALUE;
+		}
+		if(!StringUtils.hasText(mainMenu)){
+			return getSubMenuGlobalRank(subMenu);
+		}
+
+		List<String> orderedSubMenus = ITEM_SUB_MENU_ORDER_BY_MAIN_MENU.getOrDefault(normalizeMainMenu(mainMenu), List.of());
+		int orderedIndex = orderedSubMenus.indexOf(subMenu.trim());
+		if(orderedIndex >= 0){
+			return orderedIndex;
+		}
+		return Integer.MAX_VALUE - 1;
+	}
+
+	private int getRarityRank(String rarity){
+		if(!StringUtils.hasText(rarity)){
+			return Integer.MAX_VALUE;
+		}
+		return ITEM_RARITY_RANK.getOrDefault(rarity.trim().toLowerCase(), Integer.MAX_VALUE - 1);
+	}
+
+	private String normalizeMainMenu(String mainMenu){
+		if(!StringUtils.hasText(mainMenu)){
+			return "";
+		}
+		String trimmed = mainMenu.trim();
+		return PET_MOUNT_MAIN_MENU.equals(trimmed) ? MOUNT_PET_MAIN_MENU : trimmed;
+	}
+
+	private int compareNullableText(String left, String right){
+		return Comparator.nullsLast(String::compareTo).compare(normalizeComparableText(left), normalizeComparableText(right));
+	}
+
+	private String normalizeComparableText(String value){
+		return StringUtils.hasText(value) ? value.trim() : null;
+	}
 
 	private Sort buildSimpleSort(String sortBy, Sort.Direction direction){
 		return Sort.by(direction, sortBy);
@@ -473,7 +648,7 @@ public class GameItemService{
 	}
 
 	private boolean isMountPetMainMenu(String mainMenu){
-		return MOUNT_PET_MAIN_MENU.equals(mainMenu) || PET_MOUNT_MAIN_MENU.equals(mainMenu);
+		return MOUNT_PET_MAIN_MENU.equals(normalizeMainMenu(mainMenu));
 	}
 
 	private Expression<Integer> buildConditionalItemTypeOrderExpression(Root<GameItem> root, CriteriaBuilder cb){
@@ -569,59 +744,18 @@ public class GameItemService{
 
 		Set<String> expanded = new LinkedHashSet<>();
 		for(String rarity : rarities){
-			String normalized = rarity == null ? "" : rarity.trim().toLowerCase();
-			switch(normalized){
-				case "\uC77C\uBC18":
-				case "\uB178\uB9D0":
-				case "\uACE0\uAE09":
-				case "normal":
-				case "common":
-					expanded.add("\uC77C\uBC18");
-					expanded.add("\uB178\uB9D0");
-					expanded.add("\uACE0\uAE09");
-					expanded.add("normal");
-					expanded.add("common");
-					break;
-				case "\uB808\uC5B4":
-				case "\uD76C\uADC0":
-				case "rare":
-					expanded.add("\uB808\uC5B4");
-					expanded.add("\uD76C\uADC0");
-					expanded.add("rare");
-					break;
-				case "\uC5D8\uB9AC\uD2B8":
-				case "\uC601\uC6C5":
-				case "elite":
-					expanded.add("\uC5D8\uB9AC\uD2B8");
-					expanded.add("\uC601\uC6C5");
-					expanded.add("elite");
-					break;
-				case "\uC804\uC124":
-				case "legendary":
-					expanded.add("\uC804\uC124");
-					expanded.add("legendary");
-					break;
-				case "\uC2E0\uD654":
-				case "mythic":
-					expanded.add("\uC2E0\uD654");
-					expanded.add("mythic");
-					break;
-				case "\uC720\uB2C8\uD06C":
-				case "unique":
-					expanded.add("\uC720\uB2C8\uD06C");
-					expanded.add("unique");
-					break;
-				case "\uC5D0\uD53D":
-				case "epic":
-					expanded.add("\uC5D0\uD53D");
-					expanded.add("epic");
-					break;
-				default:
-					if(rarity != null && !rarity.trim().isEmpty()){
-						expanded.add(rarity.trim());
-					}
-					break;
+			if(!StringUtils.hasText(rarity)){
+				continue;
 			}
+
+			String normalized = rarity.trim().toLowerCase();
+			List<String> aliases = ITEM_RARITY_EXPANSION_BY_ALIAS.get(normalized);
+			if(aliases != null){
+				expanded.addAll(aliases);
+				continue;
+			}
+
+			expanded.add(rarity.trim());
 		}
 
 		return expanded.stream().toList();

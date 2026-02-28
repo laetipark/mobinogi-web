@@ -20,9 +20,36 @@ public interface LifeBarterRepository extends JpaRepository<LifeBarter, Long>{
 		String getNpcName();
 	}
 
+	interface BarterSummaryRow{
+		Long getItemId();
+
+		String getRegionName();
+
+		String getNpcName();
+
+		String getExchangeItemName();
+
+		Integer getExchangeCost();
+	}
+
 	List<LifeBarter> findByItemId(Long itemId);
 
 	List<LifeBarter> findByItemIdIn(List<Long> itemIds);
+
+	@Query("""
+		SELECT b.itemId AS itemId,
+			r.regionName AS regionName,
+			n.npcName AS npcName,
+			ei.itemName AS exchangeItemName,
+			b.exchangeCost AS exchangeCost
+		FROM LifeBarter b
+		LEFT JOIN b.gameRegion r
+		LEFT JOIN b.gameNpc n
+		LEFT JOIN b.exchangeItem ei
+		WHERE b.itemId IN :itemIds
+		ORDER BY b.itemId ASC, r.regionName ASC, n.npcName ASC, ei.itemName ASC
+		""")
+	List<BarterSummaryRow> findSummaryRowsByItemIdIn(@Param("itemIds") List<Long> itemIds);
 	
 	List<LifeBarter> findByExchangeId(Long itemId);
 	

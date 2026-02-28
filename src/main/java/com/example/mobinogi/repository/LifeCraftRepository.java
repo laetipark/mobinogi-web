@@ -16,9 +16,24 @@ public interface LifeCraftRepository extends JpaRepository<LifeCraft, Long>{
 		String getCraftName();
 	}
 
+	interface CraftRecipeCountRow{
+		Long getItemId();
+
+		Long getRecipeCount();
+	}
+
 	List<LifeCraft> findByItemId(Long itemId);
 
 	List<LifeCraft> findByItemIdIn(List<Long> itemIds);
+
+	@Query("""
+		SELECT c.itemId AS itemId,
+			COUNT(DISTINCT COALESCE(c.craftSubId, 0)) AS recipeCount
+		FROM LifeCraft c
+		WHERE c.itemId IN :itemIds
+		GROUP BY c.itemId
+		""")
+	List<CraftRecipeCountRow> findRecipeCountsByItemIdIn(@Param("itemIds") List<Long> itemIds);
 	
 	void deleteAllByItemId(Long itemId);
 	

@@ -43,7 +43,7 @@ const normalizeTableCellText = (cell:HTMLTableCellElement):string => {
 		}
 	});
 	return (clone.textContent || "")
-		.replace(/\u00a0/g, " ")
+		.replace(new RegExp(String.fromCharCode(160), "g"), " ")
 		.split("\n")
 		.map((line) => line.replace(/\s+/g, " ").trim())
 		.filter(Boolean)

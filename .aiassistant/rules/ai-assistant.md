@@ -10,10 +10,12 @@ This assistant must use `.aiassistant/rules/project` as the shared, commit-safe 
 Read in this order.
 1. `project/README.md`
 2. `project/architecture-overview.md`
-3. `project/backend-development-guide.md`
-4. `project/frontend-development-guide.md`
-5. Module rule files under `project/modules/*.md` that match the task scope.
-6. Pattern guides:
+3. `project/text-encoding-policy.md`
+4. `project/performance-policy.md`
+5. `project/backend-development-guide.md`
+6. `project/frontend-development-guide.md`
+7. Module rule files under `project/modules/*.md` that match the task scope.
+8. Pattern guides:
    - `project/backend-patterns.md` when changing backend code
    - `project/frontend-patterns.md` when changing frontend code
 

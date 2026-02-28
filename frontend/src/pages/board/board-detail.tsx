@@ -428,7 +428,7 @@ const BoardDetailPage:React.FC = () => {
 				{!isExternal && post.isWiki && (
 					<section className={styles.historySection}>
 						<button className={styles.historyToggle} onClick={handleToggleHistory}>
-							Revision history {historyOpen ? "\u25B2" : "\u25BC"}
+							Revision history {historyOpen ? "▲" : "▼"}
 						</button>
 						{historyOpen && (
 							<div className={styles.historyList}>
