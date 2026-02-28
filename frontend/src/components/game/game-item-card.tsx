@@ -47,10 +47,11 @@ const GameItemCard:React.FC<GameItemCardProps> = ({item, onClick}) => {
 		>
 			<div className={styles.rarityIndicator}/>
 
-			<div className={styles.header}>
-				<div className={styles.iconWrapper}>
-					<Package size={20}/>
-				</div>
+			<div className={styles.cardContent}>
+				<div className={styles.header}>
+					<div className={styles.iconWrapper}>
+						<Package size={20}/>
+					</div>
 					<div className={styles.metaRow}>
 						<span className={styles.rarity}>{rarityInfo.label}</span>
 						<span
@@ -74,102 +75,103 @@ const GameItemCard:React.FC<GameItemCardProps> = ({item, onClick}) => {
 							{item.itemType || "-"}
 						</span>
 					</div>
-			</div>
-
-			<h3 className={styles.name}>{item.itemName || "Unknown item"}</h3>
-
-			{displayItemSource && (
-				<div className={styles.itemSourcePreview}>
-					<span className={styles.itemSourceLabel}>{"아이템 출처"}</span>
-					<p className={styles.itemSourceText}>{displayItemSource}</p>
 				</div>
-			)}
 
-			{displayItemEffect && (
-				<p className={styles.effect}>{displayItemEffect}</p>
-			)}
+				<h3 className={styles.name}>{item.itemName || "Unknown item"}</h3>
 
-			{(transcendencePreviewRows.length > 0 || parsedTranscendence.parseError) && (
-				<div className={styles.transcendencePreview}>
-					<div className={styles.transcendencePreviewHeader}>
-						<span className={styles.transcendenceBadge}>초월</span>
-						{parsedTranscendence.rows.length > transcendencePreviewRows.length && (
-							<span className={styles.transcendenceMore}>+{parsedTranscendence.rows.length - transcendencePreviewRows.length}개</span>
-						)}
+				{displayItemSource && (
+					<div className={styles.itemSourcePreview}>
+						<span className={styles.itemSourceLabel}>{"아이템 출처"}</span>
+						<p className={styles.itemSourceText}>{displayItemSource}</p>
 					</div>
-					{transcendencePreviewRows.length > 0 ? (
-						<div className={styles.transcendencePreviewList}>
-							{transcendencePreviewRows.map((row) => (
-								<div key={row.key} className={styles.transcendencePreviewRow}>
-									<span className={styles.transcendencePreviewLabel}>{row.label}</span>
-									{row.tierValues ? (
-										<div className={styles.transcendencePreviewValues}>
-											{row.tierValues.map((tier) => (
-												<span key={`${row.key}-${tier.tier}`} className={styles.transcendenceTierChip}>
-													{tier.tier} {tier.value}
-												</span>
-											))}
-										</div>
-									) : (
-										<span className={styles.transcendencePreviewValue}>{row.value}</span>
-									)}
-								</div>
-							))}
-						</div>
-					) : (
-						<div className={styles.transcendenceRawHint}>초월 데이터 형식 확인 필요</div>
-					)}
-				</div>
-			)}
+				)}
 
-			{(item.hasBarterSource || item.hasCraftSource) && (
-				<div className={styles.sourceSection}>
-					{item.hasBarterSource && groupedBarterSources.length > 0 && (
-						<div className={styles.sourceInfo}>
-							<div className={styles.sourceHeader}>
-								<RefreshCw size={14}/>
-								<span>{"물물교환"}</span>
-							</div>
-							<div className={styles.sourceList}>
-								{groupedBarterSources.slice(0, 3).map((group, idx) => (
-									<div key={idx} className={styles.sourceItem}>
-										{group.regionName && (
-											<span className={styles.sourceLocation}>
-												<MapPin size={12}/>
-												{group.regionName}
-											</span>
-										)}
-										{group.npcName && (
-											<span className={styles.sourceNpc}>
-												<User size={12}/>
-												{group.npcName}
-											</span>
-										)}
-										{group.count > 1 && (
-											<span className={styles.sourceCount}>x{group.count}</span>
+				{displayItemEffect && (
+					<p className={styles.effect}>{displayItemEffect}</p>
+				)}
+
+				{(transcendencePreviewRows.length > 0 || parsedTranscendence.parseError) && (
+					<div className={styles.transcendencePreview}>
+						<div className={styles.transcendencePreviewHeader}>
+							<span className={styles.transcendenceBadge}>초월</span>
+							{parsedTranscendence.rows.length > transcendencePreviewRows.length && (
+								<span className={styles.transcendenceMore}>+{parsedTranscendence.rows.length - transcendencePreviewRows.length}개</span>
+							)}
+						</div>
+						{transcendencePreviewRows.length > 0 ? (
+							<div className={styles.transcendencePreviewList}>
+								{transcendencePreviewRows.map((row) => (
+									<div key={row.key} className={styles.transcendencePreviewRow}>
+										<span className={styles.transcendencePreviewLabel}>{row.label}</span>
+										{row.tierValues ? (
+											<div className={styles.transcendencePreviewValues}>
+												{row.tierValues.map((tier) => (
+													<span key={`${row.key}-${tier.tier}`} className={styles.transcendenceTierChip}>
+														{tier.tier} {tier.value}
+													</span>
+												))}
+											</div>
+										) : (
+											<span className={styles.transcendencePreviewValue}>{row.value}</span>
 										)}
 									</div>
 								))}
-								{groupedBarterSources.length > 3 && (
-									<span className={styles.sourceMore}>+{groupedBarterSources.length - 3}{"개"}</span>
-								)}
 							</div>
-						</div>
-					)}
+						) : (
+							<div className={styles.transcendenceRawHint}>초월 데이터 형식 확인 필요</div>
+						)}
+					</div>
+				)}
 
-					{item.hasCraftSource && (
-						<div className={styles.sourceInfo}>
-							<div className={styles.sourceHeader}>
-								<Hammer size={14}/>
-								<span>{"제작 가능"}</span>
+				{(item.hasBarterSource || item.hasCraftSource) && (
+					<div className={styles.sourceSection}>
+						{item.hasBarterSource && groupedBarterSources.length > 0 && (
+							<div className={styles.sourceInfo}>
+								<div className={styles.sourceHeader}>
+									<RefreshCw size={14}/>
+									<span>{"물물교환"}</span>
+								</div>
+								<div className={styles.sourceList}>
+									{groupedBarterSources.slice(0, 3).map((group, idx) => (
+										<div key={idx} className={styles.sourceItem}>
+											{group.regionName && (
+												<span className={styles.sourceLocation}>
+													<MapPin size={12}/>
+													{group.regionName}
+												</span>
+											)}
+											{group.npcName && (
+												<span className={styles.sourceNpc}>
+													<User size={12}/>
+													{group.npcName}
+												</span>
+											)}
+											{group.count > 1 && (
+												<span className={styles.sourceCount}>x{group.count}</span>
+											)}
+										</div>
+									))}
+									{groupedBarterSources.length > 3 && (
+										<span className={styles.sourceMore}>+{groupedBarterSources.length - 3}{"개"}</span>
+									)}
+								</div>
 							</div>
-							<span className={styles.craftCount}>
-								{item.craftRecipeCount}{"개 레시피"}
-							</span>
-						</div>
-					)}
-				</div>
-			)}
+						)}
+
+						{item.hasCraftSource && (
+							<div className={styles.sourceInfo}>
+								<div className={styles.sourceHeader}>
+									<Hammer size={14}/>
+									<span>{"제작 가능"}</span>
+								</div>
+								<span className={styles.craftCount}>
+									{item.craftRecipeCount}{"개 레시피"}
+								</span>
+							</div>
+						)}
+					</div>
+				)}
+			</div>
 
 			{onClick && (
 				<div className={styles.clickHint}>

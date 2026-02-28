@@ -5,11 +5,16 @@
 	align-items:center;
 	gap:2px;
 	padding:6px 8px;
-	background:var(--surface-hover);
+	position:sticky;
+	top:12px;
+	z-index:20;
+	background:color-mix(in srgb, var(--surface-hover) 88%, transparent);
 	border:1px solid var(--border);
-	border-bottom:none;
-	border-radius:$border-radius $border-radius 0 0;
+	border-radius:$border-radius;
+	box-shadow:var(--shadow-sm);
+	backdrop-filter:blur(8px);
 	flex-wrap:wrap;
+	margin-bottom:8px;
 }
 
 .toolBtn{
@@ -33,6 +38,12 @@
 	}
 }
 
+.toolBtnActive{
+	background:var(--surface);
+	border-color:var(--primary-light);
+	color:var(--primary-dark);
+}
+
 .divider{
 	display:inline-block;
 	width:1px;
@@ -43,6 +54,7 @@
 
 @include mobile{
 	.toolbar{
+		top:8px;
 		gap:1px;
 		padding:4px 6px;
 	}

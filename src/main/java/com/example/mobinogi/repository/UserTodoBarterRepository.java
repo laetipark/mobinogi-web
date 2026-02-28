@@ -19,6 +19,7 @@ public interface UserTodoBarterRepository extends JpaRepository<UserTodoBarter, 
 	@Query("""
 		UPDATE UserTodoBarter b
 		SET b.completed = false,
+			b.completedCount = 0,
 			b.checkedByUserId = null,
 			b.checkedByNickname = null,
 			b.checkedByCharacterId = null,
@@ -32,6 +33,7 @@ public interface UserTodoBarterRepository extends JpaRepository<UserTodoBarter, 
 	@Query("""
 		UPDATE UserTodoBarter b
 		SET b.completed = false,
+			b.completedCount = 0,
 			b.checkedByUserId = null,
 			b.checkedByNickname = null,
 			b.checkedByCharacterId = null,

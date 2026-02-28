@@ -29,6 +29,7 @@ public class UserTodoDto{
 	private Integer userPower;
 	private Integer userVitality;
 	private Integer userAttractiveness;
+	private LocalDateTime rankUpdatedAt;
 
 	public static UserTodoDto fromEntity(UserTodo entity){
 		TodoDataDto todoData;

@@ -35,6 +35,10 @@ export interface MarkdownToolbarProps{
 	textareaRef:RefObject<HTMLTextAreaElement | null>;
 	content:string;
 	setContent:(content:string) => void;
+	floatingAction?:ToolbarAction & {
+		active?:boolean;
+		buttonRef?:RefObject<HTMLButtonElement | null>;
+	};
 }
 
 export interface ToolbarAction{
@@ -107,6 +111,7 @@ export interface BossSettingsModalProps{
 	maxSelections?:number;
 	allowMultiple?:boolean;
 	groupByName?:boolean;
+	showBulkActions?:boolean;
 	rewardMax?:number;
 	onRewardMaxChange?:(max:number) => void;
 	onSave:(trackedIds:number[]) => void;
@@ -126,6 +131,7 @@ export interface DailyTaskSectionProps{
 	daily:DailyTasks;
 	settings?:TodoSettings;
 	characterId:number;
+	favoriteItems?:FavoriteGameItem[];
 	dailyMemos?:TodoMemo[];
 	onChange:(daily:DailyTasks, changedField?:string) => void;
 	onSettingsChange:(settings:TodoSettings) => void;

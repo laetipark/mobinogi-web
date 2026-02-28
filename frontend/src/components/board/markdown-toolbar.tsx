@@ -38,7 +38,12 @@ const restoreCaret = (
 	});
 };
 
-const MarkdownToolbar:React.FC<MarkdownToolbarProps> = ({textareaRef, content, setContent}) => {
+const MarkdownToolbar:React.FC<MarkdownToolbarProps> = ({
+	textareaRef,
+	content,
+	setContent,
+	floatingAction
+}) => {
 
 	const getCaretState = useCallback(():CaretState | null => {
 		const textarea = textareaRef.current;
@@ -310,6 +315,22 @@ const MarkdownToolbar:React.FC<MarkdownToolbarProps> = ({textareaRef, content, s
 					))}
 				</React.Fragment>
 			))}
+			{floatingAction && (
+				<>
+					<span className={styles.divider}/>
+					<button
+						type="button"
+						ref={floatingAction.buttonRef}
+						className={`${styles.toolBtn} ${floatingAction.active ? styles.toolBtnActive : ""}`}
+						title={floatingAction.title}
+						aria-label={floatingAction.title}
+						onMouseDown={(event) => event.preventDefault()}
+						onClick={floatingAction.action}
+					>
+						{floatingAction.icon}
+					</button>
+				</>
+			)}
 		</div>
 	);
 };

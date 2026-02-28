@@ -11,6 +11,7 @@ export interface UserCharacter{
 	userPower?:number;
 	userVitality?:number;
 	userAttractiveness?:number;
+	rankUpdatedAt?:string;
 }
 
 export interface UserCharacterRequest{

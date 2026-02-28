@@ -1,4 +1,4 @@
-import axios, {AxiosInstance, AxiosResponse, AxiosError} from "axios";
+import axios, {AxiosInstance, AxiosResponse, AxiosError, AxiosRequestConfig} from "axios";
 import {config, debugLog} from "../config/env";
 
 /**
@@ -66,8 +66,8 @@ class ApiService{
 	}
 	
 	// GET 요청
-	async get<T = any>(url:string, params?:any):Promise<T>{
-		const response = await this.api.get(url, {params});
+	async get<T = any>(url:string, params?:any, requestConfig?:AxiosRequestConfig):Promise<T>{
+		const response = await this.api.get(url, {params, ...requestConfig});
 		return response.data;
 	}
 	

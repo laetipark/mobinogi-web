@@ -1,8 +1,64 @@
-import React, {useState} from "react";
+﻿import React, {useMemo, useState} from "react";
 import styles from "./todo.module.scss";
 import {GameMonster} from "@/types";
 import {getDifficultyLabel} from "@/utils";
 import type {BossSettingsModalProps} from "@/types/ui";
+
+type MonsterGroup = {
+	name:string;
+	monsters:GameMonster[];
+	regionText:string;
+};
+
+const normalizeDifficultyKey = (value:string):string => value.toLowerCase().replace(/\s+/g, "");
+
+const getDifficultyToneClassName = (difficultyLabel:string):string => {
+	const normalized = normalizeDifficultyKey(difficultyLabel);
+	if(normalized.includes("veryhard") || normalized.includes("hell") || normalized.includes("매우어려움") || normalized.includes("지옥")){
+		return styles.bossDifficultyExtreme;
+	}
+	if((normalized.includes("hard") || normalized.includes("어려움")) && !normalized.includes("veryhard") && !normalized.includes("매우어려움")){
+		return styles.bossDifficultyHard;
+	}
+	if(normalized.includes("intro") || normalized.includes("beginner") || normalized.includes("입문")){
+		return styles.bossDifficultyIntro;
+	}
+	return styles.bossDifficultyDefault;
+};
+
+const getDifficultyOrder = (monster:GameMonster):number => {
+	const parsed = Number(monster.monsterDifficulty);
+	return Number.isFinite(parsed) ? parsed : Number.MAX_SAFE_INTEGER;
+};
+
+const buildMonsterGroups = (monsters:GameMonster[]):MonsterGroup[] => {
+	const groupMap = new Map<string, GameMonster[]>();
+	const nameOrder:string[] = [];
+	for(const monster of monsters){
+		const grouped = groupMap.get(monster.monsterName);
+		if(grouped){
+			grouped.push(monster);
+		}else{
+			groupMap.set(monster.monsterName, [monster]);
+			nameOrder.push(monster.monsterName);
+		}
+	}
+	return nameOrder.map((name) => {
+		const grouped = [...(groupMap.get(name) || [])].sort((a, b) => {
+			const difficultyDiff = getDifficultyOrder(a) - getDifficultyOrder(b);
+			if(difficultyDiff !== 0){
+				return difficultyDiff;
+			}
+			return a.monsterId - b.monsterId;
+		});
+		const regionText = [...new Set(grouped.map((monster) => monster.regionName).filter(Boolean))].join(" / ");
+		return {
+			name,
+			monsters : grouped,
+			regionText
+		};
+	});
+};
 
 const BossSettingsModal:React.FC<BossSettingsModalProps> = ({
 	title,
@@ -12,6 +68,7 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({
 	maxSelections,
 	allowMultiple,
 	groupByName,
+	showBulkActions = true,
 	rewardMax,
 	onRewardMaxChange,
 	onSave,
@@ -19,201 +76,243 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({
 }) => {
 	const [selected, setSelected] = useState<number[]>([...trackedIds]);
 	const [localRewardMax, setLocalRewardMax] = useState(rewardMax ?? 4);
-	
+	const [focusedDifficultyByName, setFocusedDifficultyByName] = useState<Record<string, number>>({});
+
+	const groupedMonsters = useMemo(() => buildMonsterGroups(monsters), [monsters]);
 	const atLimit = maxSelections !== undefined && selected.length >= maxSelections;
-	
+
+	const getGroupMonsterIds = (group:MonsterGroup):number[] => group.monsters.map((monster) => monster.monsterId);
+	const resolveFocusedIndex = (group:MonsterGroup):number => {
+		const focusedIndex = focusedDifficultyByName[group.name];
+		if(focusedIndex !== undefined && focusedIndex >= 0 && focusedIndex < group.monsters.length){
+			return focusedIndex;
+		}
+		const selectedIndex = group.monsters.findIndex((monster) => selected.includes(monster.monsterId));
+		return selectedIndex >= 0 ? selectedIndex : 0;
+	};
+	const getFocusedMonster = (group:MonsterGroup):GameMonster | undefined => {
+		return group.monsters[resolveFocusedIndex(group)];
+	};
+	const isGroupSelected = (group:MonsterGroup):boolean => {
+		const groupMonsterIds = getGroupMonsterIds(group);
+		return selected.some((monsterId) => groupMonsterIds.includes(monsterId));
+	};
+
 	const handleToggle = (monsterId:number) => {
-		setSelected(prev => {
+		setSelected((prev) => {
 			if(prev.includes(monsterId)){
-				return prev.filter(id => id !== monsterId);
+				return prev.filter((id) => id !== monsterId);
 			}
-			if(exclusiveByName){
-				const monster = monsters.find(m => m.monsterId === monsterId);
-				if(monster){
-					const sameNameIds = monsters.filter(m => m.monsterName === monster.monsterName).map(m => m.monsterId);
-					const filtered = prev.filter(id => !sameNameIds.includes(id));
-					if(maxSelections !== undefined && filtered.length >= maxSelections) return prev;
-					return [...filtered, monsterId];
-				}
+			if(maxSelections !== undefined && prev.length >= maxSelections){
+				return prev;
 			}
-			if(maxSelections !== undefined && prev.length >= maxSelections) return prev;
 			return [...prev, monsterId];
 		});
 	};
-	
+
+	const handleGroupToggleSelection = (group:MonsterGroup) => {
+		const focusedMonster = getFocusedMonster(group);
+		if(!focusedMonster){
+			return;
+		}
+		const groupMonsterIds = getGroupMonsterIds(group);
+		setSelected((prev) => {
+			const selectedInGroup = prev.some((monsterId) => groupMonsterIds.includes(monsterId));
+			if(selectedInGroup){
+				return prev.filter((monsterId) => !groupMonsterIds.includes(monsterId));
+			}
+			if(maxSelections !== undefined && prev.length >= maxSelections){
+				return prev;
+			}
+			return [...prev.filter((monsterId) => !groupMonsterIds.includes(monsterId)), focusedMonster.monsterId];
+		});
+	};
+
+	const handleGroupDifficultyShift = (group:MonsterGroup, delta:number) => {
+		if(group.monsters.length <= 1){
+			return;
+		}
+		const currentIndex = resolveFocusedIndex(group);
+		const nextIndex = (currentIndex + delta + group.monsters.length) % group.monsters.length;
+		const nextMonster = group.monsters[nextIndex];
+		if(!nextMonster){
+			return;
+		}
+		setFocusedDifficultyByName((prev) => ({
+			...prev,
+			[group.name] : nextIndex
+		}));
+		const groupMonsterIds = getGroupMonsterIds(group);
+		setSelected((prev) => {
+			const selectedInGroup = prev.some((monsterId) => groupMonsterIds.includes(monsterId));
+			if(!selectedInGroup){
+				return prev;
+			}
+			return [...prev.filter((monsterId) => !groupMonsterIds.includes(monsterId)), nextMonster.monsterId];
+		});
+	};
+
 	const handleSelectAll = () => {
-		if(exclusiveByName){
-			const seen = new Set<string>();
-			const result:number[] = [];
-			for(const m of monsters){
-				if(!seen.has(m.monsterName)){
-					seen.add(m.monsterName);
-					const existing = selected.find(id => monsters.find(mm => mm.monsterId === id && mm.monsterName === m.monsterName));
-					result.push(existing ?? m.monsterId);
-					if(maxSelections !== undefined && result.length >= maxSelections) break;
+		if(exclusiveByName || groupByName){
+			const next:number[] = [];
+			for(const group of groupedMonsters){
+				const groupMonsterIds = getGroupMonsterIds(group);
+				const selectedMonsterId = selected.find((monsterId) => groupMonsterIds.includes(monsterId));
+				const focusedMonsterId = getFocusedMonster(group)?.monsterId;
+				const targetMonsterId = selectedMonsterId ?? focusedMonsterId;
+				if(targetMonsterId === undefined){
+					continue;
+				}
+				next.push(targetMonsterId);
+				if(maxSelections !== undefined && next.length >= maxSelections){
+					break;
 				}
 			}
-			setSelected(result);
-		}else if(maxSelections !== undefined){
-			setSelected(monsters.slice(0, maxSelections).map(m => m.monsterId));
-		}else{
-			setSelected(monsters.map(m => m.monsterId));
+			setSelected(next);
+			return;
 		}
+		if(maxSelections !== undefined){
+			setSelected(monsters.slice(0, maxSelections).map((monster) => monster.monsterId));
+			return;
+		}
+		setSelected(monsters.map((monster) => monster.monsterId));
 	};
-	
+
 	const handleDeselectAll = () => {
 		setSelected([]);
 	};
-	
+
 	const handleAddOne = (monsterId:number) => {
-		setSelected(prev => {
-			if(rewardMax !== undefined && prev.length >= localRewardMax) return prev;
+		setSelected((prev) => {
+			if(rewardMax !== undefined && prev.length >= localRewardMax){
+				return prev;
+			}
 			return [...prev, monsterId];
 		});
 	};
-	
+
 	const handleRemoveOne = (monsterId:number) => {
-		setSelected(prev => {
-			const idx = prev.lastIndexOf(monsterId);
-			if(idx === -1) return prev;
-			return [...prev.slice(0, idx), ...prev.slice(idx + 1)];
+		setSelected((prev) => {
+			const removeIndex = prev.lastIndexOf(monsterId);
+			if(removeIndex === -1){
+				return prev;
+			}
+			return [...prev.slice(0, removeIndex), ...prev.slice(removeIndex + 1)];
 		});
 	};
-	
+
 	const handleRewardMaxChange = (newMax:number) => {
 		setLocalRewardMax(newMax);
-		setSelected(prev => prev.length > newMax ? prev.slice(0, newMax) : prev);
+		setSelected((prev) => (prev.length > newMax ? prev.slice(0, newMax) : prev));
 	};
-	
+
 	const handleSave = () => {
 		if(onRewardMaxChange){
 			onRewardMaxChange(localRewardMax);
 		}
 		onSave(selected);
 	};
-	
-	const buildGroups = () => {
-		const groups:{name:string; monsters:GameMonster[]}[] = [];
-		for(const m of monsters){
-			const last = groups[groups.length - 1];
-			if(last && last.name === m.monsterName){
-				last.monsters.push(m);
-			}else{
-				groups.push({name : m.monsterName, monsters : [m]});
-			}
+
+	const buildPreviewMap = () => {
+		const previewMap = new Map<number, number>();
+		for(const monsterId of selected){
+			previewMap.set(monsterId, (previewMap.get(monsterId) || 0) + 1);
 		}
-		return groups;
+		return previewMap;
 	};
-	
-	const renderAllowMultiple = () => {
-		const groups = buildGroups();
-		const full = rewardMax !== undefined && selected.length >= localRewardMax;
-		
-		return groups.map(group => (
-			<div key={group.name} className={styles.monsterGroup}>
-				<div className={styles.monsterGroupMeta}>
-					<span className={styles.monsterGroupName}>{group.name}</span>
-					{(() => {
-						const regionText = [...new Set(group.monsters.map(m => m.regionName).filter(Boolean))].join(" / ");
-						return regionText ? <span className={styles.monsterGroupRegion}>{regionText}</span> : null;
-					})()}
+
+	const renderDifficultyAdjust = (group:MonsterGroup) => {
+		const focusedMonster = getFocusedMonster(group);
+		if(!focusedMonster){
+			return null;
+		}
+		const canShift = group.monsters.length > 1;
+		const difficultyLabel = getDifficultyLabel(focusedMonster.monsterDifficulty);
+		const difficultyToneClass = getDifficultyToneClassName(difficultyLabel);
+		return (
+			<div className={styles.difficultyAdjust}>
+				<button
+					type="button"
+					className={styles.difficultyArrowBtn}
+					onClick={() => handleGroupDifficultyShift(group, -1)}
+					disabled={!canShift}
+					aria-label={`${group.name} 난이도 이전`}
+				>
+					&lt;
+				</button>
+				<div className={styles.difficultyBadgeWrap}>
+					<span className={`${styles.bossDifficultyBadge} ${difficultyToneClass}`}>{difficultyLabel}</span>
 				</div>
-				<div className={styles.monsterGroupOptions}>
-					{group.monsters.map(monster => (
+				<button
+					type="button"
+					className={styles.difficultyArrowBtn}
+					onClick={() => handleGroupDifficultyShift(group, 1)}
+					disabled={!canShift}
+					aria-label={`${group.name} 난이도 다음`}
+				>
+					&gt;
+				</button>
+			</div>
+		);
+	};
+
+	const renderAllowMultiple = () => {
+		const full = rewardMax !== undefined && selected.length >= localRewardMax;
+		return groupedMonsters.map((group) => {
+			const focusedMonster = getFocusedMonster(group);
+			if(!focusedMonster){
+				return null;
+			}
+			return (
+				<div key={group.name} className={styles.monsterGroup}>
+					<div className={styles.monsterGroupMeta}>
+						<span className={styles.monsterGroupName}>{group.name}</span>
+						{group.regionText ? <span className={styles.monsterGroupRegion}>{group.regionText}</span> : null}
+					</div>
+					<div className={styles.monsterGroupControl}>
+						{renderDifficultyAdjust(group)}
 						<button
-							key={monster.monsterId}
+							type="button"
 							className={styles.abyssAddBtn}
-							onClick={() => handleAddOne(monster.monsterId)}
+							onClick={() => handleAddOne(focusedMonster.monsterId)}
 							disabled={full}
 						>
-							{getDifficultyLabel(monster.monsterDifficulty)} +
+							추가 +
 						</button>
-					))}
+					</div>
 				</div>
-			</div>
-		));
+			);
+		});
 	};
-	
-	const buildPreviewMap = () => {
-		const map = new Map<number, number>();
-		for(const id of selected){
-			map.set(id, (map.get(id) || 0) + 1);
-		}
-		return map;
-	};
-	
-	const renderGroupByName = () => {
-		const groups = buildGroups();
-		return groups.map(group => (
-			<div key={group.name} className={styles.monsterGroup}>
-				<span className={styles.monsterGroupName}>{group.name}</span>
-				<div className={styles.monsterGroupOptions}>
-					{group.monsters.map(monster => {
-						const isSelected = selected.includes(monster.monsterId);
-						const disabled = !isSelected && atLimit;
-						return (
-							<label key={monster.monsterId}
-								   className={`${styles.monsterOption} ${disabled ? styles.disabled : ""}`}>
-								<input
-									type="checkbox"
-									checked={isSelected}
-									onChange={() => !disabled && handleToggle(monster.monsterId)}
-									disabled={disabled}
-								/>
-								<span
-									className={styles.monsterOptionDetail}>{getDifficultyLabel(monster.monsterDifficulty)}</span>
-							</label>
-						);
-					})}
+
+	const renderGroupedDifficultySelector = () => {
+		return groupedMonsters.map((group) => {
+			const selectedInGroup = isGroupSelected(group);
+			const disabled = !selectedInGroup && atLimit;
+			return (
+				<div key={group.name} className={styles.monsterGroup}>
+					<div className={styles.monsterGroupMeta}>
+						<span className={styles.monsterGroupName}>{group.name}</span>
+						{group.regionText ? <span className={styles.monsterGroupRegion}>{group.regionText}</span> : null}
+					</div>
+					<div className={styles.monsterGroupControl}>
+						{renderDifficultyAdjust(group)}
+						<button
+							type="button"
+							className={styles.groupSelectBtn}
+							onClick={() => handleGroupToggleSelection(group)}
+							disabled={disabled}
+						>
+							{selectedInGroup ? "해제" : "선택"}
+						</button>
+					</div>
 				</div>
-			</div>
-		));
+			);
+		});
 	};
-	
-	const renderExclusiveByName = () => {
-		const groups = buildGroups();
-		return groups.map(group => (
-			<div key={group.name} className={styles.monsterGroup}>
-				<span className={styles.monsterGroupName}>{group.name}</span>
-				<div className={styles.monsterGroupOptions}>
-					{group.monsters.map(monster => {
-						const isSelected = selected.includes(monster.monsterId);
-						const groupHasSelection = group.monsters.some(m => selected.includes(m.monsterId));
-						const disabled = !isSelected && !groupHasSelection && atLimit;
-						return (
-							<label key={monster.monsterId}
-								   className={`${styles.monsterOption} ${disabled ? styles.disabled : ""}`}>
-								<input
-									type="radio"
-									name={`boss_${group.name}`}
-									checked={isSelected}
-									onChange={() => !disabled && handleToggle(monster.monsterId)}
-									disabled={disabled}
-								/>
-								<span
-									className={styles.monsterOptionDetail}>{getDifficultyLabel(monster.monsterDifficulty)}</span>
-							</label>
-						);
-					})}
-					<label className={styles.monsterOption}>
-						<input
-							type="radio"
-							name={`boss_${group.name}`}
-							checked={!group.monsters.some(m => selected.includes(m.monsterId))}
-							onChange={() => {
-								const ids = group.monsters.map(m => m.monsterId);
-								setSelected(prev => prev.filter(id => !ids.includes(id)));
-							}}
-						/>
-						<span className={styles.monsterOptionDetail}>선택 안함</span>
-					</label>
-				</div>
-			</div>
-		));
-	};
-	
+
 	const renderFlat = () => {
-		return monsters.map(monster => {
+		return monsters.map((monster) => {
 			const isSelected = selected.includes(monster.monsterId);
 			const disabled = !isSelected && atLimit;
 			return (
@@ -230,9 +329,9 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({
 			);
 		});
 	};
-	
-	const totalSelected = allowMultiple ? selected.length : selected.length;
-	
+
+	const totalSelected = selected.length;
+
 	return (
 		<div className={styles.modalOverlay} onClick={onClose}>
 			<div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -245,20 +344,33 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({
 						<div className={styles.rewardMaxRow}>
 							<span className={styles.rewardMaxLabel}>주간 보상 최대 횟수</span>
 							<div className={styles.counterControl}>
-								<button className={styles.counterBtn}
-										onClick={() => handleRewardMaxChange(Math.max(1, localRewardMax - 1))}
-										disabled={localRewardMax <= 1}>&minus;</button>
+								<button
+									type="button"
+									className={styles.counterBtn}
+									onClick={() => handleRewardMaxChange(Math.max(1, localRewardMax - 1))}
+									disabled={localRewardMax <= 1}
+								>
+									&minus;
+								</button>
 								<span className={styles.counterValue}>{localRewardMax}</span>
-								<button className={styles.counterBtn}
-										onClick={() => handleRewardMaxChange(localRewardMax + 1)}>+
+								<button
+									type="button"
+									className={styles.counterBtn}
+									onClick={() => handleRewardMaxChange(localRewardMax + 1)}
+								>
+									+
 								</button>
 							</div>
 						</div>
 					)}
 					{!allowMultiple && (
 						<div className={styles.modalActions}>
-							<button className={styles.modalActionBtn} onClick={handleSelectAll}>전체 선택</button>
-							<button className={styles.modalActionBtn} onClick={handleDeselectAll}>전체 해제</button>
+							{showBulkActions && (
+								<>
+									<button type="button" className={styles.modalActionBtn} onClick={handleSelectAll}>전체 선택</button>
+									<button type="button" className={styles.modalActionBtn} onClick={handleDeselectAll}>전체 해제</button>
+								</>
+							)}
 							<span className={styles.modalCount}>
 								{totalSelected}개 선택{maxSelections !== undefined && ` (최대 ${maxSelections})`}
 							</span>
@@ -266,34 +378,40 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({
 					)}
 					{allowMultiple && (
 						<div className={styles.modalActions}>
-							<button className={styles.modalActionBtn} onClick={handleDeselectAll}>전체 해제</button>
+							<button type="button" className={styles.modalActionBtn} onClick={handleDeselectAll}>전체 해제</button>
 							<span className={styles.modalCount}>{totalSelected}개 선택</span>
 						</div>
 					)}
 					<div className={styles.monsterList}>
-						{allowMultiple ? renderAllowMultiple()
-							: exclusiveByName ? renderExclusiveByName()
-								: groupByName ? renderGroupByName()
-									: renderFlat()}
+						{allowMultiple
+							? renderAllowMultiple()
+							: (exclusiveByName || groupByName)
+								? renderGroupedDifficultySelector()
+								: renderFlat()}
 					</div>
 				</div>
 				{allowMultiple && selected.length > 0 && (
 					<div className={styles.abyssPreview}>
 						<div className={styles.abyssPreviewGrid}>
 							{[...buildPreviewMap().entries()].map(([monsterId, count]) => {
-								const monster = monsters.find(m => m.monsterId === monsterId);
-								if(!monster) return null;
+								const monster = monsters.find((currentMonster) => currentMonster.monsterId === monsterId);
+								if(!monster){
+									return null;
+								}
 								return (
 									<div key={monsterId} className={styles.abyssPreviewCard}>
 										<div className={styles.abyssPreviewInfo}>
 											<span className={styles.abyssPreviewName}>{monster.monsterName}</span>
-											{monster.regionName &&
-												<span className={styles.abyssPreviewRegion}>{monster.regionName}</span>}
-											<span
-												className={styles.abyssPreviewDiff}>{getDifficultyLabel(monster.monsterDifficulty)} &times;{count}</span>
+											{monster.regionName && <span className={styles.abyssPreviewRegion}>{monster.regionName}</span>}
+											<span className={styles.abyssPreviewDiff}>{getDifficultyLabel(monster.monsterDifficulty)} &times;{count}</span>
 										</div>
-										<button className={styles.abyssPreviewRemove}
-												onClick={() => handleRemoveOne(monsterId)}>&times;</button>
+										<button
+											type="button"
+											className={styles.abyssPreviewRemove}
+											onClick={() => handleRemoveOne(monsterId)}
+										>
+											&times;
+										</button>
 									</div>
 								);
 							})}

@@ -28,8 +28,8 @@ export class GameItemService{
 		const {
 			page = 0,
 			size = 10,
-			sortBy = "itemId",
-			sortDir = "asc",
+			sortBy = "itemRarity",
+			sortDir = "desc",
 			keyword,
 			itemMainMenu,
 			itemSubMenu,

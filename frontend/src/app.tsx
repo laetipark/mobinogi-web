@@ -73,8 +73,14 @@ const AppContent:React.FC = () => {
 					   element={<RegisterNicknameRoute><RegisterNicknamePage/></RegisterNicknameRoute>}/>
 				<Route path="/discord-callback" element={<DiscordCallbackPage/>}/>
 				<Route path="/items" element={<GameItemsPage/>}/>
+				<Route path="/barter" element={<GameItemsPage/>}/>
+				<Route path="/craft" element={<GameItemsPage/>}/>
+				<Route path="/items/barter" element={<Navigate to="/barter" replace/>}/>
+				<Route path="/items/craft" element={<Navigate to="/craft" replace/>}/>
 				<Route path="/items/:itemName/detail" element={<GameItemsPage/>}/>
 				<Route path="/item" element={<GameItemsPage/>}/>
+				<Route path="/item/barter" element={<Navigate to="/barter" replace/>}/>
+				<Route path="/item/craft" element={<Navigate to="/craft" replace/>}/>
 				<Route path="/item/:itemName/detail" element={<GameItemsPage/>}/>
 				<Route path="/events" element={<EventsPage/>}/>
 				<Route path="/news" element={<NewsPage/>}/>

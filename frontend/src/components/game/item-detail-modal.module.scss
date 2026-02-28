@@ -668,18 +668,17 @@
 
 @include mobile{
 	.modalBackdrop{
-		padding:0;
+		padding:12px;
 	}
 
 	.modalContent{
-		max-width:100%;
-		max-height:100vh;
-		border-radius:0;
+		max-width:640px;
+		max-height:calc(100vh - 24px);
+		border-radius:12px;
 	}
 
 	.modalHeader{
 		padding:16px;
-		border-radius:0;
 
 		.itemInfo{
 			h2{

@@ -205,24 +205,263 @@
 	gap:6px;
 }
 
+.barterGrid{
+	display:grid;
+	grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));
+	gap:6px;
+}
+
 .bossItem{
 	position:relative;
 	display:flex;
 	flex-direction:column;
-	align-items:center;
+	align-items:stretch;
 	justify-content:flex-start;
 	width:100%;
-	padding:8px 6px;
-	border-radius:6px;
+	padding:8px;
+	border-radius:8px;
 	border:1px solid var(--border-color, #ddd);
 	background:var(--input-bg, #f9f9f9);
-	cursor:pointer;
-	appearance:none;
-	-webkit-appearance:none;
-	outline:none;
-	-webkit-tap-highlight-color:transparent;
 	transition:
-		transform 0.12s ease,
+		border-color 0.18s ease,
+		background-color 0.18s ease,
+		box-shadow 0.18s ease;
+
+	&:hover{
+		border-color:var(--primary-color, #4CAF50);
+		box-shadow:0 0 0 1px rgba(76, 175, 80, 0.14);
+	}
+
+	&.completed{
+		border-color:var(--primary-color, #4CAF50);
+		background:rgba(76, 175, 80, 0.06);
+	}
+
+	&.partial{
+		border-color:var(--primary-color-light, #81C784);
+	}
+}
+
+.bossItemStatic{
+	cursor:default;
+}
+
+.bossName{
+	font-size:13px;
+	font-weight:700;
+	line-height:1.2;
+	color:var(--text-primary, #333);
+	min-width:0;
+	max-width:100%;
+	white-space:nowrap;
+	overflow:hidden;
+	text-overflow:ellipsis;
+}
+
+.bossItemHeader{
+	display:flex;
+	align-items:flex-start;
+	width:100%;
+}
+
+.bossItemTitleRow{
+	display:grid;
+	grid-template-columns:minmax(84px, 0.4fr) minmax(0, 0.6fr);
+	align-items:flex-start;
+	gap:5px;
+	width:100%;
+	min-width:0;
+}
+
+.bossItemBadgeRow{
+	display:flex;
+	align-items:center;
+	gap:4px;
+	min-width:0;
+	width:100%;
+	justify-content:flex-end;
+	flex-wrap:wrap;
+}
+
+.taskVariantFieldBoss .bossItemTitleRow,
+.taskVariantAbyss .bossItemTitleRow,
+.taskVariantRaid .bossItemTitleRow{
+	grid-template-columns:minmax(0, 1fr) auto;
+	align-items:center;
+}
+
+.taskVariantFieldBoss .bossItemBadgeRow,
+.taskVariantAbyss .bossItemBadgeRow,
+.taskVariantRaid .bossItemBadgeRow{
+	width:auto;
+	flex:0 0 auto;
+	flex-wrap:nowrap;
+}
+
+.taskVariantFieldBoss .bossRegionBadge,
+.taskVariantAbyss .bossRegionBadge,
+.taskVariantRaid .bossRegionBadge{
+	max-width:clamp(56px, 24vw, 110px);
+	white-space:nowrap;
+	overflow:hidden;
+	text-overflow:ellipsis;
+}
+
+.bossRegionBadge{
+	display:inline-flex;
+	align-items:center;
+	min-width:0;
+	max-width:none;
+	padding:2px 7px;
+	border-radius:999px;
+	border:1px solid var(--border-color, #d5ddd8);
+	background:rgba(78, 107, 140, 0.16);
+	font-size:11px;
+	font-weight:700;
+	line-height:1.2;
+	color:#4f6780;
+	white-space:normal;
+	overflow:visible;
+	text-overflow:clip;
+	word-break:keep-all;
+	flex:0 1 auto;
+}
+
+.bossDifficultyBadge{
+	display:inline-flex;
+	align-items:center;
+	justify-content:center;
+	min-width:42px;
+	padding:2px 8px;
+	border-radius:999px;
+	border:1px solid rgba(135, 148, 171, 0.5);
+	font-size:11px;
+	font-weight:800;
+	line-height:1;
+	white-space:nowrap;
+	flex:0 0 auto;
+}
+
+.bossDifficultyDefault{
+	color:#44546a;
+	background:rgba(91, 110, 136, 0.16);
+	border-color:rgba(91, 110, 136, 0.45);
+}
+
+.bossDifficultyIntro{
+	color:#8163FF;
+	background:#321678;
+	border-color:rgba(129, 99, 255, 0.72);
+}
+
+.bossDifficultyHard{
+	color:#EFAE42;
+	background:#423816;
+	border-color:rgba(239, 174, 66, 0.65);
+}
+
+.bossDifficultyExtreme{
+	color:#FF2700;
+	background:rgba(255, 39, 0, 0.18);
+	border-color:rgba(255, 39, 0, 0.78);
+}
+
+.bossQtyBadge{
+	display:inline-flex;
+	align-items:center;
+	justify-content:center;
+	min-width:40px;
+	padding:2px 8px;
+	border-radius:999px;
+	border:1px solid rgba(76, 175, 80, 0.45);
+	background:rgba(76, 175, 80, 0.14);
+	color:#2f6f35;
+	font-size:11px;
+	font-weight:800;
+	line-height:1;
+	flex:0 0 auto;
+}
+
+.bossQtyRow{
+	display:flex;
+	align-items:flex-start;
+	justify-content:space-between;
+	gap:6px;
+	width:100%;
+	margin-top:4px;
+}
+
+.bossQtyLabel{
+	font-size:10px;
+	font-weight:700;
+	line-height:1.1;
+	color:var(--text-secondary, #777);
+	padding-top:8px;
+	flex-shrink:0;
+}
+
+.bossQtyButtons{
+	display:flex;
+	align-items:center;
+	gap:4px;
+	flex-wrap:wrap;
+	flex:1;
+	min-width:0;
+	justify-content:flex-start;
+}
+
+.bossQtyButton{
+	width:28px;
+	height:28px;
+	display:inline-flex;
+	align-items:center;
+	justify-content:center;
+	border-radius:7px;
+	border:1px solid var(--border-color, #cfcfcf);
+	background:var(--card-bg, #fff);
+	color:var(--text-secondary, #777);
+	font-size:11px;
+	font-weight:700;
+	cursor:pointer;
+	transition:
+		border-color 0.15s ease,
+		background-color 0.15s ease,
+		color 0.15s ease,
+		box-shadow 0.15s ease;
+
+	&:hover:not(:disabled){
+		border-color:var(--primary-color, #4CAF50);
+	}
+
+	&:focus-visible{
+		outline:none;
+		border-color:var(--primary-color, #4CAF50);
+		box-shadow:0 0 0 3px rgba(76, 175, 80, 0.18);
+	}
+
+	&.completed{
+		border-color:var(--primary-color, #4CAF50);
+		background:var(--primary-color, #4CAF50);
+		color:#fff;
+	}
+}
+
+.bossQtyIndex{
+	line-height:1;
+}
+
+.barterTodoItem{
+	position:relative;
+	display:flex;
+	flex-direction:column;
+	align-items:stretch;
+	justify-content:flex-start;
+	width:100%;
+	padding:8px;
+	border-radius:8px;
+	border:1px solid var(--border-color, #ddd);
+	background:var(--input-bg, #f9f9f9);
+	transition:
 		border-color 0.18s ease,
 		background-color 0.18s ease,
 		box-shadow 0.18s ease;
@@ -231,76 +470,190 @@
 		border-color:var(--primary-color, #4CAF50);
 	}
 
-	&:focus-visible{
-		border-color:var(--primary-color, #4CAF50);
-		box-shadow:0 0 0 3px rgba(76, 175, 80, 0.18);
-	}
-
-	&:active{
-		transform:translateY(1px);
-	}
-
 	&.completed{
 		border-color:var(--primary-color, #4CAF50);
-		background:rgba(76, 175, 80, 0.06);
-
-		.bossCheckmark{
-			background:var(--primary-color, #4CAF50);
-			border-color:var(--primary-color, #4CAF50);
-		}
-
-		.bossDifficulty{
-			color:var(--text-secondary, #888);
-		}
+		background:rgba(76, 175, 80, 0.08);
 	}
 
 	&.partial{
 		border-color:var(--primary-color-light, #81C784);
-
-		.bossCheckmark{
-			background:var(--primary-color-light, #81C784);
-			border-color:var(--primary-color-light, #81C784);
-		}
 	}
 }
 
-.bossCheckmark{
-	position:absolute;
-	top:4px;
-	left:4px;
-	width:16px;
-	height:16px;
-	border-radius:4px;
-	border:1.5px solid var(--border-color, #ccc);
+.barterItemHeader{
 	display:flex;
 	align-items:center;
-	justify-content:center;
+	justify-content:space-between;
+	gap:6px;
+	width:100%;
+}
+
+.barterItemTitleRow{
+	display:grid;
+	grid-template-columns:minmax(84px, 0.44fr) minmax(0, 0.56fr);
+	align-items:flex-start;
+	gap:5px;
+	width:100%;
+	min-width:0;
+}
+
+.barterItemBadgeRow{
+	display:flex;
+	align-items:center;
+	gap:4px;
+	min-width:0;
+	width:100%;
+	max-width:none;
+	justify-self:stretch;
+	justify-content:flex-end;
+	flex:0 1 auto;
+	flex-wrap:nowrap;
+}
+
+.barterItemName{
+	font-size:12px;
+	font-weight:700;
+	line-height:1.2;
+	color:var(--text-primary, #333);
+	min-width:0;
+	max-width:100%;
+	width:100%;
+	white-space:nowrap;
+	overflow:visible;
+	text-overflow:clip;
+}
+
+.barterItemRegionChip{
+	display:inline-flex;
+	align-items:center;
+	max-width:none;
+	min-width:0;
+	padding:2px 7px;
+	border-radius:999px;
+	border:1px solid rgba(76, 175, 80, 0.35);
+	background:rgba(76, 175, 80, 0.12);
 	font-size:10px;
 	font-weight:700;
-	color:#fff;
-	background:transparent;
-	transition:all 0.2s;
-}
-
-.bossName{
-	font-size:12px;
-	font-weight:600;
-	text-align:center;
-	line-height:1.3;
-}
-
-.bossRegion{
-	font-size:10px;
-	color:var(--text-secondary, #999);
-	margin-top:2px;
-	text-align:center;
 	line-height:1.2;
+	color:#2f6f35;
+	white-space:nowrap;
+	overflow:hidden;
+	text-overflow:ellipsis;
+	flex:0 1 auto;
 }
 
-.bossDifficulty{
-	font-size:10px;
-	color:var(--text-secondary, #888);
+.barterQtyBadge{
+	display:inline-flex;
+	align-items:center;
+	justify-content:center;
+	min-width:40px;
+	padding:2px 8px;
+	border-radius:999px;
+	border:1px solid rgba(76, 175, 80, 0.45);
+	background:rgba(76, 175, 80, 0.14);
+	font-size:11px;
+	font-weight:700;
+	line-height:1;
+	color:#2f6f35;
+	flex:0 0 auto;
+}
+
+.barterItemMeta{
+	display:flex;
+	flex-direction:column;
+	gap:1px;
 	margin-top:2px;
+}
+
+.barterItemExchange{
+	font-size:11px;
+	line-height:1.25;
+	word-break:break-word;
+}
+
+.barterItemExchange{
+	color:var(--text-secondary, #767676);
+}
+
+.barterQtyRow{
+	display:flex;
+	flex-direction:row;
+	align-items:flex-start;
+	justify-content:space-between;
+	gap:6px;
+	width:100%;
+	margin-top:4px;
+}
+
+.barterQtyLabel{
+	font-size:10px;
+	font-weight:700;
+	line-height:1.1;
+	color:var(--text-secondary, #777);
+	padding-top:8px;
+	flex-shrink:0;
+}
+
+.barterQtyButtons{
+	display:flex;
+	align-items:center;
+	gap:4px;
+	flex-wrap:wrap;
+	flex:1;
+	min-width:0;
+}
+
+.barterQtyButton{
+	width:28px;
+	height:28px;
+	display:inline-flex;
+	align-items:center;
+	justify-content:center;
+	border-radius:7px;
+	border:1px solid var(--border-color, #cfcfcf);
+	background:var(--card-bg, #fff);
+	color:var(--text-secondary, #777);
+	font-size:11px;
+	font-weight:700;
+	cursor:pointer;
+	transition:
+		border-color 0.15s ease,
+		background-color 0.15s ease,
+		color 0.15s ease,
+		box-shadow 0.15s ease;
+
+	&:hover:not(:disabled){
+		border-color:var(--primary-color, #4CAF50);
+	}
+
+	&:focus-visible{
+		outline:none;
+		border-color:var(--primary-color, #4CAF50);
+		box-shadow:0 0 0 3px rgba(76, 175, 80, 0.18);
+	}
+
+	&.completed{
+		border-color:var(--primary-color, #4CAF50);
+		background:var(--primary-color, #4CAF50);
+		color:#fff;
+	}
+
+	&:disabled{
+		opacity:0.65;
+		cursor:wait;
+	}
+}
+
+.barterQtyButtonIndex{
+	line-height:1;
+}
+
+.barterCheckedBy{
+	margin-top:2px;
+	font-size:9px;
+	line-height:1.2;
+	color:var(--text-secondary, #707070);
+	word-break:break-word;
 }
 
 .emptyTracked{
@@ -1011,42 +1364,27 @@
 	margin-top:0;
 }
 
-.taskList > * .barterCart .bossGrid{
+.taskList > * .barterCart .barterGrid{
 	gap:8px;
 }
 
-.taskList > * .barterCart .bossItem{
-	align-items:flex-start;
-	text-align:left;
-	padding:8px 10px 8px 28px;
-	min-height:84px;
-	gap:2px;
+.taskList > * .barterCart .barterTodoItem{
+	padding:8px;
 }
 
-.taskList > * .barterCart .bossCheckmark{
-	top:8px;
-	left:8px;
-}
-
-.taskList > * .barterCart .bossName,
-.taskList > * .barterCart .bossRegion,
-.taskList > * .barterCart .bossDifficulty,
+.taskList > * .barterCart .barterItemName,
+.taskList > * .barterCart .barterItemExchange,
 .taskList > * .barterCart .barterCheckedBy{
 	width:100%;
 	text-align:left;
 	word-break:break-word;
 }
 
-.taskList > * .barterCart .bossName{
+.taskList > * .barterCart .barterItemName{
 	line-height:1.28;
 }
 
-.taskList > * .barterCart .bossRegion{
-	margin-top:0;
-	line-height:1.22;
-}
-
-.taskList > * .barterCart .bossDifficulty{
+.taskList > * .barterCart .barterItemExchange{
 	margin-top:0;
 	line-height:1.22;
 }
@@ -1121,54 +1459,88 @@
 	box-shadow:0 0 0 3px var(--home-state-danger-bg);
 }
 
-.taskList > * .bossItem{
+.taskList > * .bossItem,
+.taskList > * .barterTodoItem{
 	border-color:var(--task-control-border);
 	background:var(--task-inner-bg);
 }
 
-.taskList > * .bossItem:hover{
+.taskList > * .bossItem:hover,
+.taskList > * .barterTodoItem:hover{
 	border-color:var(--task-accent);
 	box-shadow:0 0 0 1px var(--task-accent-soft);
 }
 
-.taskList > * .bossItem:focus-visible{
+.taskList > * .bossItem:focus-visible,
+.taskList > * .barterTodoItem:focus-visible{
 	border-color:var(--task-accent);
 	box-shadow:0 0 0 3px var(--task-accent-soft);
 }
 
-.taskList > * .bossItem.completed{
+.taskList > * .bossItem.completed,
+.taskList > * .barterTodoItem.completed{
 	border-color:var(--task-accent);
 	background:var(--task-tone-btn-bg);
 }
 
-.taskList > * .bossCheckmark{
+.taskList > * .bossRegionBadge{
+	border-color:var(--task-control-border);
+	background:var(--task-tone-btn-bg);
+	color:var(--task-accent-strong);
+}
+
+.taskList > * .bossQtyBadge{
+	border-color:var(--task-accent);
+	background:var(--task-accent-soft);
+	color:var(--task-accent-strong);
+}
+
+.taskList > * .bossQtyLabel{
+	color:var(--task-accent-strong);
+}
+
+.taskList > * .bossQtyButton{
 	border-color:var(--task-control-border);
 	background:var(--task-inner-bg);
+	color:var(--task-accent-strong);
 }
 
-.taskList > * .bossItem.completed .bossCheckmark,
-.taskList > * .bossItem.partial .bossCheckmark{
-	background:var(--task-accent);
+.taskList > * .bossQtyButton.completed{
 	border-color:var(--task-accent);
+	background:var(--task-accent);
+	color:#fff;
 }
 
-.taskList > * .bossDifficulty{
+.taskList > * .barterCheckedBy,
+.taskList > * .barterQtyLabel,
+.taskList > * .barterQtyBadge{
 	color:var(--task-accent-strong);
 }
 
-.taskList > * .barterCheckedBy{
-	margin-top:2px;
-	font-size:10px;
-	line-height:1.2;
-	color:var(--task-accent-strong);
-	text-align:left;
+.taskList > * .barterQtyBadge{
+	border-color:var(--task-accent);
+	background:var(--task-accent-soft);
+	font-weight:800;
 }
 
-.taskList > * .dailyBarterCart .bossGrid{
+.taskList > * .barterQtyButton{
+	border-color:var(--task-control-border);
+	background:var(--task-inner-bg);
+	color:var(--task-accent-strong);
+}
+
+.taskList > * .barterQtyButton.completed{
+	border-color:var(--task-accent);
+	background:var(--task-accent);
+	color:#fff;
+}
+
+.taskList > * .dailyBarterCart .barterGrid{
 	grid-template-columns:1fr;
 }
 
-.taskList > * .weeklyBarterCart .bossGrid,
+.taskList > * .weeklyBarterCart .barterGrid,
+.taskList > .taskVariantFieldBoss .bossGrid,
 .taskList > .taskVariantRaid .bossGrid,
 .taskList > .taskVariantAbyss .bossGrid{
 	grid-template-columns:repeat(2, minmax(0, 1fr));
@@ -1216,16 +1588,34 @@
 	color:#edf3ff;
 }
 
-:global(.dark-mode) .taskList > * .bossRegion{
-	color:#c0cee1;
+:global(.dark-mode) .taskList > * .barterItemName{
+	color:#edf3ff;
 }
 
-:global(.dark-mode) .taskList > * .bossDifficulty{
+:global(.dark-mode) .taskList > * .bossRegionBadge{
+	border-color:#5e748f;
+	background:rgba(112, 140, 172, 0.22);
+	color:#d8e7fb;
+}
+
+:global(.dark-mode) .taskList > * .barterItemRegionChip{
+	border-color:rgba(145, 211, 153, 0.62);
+	background:rgba(145, 211, 153, 0.22);
+	color:#e7f7ea;
+}
+
+:global(.dark-mode) .taskList > * .barterItemExchange{
 	color:#ccd9eb;
 }
 
 :global(.dark-mode) .taskList > * .barterCheckedBy{
 	color:#cfdcf0;
+}
+
+:global(.dark-mode) .taskList > * .barterQtyBadge{
+	border-color:rgba(145, 211, 153, 0.72);
+	background:rgba(145, 211, 153, 0.24);
+	color:#e7f7ea;
 }
 
 :global(.dark-mode) .taskList > * .blackHoleInfo{
@@ -1521,6 +1911,91 @@
 	}
 }
 
+.monsterGroupControl{
+	display:flex;
+	align-items:center;
+	gap:8px;
+	flex-wrap:wrap;
+	margin-left:auto;
+}
+
+.difficultyAdjust{
+	display:flex;
+	align-items:center;
+	gap:6px;
+}
+
+.difficultyBadgeWrap{
+	min-width:72px;
+	display:flex;
+	justify-content:center;
+}
+
+.difficultyArrowBtn{
+	width:24px;
+	height:24px;
+	border-radius:4px;
+	border:1px solid var(--border-color, #ccc);
+	background:rgba(238, 246, 242, 0.86);
+	font-size:12px;
+	font-weight:700;
+	line-height:1;
+	cursor:pointer;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+
+	&:hover{
+		border-color:#6e9f8f;
+		background:rgba(228, 241, 235, 0.92);
+	}
+
+	&:disabled{
+		opacity:0.35;
+		cursor:not-allowed;
+	}
+}
+
+.difficultyDisplay{
+	min-width:56px;
+	padding:2px 8px;
+	font-size:12px;
+	font-weight:600;
+	color:var(--text-primary, #333);
+	text-align:center;
+	border-radius:999px;
+	border:1px solid var(--border-color, #ddd);
+	background:rgba(236, 245, 241, 0.86);
+}
+
+.groupSelectBtn{
+	padding:4px 10px;
+	border-radius:6px;
+	border:1px solid var(--border-color, #ddd);
+	background:rgba(236, 245, 241, 0.9);
+	font-size:12px;
+	font-weight:600;
+	color:var(--text-primary, #333);
+	cursor:pointer;
+	transition:all 0.2s;
+
+	&:hover:not(:disabled){
+		border-color:#6e9f8f;
+		color:#4e7f6f;
+	}
+
+	&:disabled{
+		opacity:0.35;
+		cursor:not-allowed;
+	}
+}
+
+.monsterGroupCountText{
+	font-size:11px;
+	color:var(--text-secondary, #888);
+	font-weight:500;
+}
+
 .rewardMaxRow{
 	display:flex;
 	align-items:center;
@@ -1732,6 +2207,8 @@
 
 :global(.dark-mode) .modalActionBtn,
 :global(.dark-mode) .counterBtn,
+:global(.dark-mode) .difficultyArrowBtn,
+:global(.dark-mode) .groupSelectBtn,
 :global(.dark-mode) .abyssAddBtn,
 :global(.dark-mode) .modalCancelBtn{
 	border-color:rgba(170, 191, 216, 0.72);
@@ -1742,6 +2219,8 @@
 
 :global(.dark-mode) .modalActionBtn:hover:not(:disabled),
 :global(.dark-mode) .counterBtn:hover:not(:disabled),
+:global(.dark-mode) .difficultyArrowBtn:hover:not(:disabled),
+:global(.dark-mode) .groupSelectBtn:hover:not(:disabled),
 :global(.dark-mode) .abyssAddBtn:hover:not(:disabled),
 :global(.dark-mode) .modalCancelBtn:hover:not(:disabled){
 	border-color:rgba(205, 223, 245, 0.95);
@@ -1875,6 +2354,7 @@
 
 .barterSearchBox{
 	flex:1;
+	position:relative;
 	display:flex;
 	align-items:center;
 	gap:8px;
@@ -1895,6 +2375,69 @@
 			color:var(--text-secondary, #aaa);
 		}
 	}
+}
+
+.barterSearchSuggestionList{
+	position:absolute;
+	top:calc(100% + 6px);
+	left:0;
+	right:0;
+	z-index:30;
+	display:flex;
+	flex-direction:column;
+	gap:4px;
+	max-height:260px;
+	padding:8px;
+	border:1px solid var(--border-color, #ddd);
+	border-radius:10px;
+	background:var(--card-bg, #fff);
+	box-shadow:0 8px 24px rgba(0, 0, 0, 0.12);
+	overflow-y:auto;
+}
+
+.barterSearchSuggestionItem{
+	display:flex;
+	flex-direction:column;
+	align-items:flex-start;
+	gap:2px;
+	width:100%;
+	padding:8px 10px;
+	border:1px solid transparent;
+	border-radius:8px;
+	background:transparent;
+	color:var(--text-primary, #333);
+	text-align:left;
+	cursor:pointer;
+	transition:background-color 0.15s ease, border-color 0.15s ease;
+
+	&:hover{
+		background:var(--hover-bg, rgba(0, 0, 0, 0.04));
+		border-color:var(--border-color, #ddd);
+	}
+}
+
+.barterSearchSuggestionTitle{
+	font-size:12px;
+	font-weight:700;
+	line-height:1.2;
+}
+
+.barterSearchSuggestionSubtitle{
+	font-size:11px;
+	line-height:1.2;
+	color:var(--text-secondary, #808080);
+}
+
+.barterSearchSuggestionMeta{
+	font-size:11px;
+	line-height:1.2;
+	color:var(--primary-color, #4CAF50);
+}
+
+.barterSearchSuggestionEmpty{
+	padding:8px 10px;
+	font-size:12px;
+	color:var(--text-secondary, #888);
 }
 
 .barterSearchIcon{
@@ -2032,39 +2575,58 @@
 }
 
 .barterSettingsCard{
-	border:1px solid #b9d2c6;
+	border:1px solid var(--border);
 	border-radius:10px;
 	padding:14px;
-	background:#eef6f1;
-	transition:all 0.2s;
+	background:var(--surface-hover);
+	transition:all 0.2s ease;
 
 	&.registered{
-		border-color:#8fb8a6;
-		background:#e4f1e9;
+		border-color:var(--primary-light);
+		background:var(--surface);
 	}
 
 	&:hover{
-		border-color:#79a997;
-		box-shadow:0 2px 8px rgba(0, 0, 0, 0.06);
+		border-color:var(--primary-light);
+		box-shadow:0 2px 8px var(--focus-ring);
 	}
 }
 
 .barterCardHeader{
 	display:flex;
-	justify-content:space-between;
-	align-items:center;
+	align-items:flex-start;
+	gap:10px;
 	margin-bottom:10px;
 }
 
 .barterCardLocation{
-	font-size:13px;
-	font-weight:500;
-	color:#4d7f6e;
+	display:flex;
+	align-items:center;
+	gap:6px;
+	flex:1;
+	min-width:0;
+	font-size:0.8rem;
+	color:var(--text-muted);
+
+	svg{
+		color:var(--text-muted);
+		flex-shrink:0;
+	}
+}
+
+.barterCardLocationText{
+	min-width:0;
+	white-space:nowrap;
+	overflow:hidden;
+	text-overflow:ellipsis;
 }
 
 .barterToggleBtn{
+	margin-left:auto;
+	flex-shrink:0;
+	align-self:flex-start;
 	padding:4px 12px;
-	border-radius:6px;
+	border-radius:8px;
 	font-size:12px;
 	font-weight:600;
 	cursor:pointer;
@@ -2072,12 +2634,13 @@
 	transition:all 0.2s;
 
 	&.add{
-		border-color:#6e9f8f;
-		background:#79b09e;
-		color:#fff;
+		border-color:var(--primary-light);
+		background:var(--surface);
+		color:var(--primary-dark);
 
 		&:hover{
-			filter:brightness(0.96);
+			border-color:var(--primary-color);
+			background:var(--surface-hover);
 		}
 	}
 
@@ -2095,12 +2658,8 @@
 
 .barterCardExchange{
 	display:flex;
-	align-items:flex-start;
-	gap:10px;
-	padding:10px 12px;
-	background:#e7f1ea;
-	border:1px solid #bfd5c8;
-	border-radius:8px;
+	align-items:stretch;
+	gap:12px;
 }
 
 .barterCardItem{
@@ -2108,43 +2667,52 @@
 	display:flex;
 	flex-direction:column;
 	gap:2px;
+	min-width:0;
+	padding:10px 12px;
+	background:var(--surface);
+	border:1px solid var(--border);
+	border-radius:10px;
 }
 
 .barterCardLabel{
 	font-size:10px;
-	color:var(--text-secondary, #888);
+	color:var(--text-muted);
 	font-weight:600;
 	text-transform:uppercase;
 }
 
 .barterCardValue{
-	font-size:13px;
-	font-weight:600;
-	color:var(--text-primary, #333);
+	font-size:0.9rem;
+	font-weight:500;
+	color:var(--text);
+	word-break:break-word;
 }
 
 .barterCardQty{
-	font-size:12px;
-	color:#538b79;
-	font-weight:500;
+	font-size:0.8rem;
+	color:var(--primary-dark);
+	font-weight:600;
 }
 
 .barterCardSubInfo{
-	font-size:11px;
+	font-size:0.72rem;
 	line-height:1.25;
-	color:var(--text-secondary, #888);
+	color:var(--text-muted);
 }
 
 .barterCardArrow{
-	color:var(--text-secondary, #aaa);
+	color:var(--text-muted);
+	align-self:center;
 	flex-shrink:0;
 }
 
 .barterCardNote{
-	margin-top:8px;
-	font-size:12px;
-	color:var(--text-secondary, #888);
+	margin-top:10px;
+	font-size:0.8rem;
+	color:var(--text-muted);
 	font-style:italic;
+	padding-top:10px;
+	border-top:1px dashed var(--border);
 }
 
 .barterLoadingMore{
@@ -2457,30 +3025,34 @@
 }
 
 :global(.dark-mode) .barterSettingsCard{
-	background:#2b3a34;
-	border-color:#6c887c;
+	background:var(--surface-hover);
+	border-color:var(--border);
 
 	&.registered{
-		background:#30443c;
-		border-color:#87ab9c;
+		background:var(--surface);
+		border-color:var(--primary-light);
 	}
 }
 
 :global(.dark-mode) .barterCardLocation{
-	color:#d6ecdf;
+	color:var(--text-muted);
 }
 
-:global(.dark-mode) .barterCardExchange{
-	background:#344840;
-	border-color:#6f8f81;
+:global(.dark-mode) .barterCardItem{
+	background:var(--surface);
+	border-color:var(--border);
 }
 
 :global(.dark-mode) .barterCardValue{
-	color:#eef8f2;
+	color:var(--text);
 }
 
 :global(.dark-mode) .barterCardQty{
-	color:#b9dfc6;
+	color:var(--primary-dark);
+}
+
+:global(.dark-mode) .barterCardNote{
+	border-top-color:var(--border);
 }
 
 :global(.dark-mode) .barterCheckCard{
@@ -2599,22 +3171,60 @@
 		margin-top:10px;
 	}
 
-	.bossGrid{
+	.bossGrid,
+	.barterGrid{
 		grid-template-columns:repeat(auto-fill, minmax(108px, 1fr));
 		gap:6px;
 	}
 
+	.taskList > .taskVariantFieldBoss .bossGrid,
+	.taskList > .taskVariantRaid .bossGrid,
+	.taskList > .taskVariantAbyss .bossGrid{
+		grid-template-columns:1fr;
+	}
+
 	.bossItem{
-		padding:8px 6px;
-		min-height:74px;
+		padding:8px;
 	}
 
 	.bossName{
+		font-size:13px;
+	}
+
+	.bossRegionBadge,
+	.bossDifficultyBadge,
+	.bossQtyBadge{
+		padding:2px 8px;
+		font-size:11px;
+	}
+
+	.bossQtyButton{
+		width:26px;
+		height:26px;
+		font-size:11px;
+	}
+
+	.barterItemName{
 		font-size:12px;
 	}
 
-	.bossRegion,
-	.bossDifficulty{
+	.barterItemRegionChip{
+		font-size:9px;
+		padding:1px 6px;
+	}
+
+	.barterItemBadgeRow{
+		gap:3px;
+		max-width:none;
+	}
+
+	.barterItemExchange{
+		font-size:11px;
+	}
+
+	.barterQtyButton{
+		width:26px;
+		height:26px;
 		font-size:11px;
 	}
 
@@ -2688,7 +3298,6 @@
 
 	.barterCardExchange{
 		gap:8px;
-		padding:8px 10px;
 	}
 
 	.barterCardValue{
@@ -2760,17 +3369,57 @@
 		min-width:100px;
 	}
 
-	.bossGrid{
+	.bossGrid,
+	.barterGrid{
 		grid-template-columns:repeat(auto-fill, minmax(90px, 1fr));
 		gap:4px;
 	}
 
+	.taskList > .taskVariantFieldBoss .bossGrid,
+	.taskList > .taskVariantRaid .bossGrid,
+	.taskList > .taskVariantAbyss .bossGrid{
+		grid-template-columns:1fr;
+	}
+
 	.bossItem{
-		padding:6px 4px;
+		padding:8px;
 	}
 
 	.bossName{
+		font-size:12px;
+	}
+
+	.bossRegionBadge,
+	.bossDifficultyBadge,
+	.bossQtyBadge{
+		padding:2px 8px;
 		font-size:11px;
+	}
+
+	.bossQtyButton{
+		width:24px;
+		height:24px;
+		font-size:10px;
+	}
+
+	.barterItemName{
+		font-size:11px;
+	}
+
+	.barterItemRegionChip{
+		font-size:9px;
+		padding:1px 5px;
+	}
+
+	.barterItemBadgeRow{
+		gap:3px;
+		max-width:none;
+	}
+
+	.barterQtyButton{
+		width:24px;
+		height:24px;
+		font-size:10px;
 	}
 
 	.barterSettingsCard{

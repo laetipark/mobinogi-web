@@ -4,7 +4,6 @@ import com.example.mobinogi.dto.user.UserCharacterDto;
 import com.example.mobinogi.dto.user.UserCharacterRequest;
 import com.example.mobinogi.entity.User;
 import com.example.mobinogi.entity.UserCharacter;
-import com.example.mobinogi.entity.UserRank;
 import com.example.mobinogi.repository.UserCharacterRepository;
 import com.example.mobinogi.repository.UserRankRepository;
 import com.example.mobinogi.repository.UserRepository;
@@ -55,12 +54,13 @@ public class UserCharacterService{
 			.map(c -> {
 				UserCharacterDto dto = UserCharacterDto.fromEntity(c);
 				if(c.getCharacterServer() != null){
-					var rankOpt = userRankRepository.findByServerIdAndUserNameAndDeletedAtIsNull(c.getCharacterServer(), c.getCharacterName());
+					var rankOpt = userRankRepository.findLatestActiveByServerIdAndUserName(c.getCharacterServer(), c.getCharacterName());
 					if(rankOpt.isPresent()){
 						var rank = rankOpt.get();
 						dto.setUserPower(rank.getUserPower());
 						dto.setUserVitality(rank.getUserVitality());
 						dto.setUserAttractiveness(rank.getUserAttractiveness());
+						dto.setRankUpdatedAt(rank.getUpdatedAt());
 					}
 				}
 				return dto;

@@ -91,6 +91,17 @@ const TodoPage:React.FC = () => {
 	const [toastMessage, setToastMessage] = useState("");
 	const [saving, setSaving] = useState(false);
 	const [rankLoading, setRankLoading] = useState<Set<number>>(new Set());
+	const RANK_STALE_MS = 10 * 60 * 1000;
+	const isRankStale = (rankUpdatedAt?:string):boolean => {
+		if(!rankUpdatedAt){
+			return true;
+		}
+		const updatedAtMs = new Date(rankUpdatedAt).getTime();
+		if(Number.isNaN(updatedAtMs)){
+			return true;
+		}
+		return Date.now() - updatedAtMs >= RANK_STALE_MS;
+	};
 	const [favoriteItems, setFavoriteItems] = useState<FavoriteGameItem[]>(loadFavoriteItems);
 	const [favoriteSearchInput, setFavoriteSearchInput] = useState("");
 	const [favoriteKeyword, setFavoriteKeyword] = useState("");
@@ -271,8 +282,14 @@ const TodoPage:React.FC = () => {
 	}, [favoriteKeyword]);
 	
 	const fetchRanks = (todosData:UserTodo[]) => {
-		const targets = todosData.filter(t => t.serverId != null);
-		if(targets.length === 0) return;
+		const targets = todosData.filter(t =>
+			t.serverId != null &&
+			Boolean(t.characterName?.trim()) &&
+			isRankStale(t.rankUpdatedAt)
+		);
+		if(targets.length === 0){
+			return;
+		}
 		
 		const loadingIds = new Set(targets.map(t => t.characterId));
 		setRankLoading(loadingIds);
@@ -285,11 +302,13 @@ const TodoPage:React.FC = () => {
 							...t,
 							userPower : rank.userPower ?? undefined,
 							userVitality : rank.userVitality ?? undefined,
-							userAttractiveness : rank.userAttractiveness ?? undefined
+							userAttractiveness : rank.userAttractiveness ?? undefined,
+							rankUpdatedAt : rank.updatedAt ?? t.rankUpdatedAt
 						}
 						: t
 				));
-			}).catch(() => {
+			}).catch((error) => {
+				console.warn(`Failed to fetch rank for todo character ${todo.characterId} (${todo.characterName})`, error);
 			}).finally(() => {
 				setRankLoading(prev => {
 					const next = new Set(prev);
@@ -304,26 +323,64 @@ const TodoPage:React.FC = () => {
 		try{
 			setLoading(true);
 			setError(null);
-			const [todosData, fieldBoss, raid, abyssBoss] = await Promise.all([
-				todoService.getTodos(),
+			const todosData = await todoService.getTodos();
+			let rankReadyTodos = todosData;
+			if(todosData.some(todo => todo.serverId == null || !todo.characterName)){
+				try{
+					const characters = await characterService.getMyCharacters();
+					const characterById = new Map(characters.map((character) => [character.characterId, character]));
+					rankReadyTodos = todosData.map((todo) => {
+						const character = characterById.get(todo.characterId);
+						if(!character){
+							return todo;
+						}
+						return {
+							...todo,
+							characterName : todo.characterName || character.characterName,
+							serverId : todo.serverId ?? character.serverId,
+							serverName : todo.serverName ?? character.serverName,
+							classId : todo.classId ?? character.classId,
+							className : todo.className ?? character.className
+						};
+					});
+				}catch(error){
+					console.warn("Failed to backfill todo rank targets from characters", error);
+				}
+			}
+			setTodos(rankReadyTodos);
+			const monsterResults = await Promise.allSettled([
 				todoService.getMonsters("fieldBoss"),
 				todoService.getMonsters("raidBoss"),
 				todoService.getMonsters("abyssBoss")
 			]);
-			setTodos(todosData);
-			setFieldBossMonsters(fieldBoss);
-			setRaidMonsters(raid);
-			setAbyssBossMonsters(abyssBoss);
+			if(monsterResults[0].status === "fulfilled"){
+				setFieldBossMonsters(monsterResults[0].value);
+			}else{
+				setFieldBossMonsters([]);
+				console.warn("Failed to load field boss monsters", monsterResults[0].reason);
+			}
+			if(monsterResults[1].status === "fulfilled"){
+				setRaidMonsters(monsterResults[1].value);
+			}else{
+				setRaidMonsters([]);
+				console.warn("Failed to load raid monsters", monsterResults[1].reason);
+			}
+			if(monsterResults[2].status === "fulfilled"){
+				setAbyssBossMonsters(monsterResults[2].value);
+			}else{
+				setAbyssBossMonsters([]);
+				console.warn("Failed to load abyss boss monsters", monsterResults[2].reason);
+			}
 			const requestedCharacterId = requestedCharacterIdRef.current;
 			const requestedTodo = requestedCharacterId == null
 				? null
-				: todosData.find((todo) => todo.characterId === requestedCharacterId) ?? null;
+				: rankReadyTodos.find((todo) => todo.characterId === requestedCharacterId) ?? null;
 			if(requestedTodo){
 				setSelectedCharacterId(requestedTodo.characterId);
-			}else if(todosData.length > 0 && !selectedCharacterId){
-				setSelectedCharacterId(todosData[0].characterId);
+			}else if(rankReadyTodos.length > 0 && !selectedCharacterId){
+				setSelectedCharacterId(rankReadyTodos[0].characterId);
 			}
-			fetchRanks(todosData);
+			fetchRanks(rankReadyTodos);
 		}catch(err:any){
 			setError(err.message || "데이터를 불러오는데 실패했습니다.");
 		}finally{
@@ -972,6 +1029,7 @@ const TodoPage:React.FC = () => {
 										daily={selectedTodo.todoData.daily}
 										settings={selectedTodo.todoData.settings}
 										characterId={selectedTodo.characterId}
+										favoriteItems={favoriteItems}
 										dailyMemos={selectedTodo.todoData.dailyMemos}
 										onChange={(daily, changedField) => handleTodoChange(selectedTodo.characterId, {
 											...selectedTodo.todoData,

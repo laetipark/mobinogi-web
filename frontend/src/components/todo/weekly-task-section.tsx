@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import styles from "./todo.module.scss";
 import type {GameMonster} from "@/types";
 import TaskCounter from "./task-counter";
@@ -30,6 +30,7 @@ const ABYSS_REWARD_DEFAULT_MAX = 4;
 const BLACK_HOLE_TOTAL = 14;
 const BLACK_HOLE_DAILY_MAX = 8;
 const VANGUARD_REWARD_MAX = 3;
+const FIELD_BOSS_MAX = 3;
 
 const WEEKLY_TASK_DEFS:{key:string; label:string}[] = [
 	{key : "summoningBarrier", label : TXT.summoningBarrier},
@@ -109,6 +110,11 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 	const [showAbyssSettings, setShowAbyssSettings] = useState(false);
 	const [showTaskSettings, setShowTaskSettings] = useState(false);
 	const [showMemo, setShowMemo] = useState(false);
+	const [barterProgress, setBarterProgress] = useState({completed : 0, total : 0});
+
+	useEffect(() => {
+		setBarterProgress({completed : 0, total : 0});
+	}, [characterId]);
 
 	const abyss = weekly.abyss ?? {completed : [], tracked : []};
 	const abyssRewardMax = weekly.abyssRewardMax ?? ABYSS_REWARD_DEFAULT_MAX;
@@ -125,7 +131,10 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 
 	const trackedFieldBossMonsters = useMemo(() => {
 		if(!weekly.fieldBoss.tracked || weekly.fieldBoss.tracked.length === 0) return [];
-		return fieldBossMonsters.filter(m => weekly.fieldBoss.tracked.includes(m.monsterId));
+		return weekly.fieldBoss.tracked
+			.slice(0, FIELD_BOSS_MAX)
+			.map(id => fieldBossMonsters.find(m => m.monsterId === id))
+			.filter((m):m is GameMonster => !!m);
 	}, [fieldBossMonsters, weekly.fieldBoss.tracked]);
 
 	const trackedRaidMonsters = useMemo(() => {
@@ -173,7 +182,7 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 				case "fieldBoss":
 					total++;
 					if(trackedFieldBossMonsters.length > 0){
-						const targetCount = Math.min(trackedFieldBossMonsters.length, abyssRewardMax);
+						const targetCount = Math.min(trackedFieldBossMonsters.length, FIELD_BOSS_MAX);
 						if(weekly.fieldBoss.completed.length >= targetCount) completed++;
 					}
 					break;
@@ -197,6 +206,8 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 					if((weekly.vanguard?.reward ?? 0) >= VANGUARD_REWARD_MAX) completed++;
 					break;
 				case "barter":
+					total += barterProgress.total;
+					completed += barterProgress.completed;
 					break;
 				default:
 					if(item.isMemo){
@@ -294,6 +305,7 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 								label={TXT.fieldBoss}
 								monsters={trackedFieldBossMonsters}
 								completedIds={weekly.fieldBoss.completed}
+								maxCompleted={FIELD_BOSS_MAX}
 								onChange={(completed) => onChange({
 									...weekly,
 									fieldBoss : {...weekly.fieldBoss, completed}
@@ -404,6 +416,7 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 							cycle={7}
 							cycleLabel={TXT.barter}
 							favoriteItems={favoriteItems}
+							onProgressChange={setBarterProgress}
 						/>
 					</div>
 				);
@@ -454,10 +467,11 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 					monsters={fieldBossMonsters}
 					trackedIds={weekly.fieldBoss.tracked || []}
 					groupByName
-					maxSelections={abyssRewardMax}
+					showBulkActions={false}
+					maxSelections={FIELD_BOSS_MAX}
 					onSave={(tracked) => {
-						const limitedTracked = tracked.slice(0, abyssRewardMax);
-						const newCompleted = weekly.fieldBoss.completed.filter(id => limitedTracked.includes(id)).slice(0, abyssRewardMax);
+						const limitedTracked = tracked.slice(0, FIELD_BOSS_MAX);
+						const newCompleted = weekly.fieldBoss.completed.filter(id => limitedTracked.includes(id)).slice(0, FIELD_BOSS_MAX);
 						onChange({...weekly, fieldBoss : {completed : newCompleted, tracked : limitedTracked}});
 						setShowFieldBossSettings(false);
 					}}
@@ -471,6 +485,7 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 					monsters={raidMonsters}
 					trackedIds={weekly.raid.tracked || []}
 					exclusiveByName
+					showBulkActions={false}
 					onSave={(tracked) => {
 						const newCompleted = weekly.raid.completed.filter(id => tracked.includes(id));
 						onChange({...weekly, raid : {completed : newCompleted, tracked}});

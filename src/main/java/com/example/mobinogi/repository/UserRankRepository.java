@@ -6,14 +6,24 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 
-public interface UserRankRepository extends JpaRepository<UserRank, Integer> {
+public interface UserRankRepository extends JpaRepository<UserRank, Integer>{
 
-	/**
-	 * 캐릭터명으로 검색 (대소문자 구분 없이, 부분 매칭)
-	 */
 	List<UserRank> findByUserNameContainingIgnoreCase(String userName);
 
-	Optional<UserRank> findByServerIdAndUserNameAndDeletedAtIsNull(Integer serverId, String userName);
+	List<UserRank> findByServerIdAndUserNameIgnoreCaseAndDeletedAtIsNullOrderByUpdatedAtDesc(Integer serverId, String userName);
+
+	default Optional<UserRank> findLatestActiveByServerIdAndUserName(Integer serverId, String userName){
+		List<UserRank> ranks = findByServerIdAndUserNameIgnoreCaseAndDeletedAtIsNullOrderByUpdatedAtDesc(serverId, userName);
+		if(ranks.isEmpty()){
+			return Optional.empty();
+		}
+		for(UserRank rank : ranks){
+			if(rank.getClassId() != null && rank.getClassId() == 0){
+				return Optional.of(rank);
+			}
+		}
+		return Optional.of(ranks.get(0));
+	}
 
 	List<UserRank> findByUserNameIgnoreCaseAndDeletedAtIsNullOrderByUpdatedAtDescServerIdAsc(String userName);
 

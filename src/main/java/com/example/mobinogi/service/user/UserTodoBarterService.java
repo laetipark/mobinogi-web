@@ -72,6 +72,20 @@ public class UserTodoBarterService{
 		return lifeBarter != null && Integer.valueOf(1).equals(lifeBarter.getBarterServer());
 	}
 
+	private int getSafeBarterQty(LifeBarter lifeBarter){
+		if(lifeBarter == null || lifeBarter.getBarterQty() == null){
+			return 1;
+		}
+		return Math.max(1, lifeBarter.getBarterQty());
+	}
+
+	private int resolveCompletedCount(UserTodoBarter barter, int maxQty){
+		Integer rawCount = barter.getCompletedCount();
+		int fallback = Boolean.TRUE.equals(barter.getCompleted()) ? maxQty : 0;
+		int normalized = rawCount != null ? Math.max(0, rawCount) : fallback;
+		return Math.min(maxQty, normalized);
+	}
+
 	private List<Long> resolveTargetCharacterIds(Long userId, Long sourceCharacterId, boolean serverShared){
 		if(!serverShared){
 			return List.of(sourceCharacterId);
@@ -120,19 +134,24 @@ public class UserTodoBarterService{
 			.exchangeCost(exchangeCost)
 			.barterCycle(barterCycle != null ? barterCycle : "daily")
 			.completed(false)
+			.completedCount(0)
 			.build();
 	}
 
 	private void applyCheckedState(
 		UserTodoBarter barter,
-		boolean completed,
+		int completedCount,
+		int maxQty,
 		Long checkedByUserId,
 		String checkedByNickname,
 		Long checkedByCharacterId,
 		String checkedByCharacterName
 	){
+		int clampedCount = Math.max(0, Math.min(maxQty, completedCount));
+		barter.setCompletedCount(clampedCount);
+		boolean completed = clampedCount >= maxQty;
 		barter.setCompleted(completed);
-		if(completed){
+		if(clampedCount > 0){
 			barter.setCheckedByUserId(checkedByUserId);
 			barter.setCheckedByNickname(checkedByNickname);
 			barter.setCheckedByCharacterId(checkedByCharacterId);
@@ -227,7 +246,7 @@ public class UserTodoBarterService{
 	}
 
 	@Transactional
-	public UserTodoBarterDto toggleComplete(Long userId, Long characterId, Long id){
+	public UserTodoBarterDto toggleComplete(Long userId, Long characterId, Long id, Integer requestedCompletedCount){
 		UserTodoBarter barter = userTodoBarterRepository.findByIdAndUserIdAndDeletedAtIsNull(id, userId)
 			.orElseThrow(() -> new RuntimeException("물물교환 아이템을 찾을 수 없습니다."));
 
@@ -238,6 +257,7 @@ public class UserTodoBarterService{
 			barter.getBarterCycle()
 		);
 		boolean serverShared = isServerSharedBarter(lifeBarter);
+		int maxQty = getSafeBarterQty(lifeBarter);
 
 		List<UserTodoBarter> targetBarters;
 		if(serverShared){
@@ -260,7 +280,14 @@ public class UserTodoBarterService{
 			targetBarters = new ArrayList<>(List.of(barter));
 		}
 
-		boolean nextCompleted = !barter.getCompleted();
+		int nextCompletedCount;
+		if(requestedCompletedCount != null){
+			nextCompletedCount = Math.max(0, Math.min(maxQty, requestedCompletedCount));
+		}else{
+			int currentCompletedCount = resolveCompletedCount(barter, maxQty);
+			nextCompletedCount = currentCompletedCount > 0 ? 0 : maxQty;
+		}
+
 		String checkedByNickname = userRepository.findByUserIdAndDeletedAtIsNull(userId)
 			.map(User::getNickname)
 			.orElse(null);
@@ -272,7 +299,8 @@ public class UserTodoBarterService{
 		for(UserTodoBarter target : targetBarters){
 			applyCheckedState(
 				target,
-				nextCompleted,
+				nextCompletedCount,
+				maxQty,
 				userId,
 				checkedByNickname,
 				checkedByCharacterId,

@@ -9,16 +9,119 @@ import {boardService} from "@/services/board-service";
 import {useAuth} from "@/hooks/use-auth";
 import {useSeo} from "@/hooks/use-seo";
 import {createBoardPostPath, toBoardSlug} from "@/utils/board-url";
+import {parseBoardReferenceToken} from "@/utils/board-reference-token";
 import {remarkSoftBreaks} from "@/utils/remark-soft-breaks";
 import CommentItem from "@/components/board/comment-item";
 import styles from "./board-detail.module.scss";
+
+const renderReferenceTokenCard = (className:string | undefined, rawValue:string) => {
+	const token = parseBoardReferenceToken(className, rawValue);
+	if(!token){
+		return null;
+	}
+
+	const itemUrl = token.fields.itemUrl || token.fields.rewardUrl || token.fields.productUrl || "";
+	const itemName = token.fields.itemName || token.fields.rewardName || token.fields.productName || "-";
+	const ingredientName = token.fields.ingredientName || token.fields.exchangeName || "-";
+	const ingredientUrl = token.fields.ingredientUrl || token.fields.exchangeUrl || "";
+	const cardTitle = token.type === "item"
+		? "아이템 정보"
+		: token.type === "barter"
+			? "물물교환 정보"
+			: "제작 정보";
+	const typeLabel = token.type === "item"
+		? "ITEM"
+		: token.type === "barter"
+			? "BARTER"
+			: "CRAFT";
+
+	const renderLinkOrText = (label:string, url?:string) => {
+		const normalizedLabel = (label || "-").trim() || "-";
+		const normalizedUrl = (url || "").trim();
+		if(!normalizedUrl){
+			return <span>{normalizedLabel}</span>;
+		}
+		return <a href={normalizedUrl}>{normalizedLabel}</a>;
+	};
+
+	return (
+		<div className={`${styles.referenceCard} ${styles[`referenceCard_${token.type}`]}`}>
+			<div className={styles.referenceCardHeader}>
+				<strong>{cardTitle}</strong>
+				<span>{typeLabel}</span>
+			</div>
+			<div className={styles.referenceCardRows}>
+				<div className={styles.referenceCardRow}>
+					<span className={styles.referenceCardKey}>{token.type === "barter" ? "획득 아이템" : "아이템"}</span>
+					<span className={styles.referenceCardValue}>{renderLinkOrText(itemName, itemUrl)}</span>
+				</div>
+				{token.type !== "item" && (
+					<div className={styles.referenceCardRow}>
+						<span className={styles.referenceCardKey}>{token.type === "barter" ? "교환 아이템" : "재료"}</span>
+						<span className={styles.referenceCardValue}>{renderLinkOrText(ingredientName, ingredientUrl)}</span>
+					</div>
+				)}
+				{token.fields.category && (
+					<div className={styles.referenceCardRow}>
+						<span className={styles.referenceCardKey}>분류</span>
+						<span className={styles.referenceCardValue}>{token.fields.category}</span>
+					</div>
+				)}
+				{token.fields.rarity && (
+					<div className={styles.referenceCardRow}>
+						<span className={styles.referenceCardKey}>등급</span>
+						<span className={styles.referenceCardValue}>{token.fields.rarity}</span>
+					</div>
+				)}
+				{token.type === "barter" && (
+					<>
+						<div className={styles.referenceCardRow}>
+							<span className={styles.referenceCardKey}>지역/NPC</span>
+							<span className={styles.referenceCardValue}>{`${token.fields.region || "-"} / ${token.fields.npc || "-"}`}</span>
+						</div>
+						<div className={styles.referenceCardRow}>
+							<span className={styles.referenceCardKey}>횟수/보상</span>
+							<span className={styles.referenceCardValue}>
+								{`최대 ${token.fields.maxTrades || "-"}회, 1회 x${token.fields.rewardPerTrade || "-"}`}
+							</span>
+						</div>
+					</>
+				)}
+				{token.type === "craft" && (
+					<div className={styles.referenceCardRow}>
+						<span className={styles.referenceCardKey}>레벨/시간</span>
+						<span className={styles.referenceCardValue}>{`${token.fields.level || "-"} / ${token.fields.time || "-"}`}</span>
+					</div>
+				)}
+				{token.fields.source && (
+					<div className={styles.referenceCardRow}>
+						<span className={styles.referenceCardKey}>출처</span>
+						<span className={styles.referenceCardValue}>{token.fields.source}</span>
+					</div>
+				)}
+			</div>
+		</div>
+	);
+};
 
 const markdownComponents:Components = {
 	table: ({children, ...props}) => (
 		<div className={styles.tableWrapper}>
 			<table {...props}>{children}</table>
 		</div>
-	)
+	),
+	pre: ({children, ...props}) => {
+		const child = React.Children.toArray(children)[0];
+		if(React.isValidElement(child)){
+			const className = (child.props as {className?:string}).className;
+			const rawValue = String((child.props as {children?:React.ReactNode}).children ?? "").trim();
+			const referenceCard = renderReferenceTokenCard(className, rawValue);
+			if(referenceCard){
+				return referenceCard;
+			}
+		}
+		return <pre {...props}>{children}</pre>;
+	}
 };
 
 const markdownRehypePlugins = [rehypeRaw, rehypeSanitize];

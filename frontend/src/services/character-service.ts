@@ -40,8 +40,24 @@ export const characterService = {
 		}
 	},
 
-	fetchRank : async(characterName:string, serverId:number):Promise<ApiResponse & {userPower:number | null; userVitality:number | null; userAttractiveness:number | null}> => {
-		const response = await apiService.get<ApiResponse & {userPower:number | null; userVitality:number | null; userAttractiveness:number | null}>(`/user/characters/rank?characterName=${encodeURIComponent(characterName)}&serverId=${serverId}`);
+	fetchRank : async(characterName:string, serverId:number):Promise<ApiResponse & {
+		userPower:number | null;
+		userVitality:number | null;
+		userAttractiveness:number | null;
+		updatedAt?:string | null;
+		cached?:boolean;
+	}> => {
+		const response = await apiService.get<ApiResponse & {
+			userPower:number | null;
+			userVitality:number | null;
+			userAttractiveness:number | null;
+			updatedAt?:string | null;
+			cached?:boolean;
+		}>(
+			"/user/characters/rank",
+			{characterName, serverId},
+			{timeout : 15000}
+		);
 		if(response.success){
 			return response;
 		}

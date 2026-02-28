@@ -794,21 +794,33 @@ html{
 	.resetTimers{
 		width:100%;
 		display:grid;
-		grid-template-columns:1fr 1fr;
+		grid-template-columns:repeat(2, minmax(0, 1fr));
 		gap:8px;
 	}
 
 	.resetTimer{
-		justify-content:space-between;
+		flex-direction:column;
+		align-items:flex-start;
+		justify-content:center;
+		gap:4px;
 		padding:8px 10px;
 		border-radius:8px;
 		border:1px solid var(--border-color, #e0e0e0);
 		background:var(--card-bg, #fff);
 		font-size:12px;
+		min-height:56px;
+		min-width:0;
+	}
+
+	.resetTimer > span:first-child{
+		white-space:nowrap;
+		line-height:1.2;
 	}
 
 	.countdown{
-		font-size:15px;
+		font-size:14px;
+		line-height:1.1;
+		white-space:nowrap;
 	}
 
 	.selectorRow{

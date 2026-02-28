@@ -173,11 +173,16 @@ public class UserTodoController{
 	public ResponseEntity<?> toggleBarterComplete(
 		@RequestHeader(value = "Authorization", required = false) String authHeader,
 		@PathVariable Long characterId,
-		@PathVariable Long barterId
+		@PathVariable Long barterId,
+		@RequestBody(required = false) Map<String, Object> body
 	){
 		try{
 			Long userId = getUserIdFromToken(authHeader);
-			UserTodoBarterDto barter = userTodoBarterService.toggleComplete(userId, characterId, barterId);
+			Integer completedCount = null;
+			if(body != null && body.get("completedCount") instanceof Number number){
+				completedCount = number.intValue();
+			}
+			UserTodoBarterDto barter = userTodoBarterService.toggleComplete(userId, characterId, barterId, completedCount);
 
 			Map<String, Object> response = new HashMap<>();
 			response.put("success", true);

@@ -64,13 +64,22 @@ public interface GameItemRepository extends JpaRepository<GameItem, Integer>, Jp
 		"WHEN gi.itemMainMenu IN ('\uD0C8\uAC83/\uD3AB', '\uD3AB/\uD0C8\uAC83') THEN 4 " +
 		"ELSE 999 END ASC, " +
 		"CASE " +
-		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uBB34\uAE30' THEN 0 " +
-		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uBC29\uC5B4\uAD6C' THEN 1 " +
-		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uC7A5\uC2E0\uAD6C' THEN 2 " +
-		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uBCF4\uC11D' THEN 3 " +
-		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uB8EC' THEN 4 " +
-		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uC5E0\uBE14\uB7FC' THEN 5 " +
-		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uC544\uD2F0\uD329\uD2B8' THEN 6 " +
+		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uB8EC' THEN 0 " +
+		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uBB34\uAE30 \uB8EC' THEN 1 " +
+		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uBC29\uC5B4\uAD6C \uB8EC' THEN 2 " +
+		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uC5E0\uBE14\uB7FC \uB8EC' THEN 3 " +
+		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uC7A5\uC2E0\uAD6C \uB8EC' THEN 4 " +
+		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uBB34\uAE30' THEN 5 " +
+		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uBC29\uC5B4\uAD6C' THEN 6 " +
+		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uBAA8\uC790' THEN 7 " +
+		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uC0C1\uC758' THEN 8 " +
+		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uD558\uC758' THEN 9 " +
+		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uC7A5\uAC11' THEN 10 " +
+		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uC2E0\uBC1C' THEN 11 " +
+		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uC7A5\uC2E0\uAD6C' THEN 12 " +
+		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uBCF4\uC11D' THEN 13 " +
+		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uC5E0\uBE14\uB7FC' THEN 14 " +
+		"WHEN gi.itemMainMenu = '\uC7A5\uBE44' AND gi.itemSubMenu = '\uC544\uD2F0\uD329\uD2B8' THEN 15 " +
 		"WHEN gi.itemMainMenu = '\uB3C4\uAD6C' AND gi.itemSubMenu = '\uC0DD\uD65C\uB3C4\uAD6C' THEN 100 " +
 		"WHEN gi.itemMainMenu = '\uB3C4\uAD6C' AND gi.itemSubMenu = '\uAC00\uBC29' THEN 101 " +
 		"WHEN gi.itemMainMenu = '\uB3C4\uAD6C' AND gi.itemSubMenu = '\uC545\uAE30' THEN 102 " +

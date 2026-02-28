@@ -137,6 +137,69 @@
 	}
 }
 
+.searchSuggestionDropdown{
+	position:absolute;
+	top:calc(100% + 6px);
+	left:0;
+	right:0;
+	z-index:25;
+	display:flex;
+	flex-direction:column;
+	gap:4px;
+	max-height:300px;
+	padding:8px;
+	border:1px solid var(--border);
+	border-radius:12px;
+	background:var(--surface);
+	box-shadow:var(--shadow-md);
+	overflow-y:auto;
+}
+
+.searchSuggestionItem{
+	display:flex;
+	flex-direction:column;
+	align-items:flex-start;
+	gap:2px;
+	width:100%;
+	padding:8px 10px;
+	border:1px solid transparent;
+	border-radius:10px;
+	background:transparent;
+	color:var(--text);
+	text-align:left;
+	cursor:pointer;
+	transition:background-color $transition-fast, border-color $transition-fast;
+
+	&:hover{
+		background:var(--surface-hover);
+		border-color:var(--border);
+	}
+}
+
+.searchSuggestionTitle{
+	font-size:13px;
+	font-weight:700;
+	line-height:1.2;
+}
+
+.searchSuggestionSubtitle{
+	font-size:12px;
+	color:var(--text-muted);
+	line-height:1.2;
+}
+
+.searchSuggestionMeta{
+	font-size:11px;
+	color:var(--primary-dark);
+	line-height:1.2;
+}
+
+.searchSuggestionEmpty{
+	padding:8px 10px;
+	font-size:12px;
+	color:var(--text-muted);
+}
+
 .searchBtn{
 	border:none;
 	background:var(--gradient);
@@ -333,6 +396,9 @@
 
 .barterCard,
 .craftCard{
+	display:flex;
+	flex-direction:column;
+	height:100%;
 	background:var(--surface);
 	border:1px solid var(--border);
 	border-radius:16px;
@@ -363,8 +429,8 @@
 	align-items:center;
 	justify-content:center;
 	gap:6px;
-	margin-top:12px;
-	padding-top:12px;
+	margin-top:auto;
+	padding-top:14px;
 	border-top:1px dashed var(--border);
 	font-size:12px;
 	color:var(--primary);
@@ -481,6 +547,8 @@
 	color:var(--text-muted);
 	gap:8px;
 	flex-wrap:wrap;
+	margin-top:8px;
+	padding-bottom:8px;
 }
 
 .barterTag{

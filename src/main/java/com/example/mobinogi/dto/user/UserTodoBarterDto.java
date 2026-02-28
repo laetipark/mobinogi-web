@@ -21,6 +21,7 @@ public class UserTodoBarterDto{
 	private Integer exchangeCost;
 	private String barterCycle;
 	private Boolean completed;
+	private Integer completedCount;
 	private Long checkedByUserId;
 	private String checkedByNickname;
 	private Long checkedByCharacterId;
@@ -31,7 +32,18 @@ public class UserTodoBarterDto{
 	private Integer barterServer;
 	private Integer barterNpc;
 
+	private static int resolveCompletedCount(UserTodoBarter entity, Integer maxQty){
+		Integer rawCount = entity.getCompletedCount();
+		int fallback = Boolean.TRUE.equals(entity.getCompleted()) ? 1 : 0;
+		int normalized = rawCount != null ? Math.max(0, rawCount) : fallback;
+		if(maxQty == null || maxQty <= 0){
+			return normalized;
+		}
+		return Math.min(maxQty, normalized);
+	}
+
 	public static UserTodoBarterDto fromEntity(UserTodoBarter entity){
+		int completedCount = resolveCompletedCount(entity, null);
 		return UserTodoBarterDto.builder()
 			.id(entity.getId())
 			.userId(entity.getUserId())
@@ -42,7 +54,8 @@ public class UserTodoBarterDto{
 			.regionName(entity.getRegionName())
 			.exchangeCost(entity.getExchangeCost())
 			.barterCycle(entity.getBarterCycle())
-			.completed(entity.getCompleted())
+			.completed(Boolean.TRUE.equals(entity.getCompleted()))
+			.completedCount(completedCount)
 			.checkedByUserId(entity.getCheckedByUserId())
 			.checkedByNickname(entity.getCheckedByNickname())
 			.checkedByCharacterId(entity.getCheckedByCharacterId())
@@ -52,6 +65,12 @@ public class UserTodoBarterDto{
 	}
 
 	public static UserTodoBarterDto fromEntity(UserTodoBarter entity, LifeBarter lifeBarter){
+		Integer maxQty = lifeBarter != null ? lifeBarter.getBarterQty() : null;
+		int completedCount = resolveCompletedCount(entity, maxQty);
+		boolean completed = maxQty != null && maxQty > 0
+			? completedCount >= maxQty
+			: Boolean.TRUE.equals(entity.getCompleted());
+
 		UserTodoBarterDtoBuilder builder = UserTodoBarterDto.builder()
 			.id(entity.getId())
 			.userId(entity.getUserId())
@@ -62,7 +81,8 @@ public class UserTodoBarterDto{
 			.regionName(entity.getRegionName())
 			.exchangeCost(entity.getExchangeCost())
 			.barterCycle(entity.getBarterCycle())
-			.completed(entity.getCompleted())
+			.completed(completed)
+			.completedCount(completedCount)
 			.checkedByUserId(entity.getCheckedByUserId())
 			.checkedByNickname(entity.getCheckedByNickname())
 			.checkedByCharacterId(entity.getCheckedByCharacterId())

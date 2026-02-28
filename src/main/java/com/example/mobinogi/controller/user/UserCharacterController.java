@@ -28,11 +28,11 @@ public class UserCharacterController{
 
 	private Long getUserIdFromToken(String authHeader){
 		if(authHeader == null || !authHeader.startsWith("Bearer ")){
-			throw new RuntimeException("인증 토큰이 필요합니다.");
+			throw new RuntimeException("?몄쬆 ?좏겙???꾩슂?⑸땲??");
 		}
 		String token = authHeader.substring(7);
 		if(!jwtUtil.validateToken(token)){
-			throw new RuntimeException("유효하지 않은 토큰입니다.");
+			throw new RuntimeException("?좏슚?섏? ?딆? ?좏겙?낅땲??");
 		}
 		return jwtUtil.getUserIdFromToken(token);
 	}
@@ -68,7 +68,7 @@ public class UserCharacterController{
 
 			Map<String, Object> response = new HashMap<>();
 			response.put("success", true);
-			response.put("message", "캐릭터가 등록되었습니다.");
+			response.put("message", "罹먮┃?곌? ?깅줉?섏뿀?듬땲??");
 			response.put("character", character);
 
 			return ResponseEntity.ok(response);
@@ -77,7 +77,7 @@ public class UserCharacterController{
 			errorResponse.put("success", false);
 			errorResponse.put("message", e.getMessage());
 
-			int status = e.getMessage().contains("토큰") ? 401 : 400;
+			int status = e.getMessage().contains("?좏겙") ? 401 : 400;
 			return ResponseEntity.status(status).body(errorResponse);
 		}
 	}
@@ -94,7 +94,7 @@ public class UserCharacterController{
 
 			Map<String, Object> response = new HashMap<>();
 			response.put("success", true);
-			response.put("message", "캐릭터 정보가 수정되었습니다.");
+			response.put("message", "罹먮┃???뺣낫媛 ?섏젙?섏뿀?듬땲??");
 			response.put("character", character);
 
 			return ResponseEntity.ok(response);
@@ -103,7 +103,7 @@ public class UserCharacterController{
 			errorResponse.put("success", false);
 			errorResponse.put("message", e.getMessage());
 
-			int status = e.getMessage().contains("토큰") ? 401 : 400;
+			int status = e.getMessage().contains("?좏겙") ? 401 : 400;
 			return ResponseEntity.status(status).body(errorResponse);
 		}
 	}
@@ -117,13 +117,13 @@ public class UserCharacterController{
 			Long userId = getUserIdFromToken(authHeader);
 			List<Long> characterIds = request.get("characterIds");
 			if(characterIds == null || characterIds.isEmpty()){
-				throw new RuntimeException("캐릭터 ID 목록이 필요합니다.");
+				throw new RuntimeException("罹먮┃??ID 紐⑸줉???꾩슂?⑸땲??");
 			}
 			userCharacterService.reorderCharacters(userId, characterIds);
 
 			Map<String, Object> response = new HashMap<>();
 			response.put("success", true);
-			response.put("message", "캐릭터 순서가 변경되었습니다.");
+			response.put("message", "罹먮┃???쒖꽌媛 蹂寃쎈릺?덉뒿?덈떎.");
 
 			return ResponseEntity.ok(response);
 		}catch(Exception e){
@@ -131,7 +131,7 @@ public class UserCharacterController{
 			errorResponse.put("success", false);
 			errorResponse.put("message", e.getMessage());
 
-			int status = e.getMessage().contains("토큰") ? 401 : 400;
+			int status = e.getMessage().contains("?좏겙") ? 401 : 400;
 			return ResponseEntity.status(status).body(errorResponse);
 		}
 	}
@@ -147,7 +147,7 @@ public class UserCharacterController{
 
 			Map<String, Object> response = new HashMap<>();
 			response.put("success", true);
-			response.put("message", "캐릭터가 삭제되었습니다.");
+			response.put("message", "罹먮┃?곌? ??젣?섏뿀?듬땲??");
 
 			return ResponseEntity.ok(response);
 		}catch(Exception e){
@@ -155,7 +155,7 @@ public class UserCharacterController{
 			errorResponse.put("success", false);
 			errorResponse.put("message", e.getMessage());
 
-			int status = e.getMessage().contains("토큰") ? 401 : 400;
+			int status = e.getMessage().contains("?좏겙") ? 401 : 400;
 			return ResponseEntity.status(status).body(errorResponse);
 		}
 	}
@@ -172,50 +172,53 @@ public class UserCharacterController{
 			Map<String, Object> response = new HashMap<>();
 			response.put("success", true);
 
-			// 캐시 확인: updatedAt이 10분 이내면 캐시 데이터 반환
-			var rankOpt = userRankRepository.findByServerIdAndUserNameAndDeletedAtIsNull(serverId, characterName);
+			// 罹먯떆 ?뺤씤: updatedAt??10遺??대궡硫?罹먯떆 ?곗씠??諛섑솚
+			var rankOpt = userRankRepository.findLatestActiveByServerIdAndUserName(serverId, characterName);
 			if(rankOpt.isPresent()){
 				var rank = rankOpt.get();
-				if(rank.getUpdatedAt() != null && rank.getUpdatedAt().isAfter(LocalDateTime.now().minusMinutes(10))){
+				if(isFreshRankCache(rank)){
 					response.put("userPower", rank.getUserPower());
 					response.put("userVitality", rank.getUserVitality());
 					response.put("userAttractiveness", rank.getUserAttractiveness());
 					response.put("cached", true);
+					response.put("updatedAt", rank.getUpdatedAt());
 					return ResponseEntity.ok(response);
 				}
 			}
 
-			// 외부 API에서 최신 데이터 조회
+			// ?몃? API?먯꽌 理쒖떊 ?곗씠??議고쉶
 			var stats = rankApiService.fetchRankStats(characterName, serverId);
 
 			if(stats != null){
-				response.put("userPower", stats.getUserPower());
-				response.put("userVitality", stats.getUserVitality());
-				response.put("userAttractiveness", stats.getUserAttractiveness());
+				// user_rank writes are owned by crawler; backend only reads latest row.
+				UserRank refreshedRank = userRankRepository.findLatestActiveByServerIdAndUserName(serverId, characterName).orElse(null);
+				if(refreshedRank != null){
+					response.put("userPower", refreshedRank.getUserPower());
+					response.put("userVitality", refreshedRank.getUserVitality());
+					response.put("userAttractiveness", refreshedRank.getUserAttractiveness());
+					response.put("updatedAt", refreshedRank.getUpdatedAt());
+				}else{
+					response.put("userPower", stats.getUserPower());
+					response.put("userVitality", stats.getUserVitality());
+					response.put("userAttractiveness", stats.getUserAttractiveness());
+					response.put("updatedAt", null);
+				}
+				response.put("cached", false);
 
-				// DB 갱신
-				UserRank rank = rankOpt.orElseGet(() -> {
-					UserRank newRank = new UserRank();
-					newRank.setServerId(serverId);
-					newRank.setUserName(characterName);
-					newRank.setClassId(0);
-					return newRank;
-				});
-				rank.setUserPower(stats.getUserPower());
-				rank.setUserVitality(stats.getUserVitality());
-				rank.setUserAttractiveness(stats.getUserAttractiveness());
-				userRankRepository.save(rank);
 			}else if(rankOpt.isPresent()){
-				// 외부 API 실패 시 기존 캐시 데이터 반환
+				// ?몃? API ?ㅽ뙣 ??湲곗〈 罹먯떆 ?곗씠??諛섑솚
 				var rank = rankOpt.get();
 				response.put("userPower", rank.getUserPower());
 				response.put("userVitality", rank.getUserVitality());
 				response.put("userAttractiveness", rank.getUserAttractiveness());
 				response.put("cached", true);
+				response.put("updatedAt", rank.getUpdatedAt());
 			}else{
 				response.put("userPower", null);
 				response.put("userVitality", null);
 				response.put("userAttractiveness", null);
+				response.put("cached", false);
+				response.put("updatedAt", null);
 			}
 
 			return ResponseEntity.ok(response);
@@ -224,8 +227,20 @@ public class UserCharacterController{
 			errorResponse.put("success", false);
 			errorResponse.put("message", e.getMessage());
 
-			int status = e.getMessage().contains("토큰") ? 401 : 400;
+			int status = e.getMessage().contains("?좏겙") ? 401 : 400;
 			return ResponseEntity.status(status).body(errorResponse);
 		}
+	}
+
+	private boolean isFreshRankCache(UserRank rank){
+		if(rank.getUpdatedAt() == null){
+			return false;
+		}
+		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime updatedAt = rank.getUpdatedAt();
+		if(updatedAt.isAfter(now.plusMinutes(1))){
+			return false;
+		}
+		return !updatedAt.isBefore(now.minusMinutes(10));
 	}
 }

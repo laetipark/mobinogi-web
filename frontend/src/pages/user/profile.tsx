@@ -80,6 +80,17 @@ const ProfilePage:React.FC = () => {
 	
 	// Rank 로딩 상태
 	const [rankLoading, setRankLoading] = useState<Set<number>>(new Set());
+	const RANK_STALE_MS = 10 * 60 * 1000;
+	const isRankStale = (rankUpdatedAt?:string):boolean => {
+		if(!rankUpdatedAt){
+			return true;
+		}
+		const updatedAtMs = new Date(rankUpdatedAt).getTime();
+		if(Number.isNaN(updatedAtMs)){
+			return true;
+		}
+		return Date.now() - updatedAtMs >= RANK_STALE_MS;
+	};
 	
 	// Discord 연동 상태
 	const [discordLoading, setDiscordLoading] = useState(false);
@@ -111,8 +122,14 @@ const ProfilePage:React.FC = () => {
 	};
 	
 	const fetchRanks = (chars:UserCharacter[]) => {
-		const targets = chars.filter(c => c.serverId != null);
-		if(targets.length === 0) return;
+		const targets = chars.filter(c =>
+			c.serverId != null &&
+			Boolean(c.characterName?.trim()) &&
+			isRankStale(c.rankUpdatedAt)
+		);
+		if(targets.length === 0){
+			return;
+		}
 		
 		const loadingIds = new Set(targets.map(c => c.characterId));
 		setRankLoading(loadingIds);
@@ -125,11 +142,13 @@ const ProfilePage:React.FC = () => {
 							...ch,
 							userPower : rank.userPower ?? undefined,
 							userVitality : rank.userVitality ?? undefined,
-							userAttractiveness : rank.userAttractiveness ?? undefined
+							userAttractiveness : rank.userAttractiveness ?? undefined,
+							rankUpdatedAt : rank.updatedAt ?? ch.rankUpdatedAt
 						}
 						: ch
 				));
-			}).catch(() => {
+			}).catch((error) => {
+				console.warn(`Failed to fetch rank for character ${c.characterId} (${c.characterName})`, error);
 			}).finally(() => {
 				setRankLoading(prev => {
 					const next = new Set(prev);

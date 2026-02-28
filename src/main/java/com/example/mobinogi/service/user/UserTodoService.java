@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -73,12 +72,13 @@ public class UserTodoService{
 
 			// rank 데이터 조회
 			if(character.getCharacterServer() != null){
-				var rankOpt = userRankRepository.findByServerIdAndUserNameAndDeletedAtIsNull(character.getCharacterServer(), character.getCharacterName());
+				var rankOpt = userRankRepository.findLatestActiveByServerIdAndUserName(character.getCharacterServer(), character.getCharacterName());
 				if(rankOpt.isPresent()){
 					var rank = rankOpt.get();
 					dto.setUserPower(rank.getUserPower());
 					dto.setUserVitality(rank.getUserVitality());
 					dto.setUserAttractiveness(rank.getUserAttractiveness());
+					dto.setRankUpdatedAt(rank.getUpdatedAt());
 				}
 			}
 

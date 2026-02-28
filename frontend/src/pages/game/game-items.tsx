@@ -20,18 +20,44 @@ type GameItemsRouteState = {
 	modalRuntimeId?:string;
 };
 
+type SearchSuggestion = {
+	key:string;
+	keyword:string;
+	title:string;
+	subtitle?:string;
+	meta?:string;
+};
+
 const MODAL_ROUTE_RUNTIME_ID = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+const MAX_SEARCH_SUGGESTIONS = 8;
 
-const DEFAULT_ITEM_RARITY_OPTIONS = ["일반", "고급", "레어", "엘리트", "에픽", "전설", "유니크", "신화"];
+const DEFAULT_ITEM_RARITY_OPTIONS = ["일반", "고급", "레어", "엘리트", "에픽", "유니크", "전설", "신화"];
+const EQUIPMENT_MAIN_MENU = "장비";
+const DEFAULT_ITEM_MAIN_MENU = "";
+const DEFAULT_ITEM_SUB_MENU = "";
+const EQUIPMENT_SUB_MENU_ORDER = [
+	"룬",
+	"무기 룬",
+	"방어구 룬",
+	"엠블럼 룬",
+	"장신구 룬",
+	"무기",
+	"방어구",
+	"모자",
+	"상의",
+	"하의",
+	"장갑",
+	"신발",
+	"장신구",
+	"보석",
+	"엠블럼",
+	"아티팩트"
+] as const;
 
-const ITEM_MAIN_MENU_ORDER = ["장비", "도구", "아이템", "패션", "탈것/펫"] as const;
+const ITEM_MAIN_MENU_ORDER = [EQUIPMENT_MAIN_MENU, "가구", "아이템", "포션", "의상/탈것"] as const;
 
 const ITEM_SUB_MENU_ORDER_BY_MAIN_MENU:Record<string, string[]> = {
-	"장비" : ["무기", "방어구", "장신구", "보석", "룬", "엠블럼", "아티팩트"],
-	"도구" : ["생활도구", "가방", "악기", "악보", "놀이", "데코", "기타"],
-	"아이템" : ["소모품", "음식", "퀵슬롯", "재료", "재화", "퀘스트"],
-	"패션" : ["의상", "장식", "패션 무기", "염색"],
-	"탈것/펫" : ["동행 펫", "탈것", "탈것 장비"]
+	[EQUIPMENT_MAIN_MENU] : [...EQUIPMENT_SUB_MENU_ORDER]
 };
 
 const createOrderIndexMap = (values:readonly string[]):Map<string, number> => new Map(values.map((value, index) => [value, index]));
@@ -53,7 +79,7 @@ const compareByPreferredOrder = (a:string, b:string, orderIndexMap?:Map<string, 
 	return a.localeCompare(b, "ko");
 };
 
-const ITEM_RARITY_FILTER_ORDER = ["\uC77C\uBC18", "\uACE0\uAE09", "\uB808\uC5B4", "\uC5D8\uB9AC\uD2B8", "\uC5D0\uD53D", "\uC720\uB2C8\uD06C", "\uC804\uC124", "\uC2E0\uD654"] as const;
+const ITEM_RARITY_FILTER_ORDER = ["일반", "고급", "레어", "엘리트", "에픽", "유니크", "전설", "신화"] as const;
 const ITEM_RARITY_FILTER_ORDER_INDEX = createOrderIndexMap(ITEM_RARITY_FILTER_ORDER);
 
 const sortRarityLabelsForFilter = (rarities:string[]):string[] => [...rarities].sort((a, b) => compareByPreferredOrder(a, b, ITEM_RARITY_FILTER_ORDER_INDEX));
@@ -85,6 +111,31 @@ const normalizeMainMenuForOrder = (value:string | null | undefined):string => {
 	return normalized;
 };
 
+const ITEM_TAB_PATHS:Record<TabType, string> = {
+	items : "/items",
+	barter : "/barter",
+	craft : "/craft"
+};
+
+const resolveTabFromPath = (pathname:string):TabType => {
+	const normalizedPath = pathname.toLowerCase();
+	if(
+		normalizedPath.startsWith("/barter")
+		|| normalizedPath.startsWith("/items/barter")
+		|| normalizedPath.startsWith("/item/barter")
+	){
+		return "barter";
+	}
+	if(
+		normalizedPath.startsWith("/craft")
+		|| normalizedPath.startsWith("/items/craft")
+		|| normalizedPath.startsWith("/item/craft")
+	){
+		return "craft";
+	}
+	return "items";
+};
+
 const GameItemsPage:React.FC = () => {
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -98,7 +149,7 @@ const GameItemsPage:React.FC = () => {
 	const isStandaloneDetailPage = isDetailRoute && !isModalDetailRoute;
 	
 	const [selectedItem, setSelectedItem] = useState<GameItem | GameItemSummary | null>(null);
-	const [activeTab, setActiveTab] = useState<TabType>("items");
+	const [activeTab, setActiveTab] = useState<TabType>(() => resolveTabFromPath(location.pathname));
 	
 	const seoTitle = decodedItemName
 		? decodedItemName
@@ -113,10 +164,10 @@ const GameItemsPage:React.FC = () => {
 			? "물물교환 교환 정보와 재료를 검색할 수 있습니다."
 			: activeTab === "craft"
 				? "제작 레시피와 재료 정보를 검색할 수 있습니다."
-				: "아이템 스탯, 획득처, 분류 정보를 검색할 수 있습니다.";
+				: "아이템 스펙, 획득처, 분류 정보를 검색할 수 있습니다.";
 	const seoCanonicalPath = decodedItemName
 		? toItemDetailPath(decodedItemName)
-		: "/items";
+		: ITEM_TAB_PATHS[activeTab];
 	
 	useSeo({
 		title : seoTitle,
@@ -134,12 +185,13 @@ const GameItemsPage:React.FC = () => {
 	const [totalElements, setTotalElements] = useState(0);
 	const [keyword, setKeyword] = useState("");
 	const [searchInput, setSearchInput] = useState("");
-	const [sortBy, setSortBy] = useState<string>("itemMainMenu");
-	const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+	const [sortBy, setSortBy] = useState<string>("itemRarity");
+	const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+	const [manualSearchTick, setManualSearchTick] = useState(0);
 	const [itemCategoryTree, setItemCategoryTree] = useState<GameItemFilterMainMenuOption[]>([]);
 	const [itemTypeOptions, setItemTypeOptions] = useState<string[]>([]);
-	const [selectedItemMainMenu, setSelectedItemMainMenu] = useState("");
-	const [selectedItemSubMenu, setSelectedItemSubMenu] = useState("");
+	const [selectedItemMainMenu, setSelectedItemMainMenu] = useState(DEFAULT_ITEM_MAIN_MENU);
+	const [selectedItemSubMenu, setSelectedItemSubMenu] = useState(DEFAULT_ITEM_SUB_MENU);
 	const [selectedItemType, setSelectedItemType] = useState("");
 	const [selectedRarities, setSelectedRarities] = useState<string[]>([]);
 	const [availableRarities, setAvailableRarities] = useState<string[]>(DEFAULT_ITEM_RARITY_OPTIONS);
@@ -149,9 +201,13 @@ const GameItemsPage:React.FC = () => {
 	const [craftTypeOptions, setCraftTypeOptions] = useState<CraftFilterTypeOption[]>([]);
 	const [selectedCraftType, setSelectedCraftType] = useState("");
 	const [selectedCraftName, setSelectedCraftName] = useState("");
+	const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
+	const [searchSuggestions, setSearchSuggestions] = useState<SearchSuggestion[]>([]);
+	const [searchSuggestionsLoading, setSearchSuggestionsLoading] = useState(false);
 	const inFlightRef = useRef(false);
 	const currentPageRef = useRef(0);
 	const hasMoreDataRef = useRef(true);
+	const searchBoxRef = useRef<HTMLDivElement>(null);
 	
 	useEffect(() => {
 		if(isModalDetailRoute && decodedItemName){
@@ -167,11 +223,159 @@ const GameItemsPage:React.FC = () => {
 	}, [decodedItemName, isModalDetailRoute]);
 	
 	useEffect(() => {
-		const timer = setTimeout(() => {
-			setKeyword(searchInput.trim());
-		}, 300);
-		return () => clearTimeout(timer);
-	}, [searchInput]);
+		if(isStandaloneDetailPage){
+			return;
+		}
+
+		const trimmedKeyword = searchInput.trim();
+		if(!trimmedKeyword){
+			setSearchSuggestions([]);
+			setSearchSuggestionsLoading(false);
+			return;
+		}
+
+		let active = true;
+		const timer = window.setTimeout(async() => {
+			setSearchSuggestionsLoading(true);
+			try{
+				if(activeTab === "items"){
+					const response = await GameItemService.getGameItems({
+						page : 0,
+						size : MAX_SEARCH_SUGGESTIONS,
+						sortBy : "itemName",
+						sortDir : "asc",
+						keyword : trimmedKeyword,
+						itemMainMenu : selectedItemMainMenu || undefined,
+						itemSubMenu : selectedItemSubMenu || undefined,
+						itemType : selectedItemType || undefined,
+						itemRarity : selectedRarities.length > 0 ? selectedRarities : undefined
+					});
+					if(active){
+						setSearchSuggestions(response.content.map((item) => ({
+							key : `item-${item.itemId}`,
+							keyword : item.itemName,
+							title : item.itemName,
+							subtitle : [item.itemType, item.itemRarity].filter(Boolean).join(" / "),
+							meta : [item.itemMainMenu, item.itemSubMenu].filter(Boolean).join(" > ")
+						})));
+					}
+				}else if(activeTab === "barter"){
+					const response = await GameItemService.getBarters({
+						page : 0,
+						size : MAX_SEARCH_SUGGESTIONS,
+						sortBy : "regionId",
+						sortDir : "asc",
+						keyword : trimmedKeyword,
+						regionId : selectedBarterRegionId ? Number(selectedBarterRegionId) : undefined,
+						npcId : selectedBarterNpcId ? Number(selectedBarterNpcId) : undefined
+					});
+
+					const deduped = new Map<string, SearchSuggestion>();
+					for(const barter of response.content){
+						const obtainedName = (barter.gameItem?.itemName || "").trim();
+						const exchangeName = (barter.exchangeItem?.itemName || "").trim();
+						const npcName = (barter.gameNpc?.npcName || "").trim();
+						const regionName = (barter.gameRegion?.regionName || "").trim();
+						const keywordCandidate = obtainedName || exchangeName;
+						if(!keywordCandidate){
+							continue;
+						}
+						const dedupeKey = `${obtainedName}|${exchangeName}|${npcName}`;
+						if(deduped.has(dedupeKey)){
+							continue;
+						}
+						deduped.set(dedupeKey, {
+							key : `barter-${barter.barterId}-${barter.itemId}-${barter.exchangeId}`,
+							keyword : keywordCandidate,
+							title : `${obtainedName || "-"} ↔ ${exchangeName || "-"}`,
+							subtitle : `${regionName || "-"} / ${npcName || "-"}`,
+							meta : `교환 ${barter.exchangeCost ?? 0}개 · 최대 ${barter.barterQty ?? 0}회`
+						});
+					}
+					if(active){
+						setSearchSuggestions(Array.from(deduped.values()).slice(0, MAX_SEARCH_SUGGESTIONS));
+					}
+				}else{
+					const response = await GameItemService.getCrafts({
+						page : 0,
+						size : MAX_SEARCH_SUGGESTIONS,
+						sortBy : "craftType",
+						sortDir : "asc",
+						keyword : trimmedKeyword,
+						craftType : selectedCraftType || undefined,
+						craftName : selectedCraftName || undefined
+					});
+
+					const deduped = new Map<string, SearchSuggestion>();
+					for(const craft of response.content){
+						const productName = (craft.itemName || craft.gameItem?.itemName || "").trim();
+						const ingredientName = (craft.ingredientName || craft.ingredientItem?.itemName || "").trim();
+						if(!productName){
+							continue;
+						}
+						const dedupeKey = `${productName}|${craft.craftType}|${craft.craftName}`;
+						if(deduped.has(dedupeKey)){
+							continue;
+						}
+						deduped.set(dedupeKey, {
+							key : `craft-${craft.craftId}-${craft.craftSubId}-${craft.itemId}`,
+							keyword : productName,
+							title : productName,
+							subtitle : `${craft.craftType || "-"} > ${craft.craftName || "-"}`,
+							meta : `재료 ${ingredientName || "-"} x${craft.craftIngredientCost ?? 0}`
+						});
+					}
+					if(active){
+						setSearchSuggestions(Array.from(deduped.values()).slice(0, MAX_SEARCH_SUGGESTIONS));
+					}
+				}
+			}catch(error){
+				console.error("추천 검색 데이터 로드 실패:", error);
+				if(active){
+					setSearchSuggestions([]);
+				}
+			}finally{
+				if(active){
+					setSearchSuggestionsLoading(false);
+				}
+			}
+		}, 250);
+
+		return () => {
+			active = false;
+			window.clearTimeout(timer);
+		};
+	}, [
+		activeTab,
+		searchInput,
+		selectedItemMainMenu,
+		selectedItemSubMenu,
+		selectedItemType,
+		selectedRarities,
+		selectedBarterRegionId,
+		selectedBarterNpcId,
+		selectedCraftType,
+		selectedCraftName,
+		isStandaloneDetailPage
+	]);
+
+	useEffect(() => {
+		const handlePointerDown = (event:PointerEvent) => {
+			const target = event.target as Node | null;
+			if(!target){
+				return;
+			}
+			if(searchBoxRef.current?.contains(target)){
+				return;
+			}
+			setShowSearchSuggestions(false);
+		};
+
+		document.addEventListener("pointerdown", handlePointerDown);
+		return () => {
+			document.removeEventListener("pointerdown", handlePointerDown);
+		};
+	}, []);
 	
 	useEffect(() => {
 		if(isStandaloneDetailPage){
@@ -271,7 +475,7 @@ const GameItemsPage:React.FC = () => {
 	const getDefaultSort = (tab:TabType) => {
 		switch(tab){
 			case "items":
-				return {sortBy : "itemMainMenu", sortDir : "asc" as const};
+				return {sortBy : "itemRarity", sortDir : "desc" as const};
 			case "barter":
 				return {sortBy : "regionId", sortDir : "asc" as const};
 			case "craft":
@@ -413,46 +617,87 @@ const GameItemsPage:React.FC = () => {
 		setBarters([]);
 		setCrafts([]);
 	};
-	
-	const handleTabChange = (tab:TabType) => {
-		if(tab === activeTab){
-			return;
-		}
-		
+
+
+	const applyTabState = useCallback((tab:TabType) => {
 		setActiveTab(tab);
 		const defaultSort = getDefaultSort(tab);
 		setSortBy(defaultSort.sortBy);
 		setSortDir(defaultSort.sortDir);
 		setSearchInput("");
 		setKeyword("");
-		setSelectedItemMainMenu("");
-		setSelectedItemSubMenu("");
+		setSelectedItemMainMenu(tab === "items" ? DEFAULT_ITEM_MAIN_MENU : "");
+		setSelectedItemSubMenu(tab === "items" ? DEFAULT_ITEM_SUB_MENU : "");
 		setSelectedItemType("");
 		setSelectedRarities([]);
 		setSelectedBarterRegionId("");
 		setSelectedBarterNpcId("");
 		setSelectedCraftType("");
 		setSelectedCraftName("");
+		setShowSearchSuggestions(false);
+		setSearchSuggestions([]);
+		setSearchSuggestionsLoading(false);
 		resetPagingState();
+	}, []);
+
+	useEffect(() => {
+		if(isDetailRoute){
+			return;
+		}
+
+		const tabFromPath = resolveTabFromPath(location.pathname);
+		if(tabFromPath === activeTab){
+			return;
+		}
+
+		applyTabState(tabFromPath);
+	}, [activeTab, applyTabState, isDetailRoute, location.pathname]);
+	
+	const handleTabChange = (tab:TabType) => {
+		const targetPath = ITEM_TAB_PATHS[tab];
+		if(location.pathname !== targetPath){
+			navigate(targetPath);
+		}
+		if(tab !== activeTab){
+			applyTabState(tab);
+		}
 	};
 	
 	const handleSearch = () => {
 		setKeyword(searchInput.trim());
+		setShowSearchSuggestions(false);
 		resetPagingState();
+		setManualSearchTick((prev) => prev + 1);
 	};
 	
 	const handleReset = () => {
 		setSearchInput("");
 		setKeyword("");
-		setSelectedItemMainMenu("");
-		setSelectedItemSubMenu("");
+		setSelectedItemMainMenu(activeTab === "items" ? DEFAULT_ITEM_MAIN_MENU : "");
+		setSelectedItemSubMenu(activeTab === "items" ? DEFAULT_ITEM_SUB_MENU : "");
 		setSelectedItemType("");
 		setSelectedRarities([]);
 		setSelectedBarterRegionId("");
 		setSelectedBarterNpcId("");
 		setSelectedCraftType("");
 		setSelectedCraftName("");
+		setShowSearchSuggestions(false);
+		setSearchSuggestions([]);
+		setSearchSuggestionsLoading(false);
 		resetPagingState();
+		setManualSearchTick((prev) => prev + 1);
+	};
+
+	const applySearchSuggestion = (nextKeyword:string) => {
+		const trimmed = nextKeyword.trim();
+		if(!trimmed){
+			return;
+		}
+		setSearchInput(trimmed);
+		setKeyword(trimmed);
+		setShowSearchSuggestions(false);
+		resetPagingState();
+		setManualSearchTick((prev) => prev + 1);
 	};
 	
 	const handleSortChange = (newSortBy:string, newSortDir:"asc" | "desc") => {
@@ -503,6 +748,7 @@ const GameItemsPage:React.FC = () => {
 		selectedBarterNpcId,
 		selectedCraftType,
 		selectedCraftName,
+		manualSearchTick,
 		isStandaloneDetailPage,
 		loadData
 	]);
@@ -530,7 +776,7 @@ const GameItemsPage:React.FC = () => {
 	const tabTitle = useMemo(() => {
 		switch(activeTab){
 			case "items":
-				return "게임 아이템";
+				return "아이템";
 			case "barter":
 				return "물물교환";
 			case "craft":
@@ -563,6 +809,35 @@ const GameItemsPage:React.FC = () => {
 		},
 		[selectedItemMainMenu, selectedMainMenuCategory]
 	);
+
+	useEffect(() => {
+		if(activeTab !== "items" || selectedItemMainMenu !== EQUIPMENT_MAIN_MENU){
+			return;
+		}
+
+		if(availableItemSubMenus.length === 0){
+			return;
+		}
+
+		// Keep "전체" selected for sub menu when user intentionally leaves it empty.
+		if(!selectedItemSubMenu){
+			return;
+		}
+
+		if(availableItemSubMenus.some((subMenu) => subMenu.itemSubMenu === selectedItemSubMenu)){
+			return;
+		}
+
+		const fallbackSubMenu = EQUIPMENT_SUB_MENU_ORDER.find((subMenu) =>
+			availableItemSubMenus.some((option) => option.itemSubMenu === subMenu)
+		) ?? availableItemSubMenus[0]?.itemSubMenu;
+		if(!fallbackSubMenu){
+			return;
+		}
+
+		setSelectedItemSubMenu(fallbackSubMenu);
+		setSelectedItemType("");
+	}, [activeTab, availableItemSubMenus, selectedItemMainMenu, selectedItemSubMenu]);
 	
 	const selectedSubMenuCategory = useMemo(
 		() => availableItemSubMenus.find((subMenu) => subMenu.itemSubMenu === selectedItemSubMenu) || null,
@@ -612,7 +887,7 @@ const GameItemsPage:React.FC = () => {
 			<div className={styles.container}>
 				<div className="page-heading">
 					<h1>{"게임 데이터"}</h1>
-					<p className="page-heading-subtitle">{"마비노기 게임 아이템, 물물교환, 제작 정보를 탐색해보세요."}</p>
+					<p className="page-heading-subtitle">{"아이템, 물물교환, 제작 정보를 탐색해보세요."}</p>
 				</div>
 				
 				<div className={styles.tabContainer}>
@@ -642,16 +917,47 @@ const GameItemsPage:React.FC = () => {
 				<div className={styles.controlsSection}>
 					<div className={styles.controlsTopRow}>
 						<div className={styles.searchContainer}>
-							<div className={styles.searchBox}>
+							<div className={styles.searchBox} ref={searchBoxRef}>
 								<Search size={20} className={styles.searchIcon}/>
 								<input
 									type="text"
-									placeholder={`${tabTitle} 이름으로 검색..`}
+									placeholder={`${tabTitle} 이름으로 검색...`}
 									value={searchInput}
-									onChange={(e) => setSearchInput(e.target.value)}
+									onChange={(e) => {
+										const value = e.target.value;
+										setSearchInput(value);
+										setShowSearchSuggestions(Boolean(value.trim()));
+									}}
 									onKeyPress={handleKeyPress}
+									onFocus={() => {
+										if(searchInput.trim()){
+											setShowSearchSuggestions(true);
+										}
+									}}
 									className={styles.searchInput}
 								/>
+								{showSearchSuggestions && searchInput.trim() && (
+									<div className={styles.searchSuggestionDropdown}>
+										{searchSuggestions.length > 0 ? (
+											searchSuggestions.map((suggestion) => (
+												<button
+													key={suggestion.key}
+													type="button"
+													className={styles.searchSuggestionItem}
+													onClick={() => applySearchSuggestion(suggestion.keyword)}
+												>
+													<span className={styles.searchSuggestionTitle}>{suggestion.title}</span>
+													{suggestion.subtitle && <span className={styles.searchSuggestionSubtitle}>{suggestion.subtitle}</span>}
+													{suggestion.meta && <span className={styles.searchSuggestionMeta}>{suggestion.meta}</span>}
+												</button>
+											))
+										) : (
+											<div className={styles.searchSuggestionEmpty}>
+												{searchSuggestionsLoading ? "검색 중..." : "추천 검색 결과가 없습니다."}
+											</div>
+										)}
+									</div>
+								)}
 							</div>
 							<button onClick={handleSearch} className={styles.searchBtn} disabled={loading}>
 								{loading ? <RefreshCw className={styles.spinning} size={16}/> : "검색"}
@@ -799,7 +1105,7 @@ const GameItemsPage:React.FC = () => {
 								</div>
 								
 								<div className={styles.filterField}>
-									<label htmlFor="barter-npc-filter">{"NPC (소분류)"}</label>
+									<label htmlFor="barter-npc-filter">{"NPC (분류)"}</label>
 									<select
 										id="barter-npc-filter"
 										value={selectedBarterNpcId}
@@ -843,7 +1149,7 @@ const GameItemsPage:React.FC = () => {
 								</div>
 								
 								<div className={styles.filterField}>
-									<label htmlFor="craft-name-filter">{"소분류"}</label>
+									<label htmlFor="craft-name-filter">{"세부분류"}</label>
 									<select
 										id="craft-name-filter"
 										value={selectedCraftName}
@@ -932,7 +1238,7 @@ const GameItemsPage:React.FC = () => {
 				
 				{!loading && currentDataLength === 0 && (
 					<div className={styles.noData}>
-						{keyword ? "검색 결과가 없습니다." : tabTitle + "이 없습니다."}
+						{keyword ? "검색 결과가 없습니다." : `${tabTitle}이 없습니다.`}
 					</div>
 				)}
 				

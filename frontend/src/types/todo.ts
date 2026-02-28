@@ -77,6 +77,7 @@ export interface UserTodo{
 	userPower?:number;
 	userVitality?:number;
 	userAttractiveness?:number;
+	rankUpdatedAt?:string;
 }
 
 export interface UserTodoBarter{
@@ -89,6 +90,7 @@ export interface UserTodoBarter{
 	regionName:string;
 	barterCycle:string;
 	completed:boolean;
+	completedCount?:number;
 	checkedByUserId?:number;
 	checkedByNickname?:string;
 	checkedByCharacterId?:number;

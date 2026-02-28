@@ -286,6 +286,83 @@
 	}
 }
 
+.referenceCard{
+	margin:0 0 14px;
+	padding:12px;
+	border:1px solid var(--border);
+	border-radius:$border-radius;
+	background:var(--surface);
+}
+
+.referenceCard_item{
+	border-left:4px solid #3b82f6;
+}
+
+.referenceCard_barter{
+	border-left:4px solid #10b981;
+}
+
+.referenceCard_craft{
+	border-left:4px solid #f59e0b;
+}
+
+.referenceCardHeader{
+	display:flex;
+	justify-content:space-between;
+	align-items:center;
+	gap:8px;
+	margin-bottom:8px;
+
+	strong{
+		font-size:13px;
+		color:var(--text);
+	}
+
+	span{
+		font-size:11px;
+		font-weight:700;
+		color:var(--text-muted);
+		background:var(--surface-hover);
+		border:1px solid var(--border);
+		border-radius:999px;
+		padding:2px 8px;
+	}
+}
+
+.referenceCardRows{
+	display:flex;
+	flex-direction:column;
+	gap:6px;
+}
+
+.referenceCardRow{
+	display:grid;
+	grid-template-columns:86px minmax(0, 1fr);
+	gap:8px;
+	align-items:flex-start;
+}
+
+.referenceCardKey{
+	font-size:12px;
+	font-weight:600;
+	color:var(--text-muted);
+}
+
+.referenceCardValue{
+	font-size:12px;
+	color:var(--text);
+	word-break:break-word;
+
+	a{
+		color:var(--primary);
+		text-decoration:none;
+	}
+
+	a:hover{
+		text-decoration:underline;
+	}
+}
+
 .imageGallery{
 	display:flex;
 	flex-direction:column;
@@ -564,6 +641,10 @@
 			padding:8px 10px;
 			font-size:13px;
 		}
+	}
+
+	.referenceCardRow{
+		grid-template-columns:72px minmax(0, 1fr);
 	}
 
 	.commentsSection{

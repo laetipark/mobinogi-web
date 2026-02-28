@@ -4,27 +4,240 @@ import ReactMarkdown, {type Components} from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
-import type {BoardCategory, BoardPostCreateRequest, BoardPostUpdateRequest} from "@/types";
+import type {
+	BoardCategory, BoardPostCreateRequest, BoardPostUpdateRequest, GameItemSummary, LifeBarter, LifeCraft
+} from "@/types";
 import {boardService} from "@/services/board-service";
+import GameItemService from "@/services/game-item-service";
 import {uploadService} from "@/services/upload-service";
 import {useAuth} from "@/hooks/use-auth";
 import {useSeo} from "@/hooks/use-seo";
 import {createBoardPostPath} from "@/utils/board-url";
+import {toItemDetailPath} from "@/utils";
+import {parseBoardReferenceToken, serializeBoardReferenceToken} from "@/utils/board-reference-token";
 import {remarkSoftBreaks} from "@/utils/remark-soft-breaks";
-import {ImagePlus} from "lucide-react";
+import {ImagePlus, Search, Package, ArrowLeftRight, Hammer, X} from "lucide-react";
 import MarkdownToolbar from "@/components/board/markdown-toolbar";
 import styles from "./board-write.module.scss";
+
+const renderReferenceTokenCard = (className:string | undefined, rawValue:string) => {
+	const token = parseBoardReferenceToken(className, rawValue);
+	if(!token){
+		return null;
+	}
+
+	const itemUrl = token.fields.itemUrl || token.fields.rewardUrl || token.fields.productUrl || "";
+	const itemName = token.fields.itemName || token.fields.rewardName || token.fields.productName || "-";
+	const ingredientName = token.fields.ingredientName || token.fields.exchangeName || "-";
+	const ingredientUrl = token.fields.ingredientUrl || token.fields.exchangeUrl || "";
+	const cardTitle = token.type === "item"
+		? "아이템 정보"
+		: token.type === "barter"
+			? "물물교환 정보"
+			: "제작 정보";
+
+	const typeLabel = token.type === "item"
+		? "ITEM"
+		: token.type === "barter"
+			? "BARTER"
+			: "CRAFT";
+
+	const renderLinkOrText = (label:string, url?:string) => {
+		const normalizedLabel = (label || "-").trim() || "-";
+		const normalizedUrl = (url || "").trim();
+		if(!normalizedUrl){
+			return <span>{normalizedLabel}</span>;
+		}
+		return <a href={normalizedUrl}>{normalizedLabel}</a>;
+	};
+
+	return (
+		<div className={`${styles.referenceCard} ${styles[`referenceCard_${token.type}`]}`}>
+			<div className={styles.referenceCardHeader}>
+				<strong>{cardTitle}</strong>
+				<span>{typeLabel}</span>
+			</div>
+			<div className={styles.referenceCardRows}>
+				<div className={styles.referenceCardRow}>
+					<span className={styles.referenceCardKey}>{token.type === "barter" ? "획득 아이템" : "아이템"}</span>
+					<span className={styles.referenceCardValue}>{renderLinkOrText(itemName, itemUrl)}</span>
+				</div>
+				{token.type !== "item" && (
+					<div className={styles.referenceCardRow}>
+						<span className={styles.referenceCardKey}>{token.type === "barter" ? "교환 아이템" : "재료"}</span>
+						<span className={styles.referenceCardValue}>{renderLinkOrText(ingredientName, ingredientUrl)}</span>
+					</div>
+				)}
+				{token.fields.category && (
+					<div className={styles.referenceCardRow}>
+						<span className={styles.referenceCardKey}>분류</span>
+						<span className={styles.referenceCardValue}>{token.fields.category}</span>
+					</div>
+				)}
+				{token.fields.rarity && (
+					<div className={styles.referenceCardRow}>
+						<span className={styles.referenceCardKey}>등급</span>
+						<span className={styles.referenceCardValue}>{token.fields.rarity}</span>
+					</div>
+				)}
+				{token.type === "barter" && (
+					<>
+						<div className={styles.referenceCardRow}>
+							<span className={styles.referenceCardKey}>지역/NPC</span>
+							<span className={styles.referenceCardValue}>{`${token.fields.region || "-"} / ${token.fields.npc || "-"}`}</span>
+						</div>
+						<div className={styles.referenceCardRow}>
+							<span className={styles.referenceCardKey}>횟수/보상</span>
+							<span className={styles.referenceCardValue}>
+								{`최대 ${token.fields.maxTrades || "-"}회, 1회 x${token.fields.rewardPerTrade || "-"}`}
+							</span>
+						</div>
+					</>
+				)}
+				{token.type === "craft" && (
+					<div className={styles.referenceCardRow}>
+						<span className={styles.referenceCardKey}>레벨/시간</span>
+						<span className={styles.referenceCardValue}>
+							{`${token.fields.level || "-"} / ${token.fields.time || "-"}`}
+						</span>
+					</div>
+				)}
+				{token.fields.source && (
+					<div className={styles.referenceCardRow}>
+						<span className={styles.referenceCardKey}>출처</span>
+						<span className={styles.referenceCardValue}>{token.fields.source}</span>
+					</div>
+				)}
+			</div>
+		</div>
+	);
+};
 
 const markdownComponents:Components = {
 	table: ({children, ...props}) => (
 		<div className={styles.tableWrapper}>
 			<table {...props}>{children}</table>
 		</div>
-	)
+	),
+	pre: ({children, ...props}) => {
+		const child = React.Children.toArray(children)[0];
+		if(React.isValidElement(child)){
+			const className = (child.props as {className?:string}).className;
+			const rawValue = String((child.props as {children?:React.ReactNode}).children ?? "").trim();
+			const referenceCard = renderReferenceTokenCard(className, rawValue);
+			if(referenceCard){
+				return referenceCard;
+			}
+		}
+		return <pre {...props}>{children}</pre>;
+	}
 };
 
 const markdownRehypePlugins = [rehypeRaw, rehypeSanitize];
 const markdownRemarkPlugins = [remarkGfm, remarkSoftBreaks];
+type ReferenceTab = "item" | "barter" | "craft";
+
+const MAX_REFERENCE_RESULTS = 8;
+
+const toSingleLine = (value:string | null | undefined):string => (value ?? "").replace(/\s+/g, " ").trim();
+
+const toSafeInteger = (value:number | string | null | undefined):number => {
+	const numeric = Number(value);
+	return Number.isFinite(numeric) ? Math.trunc(numeric) : 0;
+};
+
+const toDisplayValue = (value:string | null | undefined, fallback:string = "-"):string => {
+	const normalized = toSingleLine(value);
+	return normalized || fallback;
+};
+
+const formatProcessingTime = (processingTime:number | null | undefined):string => {
+	if(processingTime === null || processingTime === undefined){
+		return "-";
+	}
+	const minutes = Math.floor(processingTime / 60);
+	const seconds = processingTime % 60;
+	if(minutes <= 0){
+		return `${seconds}초`;
+	}
+	if(seconds === 0){
+		return `${minutes}분`;
+	}
+	return `${minutes}분 ${seconds}초`;
+};
+
+const toItemNameAndUrl = (itemName:string | null | undefined):{name:string; url:string} => {
+	const normalized = toSingleLine(itemName);
+	if(!normalized){
+		return {name : "-", url : ""};
+	}
+	return {
+		name : normalized,
+		url : toItemDetailPath(normalized)
+	};
+};
+
+const buildItemReferenceMarkdown = (item:GameItemSummary):string => {
+	const category = [
+		toSingleLine(item.itemMainMenu ?? ""),
+		toSingleLine(item.itemSubMenu ?? ""),
+		toSingleLine(item.itemType)
+	].filter(Boolean).join(" > ") || "-";
+	const source = toSingleLine(item.itemSource ?? "") || "-";
+	const itemInfo = toItemNameAndUrl(item.itemName);
+
+	return serializeBoardReferenceToken("item", {
+		itemName : itemInfo.name,
+		itemUrl : itemInfo.url,
+		category,
+		rarity : toSingleLine(item.itemRarity) || "-",
+		source
+	});
+};
+
+const buildBarterReferenceMarkdown = (barter:LifeBarter):string => {
+	const rewardPerTrade = toSafeInteger(barter.itemWeight);
+	const maxTrades = toSafeInteger(barter.barterQty);
+	const exchangeCost = toSafeInteger(barter.exchangeCost);
+	const regionName = toSingleLine(barter.gameRegion?.regionName) || "-";
+	const npcName = toSingleLine(barter.gameNpc?.npcName) || "-";
+	const rewardInfo = toItemNameAndUrl(barter.gameItem?.itemName);
+	const exchangeInfo = toItemNameAndUrl(barter.exchangeItem?.itemName);
+
+	return serializeBoardReferenceToken("barter", {
+		rewardName : rewardInfo.name,
+		rewardUrl : rewardInfo.url,
+		exchangeName : exchangeInfo.name,
+		exchangeUrl : exchangeInfo.url,
+		region : regionName,
+		npc : npcName,
+		cost : String(exchangeCost),
+		maxTrades : String(maxTrades),
+		rewardPerTrade : String(rewardPerTrade)
+	});
+};
+
+const buildCraftReferenceMarkdown = (craft:LifeCraft):string => {
+	const craftType = toSingleLine(craft.craftType) || "-";
+	const craftName = toSingleLine(craft.craftName) || "-";
+	const itemName = toSingleLine(craft.itemName || craft.gameItem?.itemName || "");
+	const ingredientName = toSingleLine(craft.ingredientName || craft.ingredientItem?.itemName || "");
+	const ingredientCost = toSafeInteger(craft.craftIngredientCost);
+	const level = craft.craftableLevel === null || craft.craftableLevel === undefined ? "-" : String(craft.craftableLevel);
+	const productInfo = toItemNameAndUrl(itemName);
+	const ingredientInfo = toItemNameAndUrl(ingredientName);
+
+	return serializeBoardReferenceToken("craft", {
+		productName : productInfo.name,
+		productUrl : productInfo.url,
+		ingredientName : ingredientInfo.name,
+		ingredientUrl : ingredientInfo.url,
+		ingredientCost : String(ingredientCost),
+		category : `${craftType} > ${craftName}`,
+		level,
+		time : formatProcessingTime(craft.processingTime)
+	});
+};
 
 const BoardWritePage:React.FC = () => {
 	const {postId} = useParams<{postId:string}>();
@@ -32,6 +245,8 @@ const BoardWritePage:React.FC = () => {
 	const {user} = useAuth();
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
+	const referencePanelRef = useRef<HTMLDivElement>(null);
+	const referencePanelTriggerRef = useRef<HTMLButtonElement>(null);
 
 	const [categories, setCategories] = useState<BoardCategory[]>([]);
 	const [categoryId, setCategoryId] = useState<number | null>(null);
@@ -42,6 +257,14 @@ const BoardWritePage:React.FC = () => {
 	const [error, setError] = useState<string | null>(null);
 	const [showPreview, setShowPreview] = useState(false);
 	const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+	const [referenceTab, setReferenceTab] = useState<ReferenceTab>("item");
+	const [referenceKeyword, setReferenceKeyword] = useState("");
+	const [referenceLoading, setReferenceLoading] = useState(false);
+	const [referenceError, setReferenceError] = useState<string | null>(null);
+	const [itemReferenceResults, setItemReferenceResults] = useState<GameItemSummary[]>([]);
+	const [barterReferenceResults, setBarterReferenceResults] = useState<LifeBarter[]>([]);
+	const [craftReferenceResults, setCraftReferenceResults] = useState<LifeCraft[]>([]);
+	const [referencePanelOpen, setReferencePanelOpen] = useState(false);
 
 	const isEditMode = !!postId;
 
@@ -97,26 +320,60 @@ const BoardWritePage:React.FC = () => {
 		}
 	};
 
-	const insertImageMarkdown = (url:string) => {
+	const insertAtCursor = useCallback((insertText:string, ensureBlockSpacing:boolean = false) => {
 		const textarea = textareaRef.current;
+		const normalizedInsertText = ensureBlockSpacing ? insertText.trim() : insertText;
 		if(!textarea){
-			setContent(prev => prev + `\n![이미지](${url})\n`);
+			setContent((prev) => {
+				const base = prev ?? "";
+				if(!ensureBlockSpacing){
+					return `${base}${normalizedInsertText}`;
+				}
+				const trimmedBase = base.replace(/\s*$/, "");
+				return trimmedBase
+					? `${trimmedBase}\n\n${normalizedInsertText}\n`
+					: `${normalizedInsertText}\n`;
+			});
 			return;
 		}
 		const start = textarea.selectionStart;
 		const end = textarea.selectionEnd;
-		const imageText = `![이미지](${url})`;
-		const newContent = content.substring(0, start) + imageText + content.substring(end);
+		let textToInsert = normalizedInsertText;
+		if(ensureBlockSpacing){
+			const prevChar = start > 0 ? content[start - 1] : "";
+			const prevPrevChar = start > 1 ? content[start - 2] : "";
+			const nextChar = end < content.length ? content[end] : "";
+			const prefix = prevChar === ""
+				? ""
+				: prevChar === "\n"
+					? (prevPrevChar === "\n" ? "" : "\n")
+					: "\n\n";
+			const suffix = nextChar === ""
+				? "\n"
+				: nextChar === "\n"
+					? "\n"
+					: "\n\n";
+			textToInsert = `${prefix}${normalizedInsertText}${suffix}`;
+		}
+		const newContent = content.substring(0, start) + textToInsert + content.substring(end);
 		setContent(newContent);
 
 		setTimeout(() => {
 			textarea.focus();
-			const newPos = start + imageText.length;
+			const newPos = start + textToInsert.length;
 			textarea.setSelectionRange(newPos, newPos);
 		}, 0);
-	};
+	}, [content]);
 
-	const handleImageUpload = useCallback(async (file:File) => {
+	const insertImageMarkdown = useCallback((url:string) => {
+		insertAtCursor(`![이미지](${url})`);
+	}, [insertAtCursor]);
+
+	const insertReferenceMarkdown = useCallback((markdown:string) => {
+		insertAtCursor(markdown, true);
+	}, [insertAtCursor]);
+
+	const handleImageUpload = useCallback(async(file:File) => {
 		setUploadProgress(0);
 		try{
 			const result = await uploadService.uploadImage(file, "board", (progress) => {
@@ -132,7 +389,7 @@ const BoardWritePage:React.FC = () => {
 		}finally{
 			setUploadProgress(null);
 		}
-	}, [content]);
+	}, [insertImageMarkdown]);
 
 	const handleFileSelect = (e:React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
@@ -163,6 +420,132 @@ const BoardWritePage:React.FC = () => {
 			}
 		}
 	}, [handleImageUpload]);
+
+	const handleSearchReference = useCallback(async() => {
+		const keyword = referenceKeyword.trim();
+		if(!keyword){
+			setReferenceError(null);
+			setItemReferenceResults([]);
+			setBarterReferenceResults([]);
+			setCraftReferenceResults([]);
+			return;
+		}
+
+		setReferenceLoading(true);
+		setReferenceError(null);
+
+		try{
+			if(referenceTab === "item"){
+				const response = await GameItemService.getGameItems({
+					page : 0,
+					size : MAX_REFERENCE_RESULTS,
+					sortBy : "itemRarity",
+					sortDir : "desc",
+					keyword
+				});
+				const deduped = Array.from(
+					new Map(response.content.map((item) => [item.itemId, item])).values()
+				).slice(0, MAX_REFERENCE_RESULTS);
+				setItemReferenceResults(deduped);
+			}else if(referenceTab === "barter"){
+				const response = await GameItemService.getBarters({
+					page : 0,
+					size : MAX_REFERENCE_RESULTS,
+					sortBy : "regionId",
+					sortDir : "asc",
+					keyword
+				});
+				const deduped = Array.from(
+					new Map(response.content.map((barter) => [`${barter.barterId}-${barter.itemId}-${barter.exchangeId}`, barter])).values()
+				).slice(0, MAX_REFERENCE_RESULTS);
+				setBarterReferenceResults(deduped);
+			}else{
+				const response = await GameItemService.getCrafts({
+					page : 0,
+					size : MAX_REFERENCE_RESULTS,
+					sortBy : "craftType",
+					sortDir : "asc",
+					keyword
+				});
+				const deduped = Array.from(
+					new Map(response.content.map((craft) => [`${craft.craftId}-${craft.craftSubId}-${craft.itemId}`, craft])).values()
+				).slice(0, MAX_REFERENCE_RESULTS);
+				setCraftReferenceResults(deduped);
+			}
+		}catch(error){
+			console.error("참조 데이터 검색 실패:", error);
+			setReferenceError("검색에 실패했습니다. 잠시 후 다시 시도해주세요.");
+		}finally{
+			setReferenceLoading(false);
+		}
+	}, [referenceKeyword, referenceTab]);
+
+	const handleReferenceKeywordKeyDown = (e:React.KeyboardEvent<HTMLInputElement>) => {
+		if(e.key === "Enter"){
+			e.preventDefault();
+			void handleSearchReference();
+		}
+	};
+
+	useEffect(() => {
+		if(!referencePanelOpen){
+			return;
+		}
+
+		const keyword = referenceKeyword.trim();
+		if(!keyword){
+			setReferenceError(null);
+			setItemReferenceResults([]);
+			setBarterReferenceResults([]);
+			setCraftReferenceResults([]);
+			setReferenceLoading(false);
+			return;
+		}
+
+		const timer = window.setTimeout(() => {
+			void handleSearchReference();
+		}, 300);
+		return () => window.clearTimeout(timer);
+	}, [referenceKeyword, referenceTab, referencePanelOpen, handleSearchReference]);
+
+	useEffect(() => {
+		if(showPreview){
+			setReferencePanelOpen(false);
+		}
+	}, [showPreview]);
+
+	useEffect(() => {
+		if(!referencePanelOpen){
+			return;
+		}
+
+		const handlePointerDown = (event:PointerEvent) => {
+			const target = event.target as Node | null;
+			if(!target){
+				return;
+			}
+			if(referencePanelRef.current?.contains(target)){
+				return;
+			}
+			if(referencePanelTriggerRef.current?.contains(target)){
+				return;
+			}
+			setReferencePanelOpen(false);
+		};
+
+		const handleEsc = (event:KeyboardEvent) => {
+			if(event.key === "Escape"){
+				setReferencePanelOpen(false);
+			}
+		};
+
+		document.addEventListener("pointerdown", handlePointerDown);
+		document.addEventListener("keydown", handleEsc);
+		return () => {
+			document.removeEventListener("pointerdown", handlePointerDown);
+			document.removeEventListener("keydown", handleEsc);
+		};
+	}, [referencePanelOpen]);
 
 	const handleSubmit = async (e:React.FormEvent) => {
 		e.preventDefault();
@@ -198,6 +581,15 @@ const BoardWritePage:React.FC = () => {
 			setLoading(false);
 		}
 	};
+
+	const activeReferenceResultCount = referenceTab === "item"
+		? itemReferenceResults.length
+		: referenceTab === "barter"
+			? barterReferenceResults.length
+			: craftReferenceResults.length;
+	const referencePanelDescription = referencePanelOpen
+		? `검색 결과 ${activeReferenceResultCount}건`
+		: "아이템, 물물교환, 제작 정보를 본문에 삽입";
 
 	return (
 		<div className={styles.boardPage}>
@@ -314,7 +706,164 @@ const BoardWritePage:React.FC = () => {
 									textareaRef={textareaRef}
 									content={content}
 									setContent={setContent}
+									floatingAction={{
+										icon : <Search size={16}/>,
+										title : "참조 패널",
+										action : () => setReferencePanelOpen((prev) => !prev),
+										active : referencePanelOpen,
+										buttonRef : referencePanelTriggerRef
+									}}
 								/>
+								{referencePanelOpen && (
+									<div className={styles.referenceFloatingLayer}>
+										<div className={styles.referencePanel} ref={referencePanelRef}>
+											<div className={styles.referenceHeader}>
+												<div className={styles.referenceHeaderText}>
+													<strong>참조 패널</strong>
+													<span>{referencePanelDescription}</span>
+												</div>
+												<button
+													type="button"
+													className={styles.referencePanelCloseBtn}
+													onClick={() => setReferencePanelOpen(false)}
+													aria-label="참조 패널 닫기"
+												>
+													<X size={14}/>
+												</button>
+											</div>
+											<div className={styles.referenceControls}>
+												<div className={styles.referenceTabs}>
+													<button
+														type="button"
+														className={`${styles.referenceTabBtn} ${referenceTab === "item" ? styles.active : ""}`}
+														onClick={() => setReferenceTab("item")}
+													>
+														<Package size={14}/>
+														아이템
+													</button>
+													<button
+														type="button"
+														className={`${styles.referenceTabBtn} ${referenceTab === "barter" ? styles.active : ""}`}
+														onClick={() => setReferenceTab("barter")}
+													>
+														<ArrowLeftRight size={14}/>
+														물물교환
+													</button>
+													<button
+														type="button"
+														className={`${styles.referenceTabBtn} ${referenceTab === "craft" ? styles.active : ""}`}
+														onClick={() => setReferenceTab("craft")}
+													>
+														<Hammer size={14}/>
+														제작
+													</button>
+												</div>
+												<div className={styles.referenceSearch}>
+													<input
+														type="text"
+														value={referenceKeyword}
+														onChange={(e) => setReferenceKeyword(e.target.value)}
+														onKeyDown={handleReferenceKeywordKeyDown}
+														placeholder="검색어를 입력하세요"
+														className={styles.referenceInput}
+													/>
+													<button
+														type="button"
+														className={styles.referenceSearchBtn}
+														onClick={() => void handleSearchReference()}
+														disabled={referenceLoading}
+													>
+														<Search size={14}/>
+														검색
+													</button>
+												</div>
+											</div>
+
+											{referenceError && <div className={styles.referenceError}>{referenceError}</div>}
+											{referenceLoading && <div className={styles.referenceLoading}>검색 중입니다...</div>}
+											{!referenceLoading && !referenceError && referenceKeyword.trim() && activeReferenceResultCount === 0 && (
+												<div className={styles.referenceEmpty}>검색 결과가 없습니다.</div>
+											)}
+
+											{!referenceLoading && !referenceError && activeReferenceResultCount > 0 && (
+												<div className={styles.referenceResults}>
+													{referenceTab === "item" && itemReferenceResults.map((item) => (
+														<div key={item.itemId} className={styles.referenceResultCard}>
+															<div className={styles.referenceResultTitleRow}>
+																<Package size={14}/>
+																<strong>{toDisplayValue(item.itemName)}</strong>
+															</div>
+															<div className={styles.referenceResultMeta}>
+																<span>
+																	{[
+																		toDisplayValue(item.itemMainMenu, ""),
+																		toDisplayValue(item.itemSubMenu, ""),
+																		toDisplayValue(item.itemType, "")
+																	].filter(Boolean).join(" > ") || "-"}
+																</span>
+																<span>{`등급 ${toDisplayValue(item.itemRarity)} · ${toDisplayValue(item.itemSource)}`}</span>
+															</div>
+															<button
+																type="button"
+																className={styles.referenceInsertBtn}
+																onClick={() => insertReferenceMarkdown(buildItemReferenceMarkdown(item))}
+															>
+																본문에 삽입
+															</button>
+														</div>
+													))}
+													{referenceTab === "barter" && barterReferenceResults.map((barter) => (
+														<div
+															key={`${barter.barterId}-${barter.itemId}-${barter.exchangeId}`}
+															className={styles.referenceResultCard}
+														>
+															<div className={styles.referenceResultTitleRow}>
+																<ArrowLeftRight size={14}/>
+																<strong>{`${toDisplayValue(barter.gameItem?.itemName)} ↔ ${toDisplayValue(barter.exchangeItem?.itemName)}`}</strong>
+															</div>
+															<div className={styles.referenceResultMeta}>
+																<span>{`${toDisplayValue(barter.gameRegion?.regionName)} / ${toDisplayValue(barter.gameNpc?.npcName)}`}</span>
+																<span>
+																	{`교환 ${toSafeInteger(barter.exchangeCost)}개 · 최대 ${toSafeInteger(barter.barterQty)}회 · 1회 보상 x${toSafeInteger(barter.itemWeight)}`}
+																</span>
+															</div>
+															<button
+																type="button"
+																className={styles.referenceInsertBtn}
+																onClick={() => insertReferenceMarkdown(buildBarterReferenceMarkdown(barter))}
+															>
+																본문에 삽입
+															</button>
+														</div>
+													))}
+													{referenceTab === "craft" && craftReferenceResults.map((craft) => (
+														<div
+															key={`${craft.craftId}-${craft.craftSubId}-${craft.itemId}`}
+															className={styles.referenceResultCard}
+														>
+															<div className={styles.referenceResultTitleRow}>
+																<Hammer size={14}/>
+																<strong>{toDisplayValue(craft.itemName || craft.gameItem?.itemName)}</strong>
+															</div>
+															<div className={styles.referenceResultMeta}>
+																<span>{`${toDisplayValue(craft.craftType)} > ${toDisplayValue(craft.craftName)}`}</span>
+																<span>{`재료 ${toDisplayValue(craft.ingredientName || craft.ingredientItem?.itemName)} x${toSafeInteger(craft.craftIngredientCost)}`}</span>
+																<span>{`요구 레벨 ${craft.craftableLevel ?? "-"} · 제작 ${formatProcessingTime(craft.processingTime)}`}</span>
+															</div>
+															<button
+																type="button"
+																className={styles.referenceInsertBtn}
+																onClick={() => insertReferenceMarkdown(buildCraftReferenceMarkdown(craft))}
+															>
+																본문에 삽입
+															</button>
+														</div>
+													))}
+												</div>
+											)}
+										</div>
+									</div>
+								)}
 								<textarea
 									ref={textareaRef}
 									value={content}

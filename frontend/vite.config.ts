@@ -14,7 +14,8 @@ export default defineConfig(({mode}) => {
 		env.VITE_DEV_SERVER_PORT || env.VITE_SERVER_PORT || "3000",
 		10
 	) || 3000;
-	const serverHost = env.VITE_DEV_SERVER_HOST || env.VITE_SERVER_HOST || "localhost";
+	const configuredServerHost = env.VITE_DEV_SERVER_HOST || env.VITE_SERVER_HOST;
+	const serverHost = isDev ? "0.0.0.0" : (configuredServerHost || "localhost");
 	
 	return {
 		plugins : [react()],

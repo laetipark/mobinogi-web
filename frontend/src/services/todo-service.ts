@@ -41,8 +41,14 @@ export const todoService = {
 		}
 	},
 
-	toggleBarterComplete : async(characterId:number, barterId:number):Promise<UserTodoBarter> => {
-		const response = await apiService.put<ApiResponse & {barter:UserTodoBarter}>(`/user/todo/barter/${characterId}/${barterId}/toggle`);
+	toggleBarterComplete : async(characterId:number, barterId:number, completedCount?:number):Promise<UserTodoBarter> => {
+		const requestBody = Number.isFinite(completedCount)
+			? {completedCount : Math.max(0, Math.floor(completedCount as number))}
+			: undefined;
+		const response = await apiService.put<ApiResponse & {barter:UserTodoBarter}>(
+			`/user/todo/barter/${characterId}/${barterId}/toggle`,
+			requestBody
+		);
 		if(response.success){
 			return response.barter;
 		}

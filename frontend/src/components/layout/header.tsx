@@ -86,7 +86,7 @@ const Header:React.FC = () => {
 				</button>
 			)}
 			<button
-				className={`nav-btn ${(isActive("/items") || isActive("/item")) ? "active" : ""}`}
+				className={`nav-btn ${(isActive("/items") || isActive("/item") || isActive("/barter") || isActive("/craft")) ? "active" : ""}`}
 				onClick={() => handleNavigation("/items")}
 			>
 				<Package size={16}/>

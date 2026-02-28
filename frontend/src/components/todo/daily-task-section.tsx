@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import styles from "./todo.module.scss";
 import TaskSettingsModal from "./task-settings-modal";
 import MemoTaskModal from "./memo-task-modal";
@@ -6,21 +6,35 @@ import BarterCart from "./barter-cart";
 import type {DailyTaskSectionProps} from "@/types/ui";
 
 const DAILY_TASK_DEFS:{key:string; label:string}[] = [
-	{key: "dayDungeon", label: "요일 던전"},
-	{key: "cashShop", label: "캐시샵"},
-	{key: "barter", label: "물물교환"}
+	{key : "dayDungeon", label : "요일 던전"},
+	{key : "cashShop", label : "캐시샵"},
+	{key : "barter", label : "물물교환"}
 ];
 
-const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({daily, settings, characterId, dailyMemos, onChange, onSettingsChange, onMemosChange}) => {
+const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({
+	daily,
+	settings,
+	characterId,
+	favoriteItems,
+	dailyMemos,
+	onChange,
+	onSettingsChange,
+	onMemosChange
+}) => {
 	const [showSettings, setShowSettings] = useState(false);
 	const [showMemo, setShowMemo] = useState(false);
+	const [barterProgress, setBarterProgress] = useState({completed : 0, total : 0});
+
+	useEffect(() => {
+		setBarterProgress({completed : 0, total : 0});
+	}, [characterId]);
 
 	const hidden = useMemo(() => new Set(settings?.hiddenTasks || []), [settings]);
 
 	const allDefs = useMemo(() => {
 		const defs:{key:string; label:string; isMemo?:boolean}[] = [
 			...DAILY_TASK_DEFS,
-			...(dailyMemos || []).map(m => ({key: `memo_${m.id}`, label: m.label, isMemo: true}))
+			...(dailyMemos || []).map(m => ({key : `memo_${m.id}`, label : m.label, isMemo : true}))
 		];
 		return defs;
 	}, [dailyMemos]);
@@ -41,6 +55,7 @@ const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({daily, settings, char
 	const getCompletedCount = () => {
 		let completed = 0;
 		let total = 0;
+
 		visibleItems.forEach(item => {
 			if(item.key === "dayDungeon"){
 				total++;
@@ -50,7 +65,8 @@ const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({daily, settings, char
 				if(daily.freeShopPurchase) completed++;
 				if(daily.gemTreasureChest) completed++;
 			}else if(item.key === "barter"){
-				// barter has its own progress
+				total += barterProgress.total;
+				completed += barterProgress.completed;
 			}else if(item.isMemo){
 				const memoId = item.key.replace("memo_", "");
 				const memo = (dailyMemos || []).find(m => m.id === memoId);
@@ -60,14 +76,15 @@ const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({daily, settings, char
 				}
 			}
 		});
+
 		return {completed, total};
 	};
 
-	const {completed: completedCount, total: totalCount} = getCompletedCount();
+	const {completed : completedCount, total : totalCount} = getCompletedCount();
 
 	const toggleMemo = (id:string) => {
 		const updated = (dailyMemos || []).map(m =>
-			m.id === id ? {...m, completed: !m.completed} : m
+			m.id === id ? {...m, completed : !m.completed} : m
 		);
 		onMemosChange(updated);
 	};
@@ -83,7 +100,7 @@ const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({daily, settings, char
 								type="button"
 								className={`${styles.checkCircle} ${daily.dayDungeon ? styles.completed : ""}`}
 								aria-pressed={daily.dayDungeon}
-								onClick={() => onChange({...daily, dayDungeon: !daily.dayDungeon})}
+								onClick={() => onChange({...daily, dayDungeon : !daily.dayDungeon})}
 							/>
 						</div>
 					</div>
@@ -105,7 +122,7 @@ const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({daily, settings, char
 									type="button"
 									className={`${styles.checkCircle} ${daily.freeShopPurchase ? styles.completed : ""}`}
 									aria-pressed={daily.freeShopPurchase}
-									onClick={() => onChange({...daily, freeShopPurchase: !daily.freeShopPurchase}, "freeShopPurchase")}
+									onClick={() => onChange({...daily, freeShopPurchase : !daily.freeShopPurchase}, "freeShopPurchase")}
 								/>
 								<span className={styles.cashShopLabel}>무료 상품</span>
 							</div>
@@ -114,7 +131,7 @@ const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({daily, settings, char
 									type="button"
 									className={`${styles.checkCircle} ${daily.gemTreasureChest ? styles.completed : ""}`}
 									aria-pressed={daily.gemTreasureChest}
-									onClick={() => onChange({...daily, gemTreasureChest: !daily.gemTreasureChest}, "gemTreasureChest")}
+									onClick={() => onChange({...daily, gemTreasureChest : !daily.gemTreasureChest}, "gemTreasureChest")}
 								/>
 								<span className={styles.cashShopLabel}>보석 상자</span>
 							</div>
@@ -127,7 +144,13 @@ const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({daily, settings, char
 		if(item.key === "barter"){
 			return (
 				<div key={item.key} className={styles.taskVariantBarter}>
-					<BarterCart characterId={characterId} cycle={1} cycleLabel="물물교환"/>
+					<BarterCart
+						characterId={characterId}
+						cycle={1}
+						cycleLabel="물물교환"
+						favoriteItems={favoriteItems}
+						onProgressChange={setBarterProgress}
+					/>
 				</div>
 			);
 		}
@@ -167,7 +190,7 @@ const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({daily, settings, char
 				</div>
 			</div>
 			<div className={styles.progressBar}>
-				<div className={styles.progressFill} style={{width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%`}}/>
+				<div className={styles.progressFill} style={{width : `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%`}}/>
 			</div>
 
 			<div className={styles.taskList}>
@@ -177,13 +200,13 @@ const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({daily, settings, char
 			{showSettings && (
 				<TaskSettingsModal
 					title="일일 숙제 설정"
-					taskDefs={allDefs.map(t => ({key: t.key, label: t.label}))}
+					taskDefs={allDefs.map(t => ({key : t.key, label : t.label}))}
 					order={settings?.dailyOrder}
 					hiddenTasks={(settings?.hiddenTasks || []).filter(k => allDefs.some(t => t.key === k))}
 					onSave={(order, dailyHidden) => {
 						const dailyKeys = new Set(allDefs.map(t => t.key));
 						const otherHidden = (settings?.hiddenTasks || []).filter(k => !dailyKeys.has(k));
-						onSettingsChange({...settings, dailyOrder: order, hiddenTasks: [...otherHidden, ...dailyHidden]});
+						onSettingsChange({...settings, dailyOrder : order, hiddenTasks : [...otherHidden, ...dailyHidden]});
 						setShowSettings(false);
 					}}
 					onClose={() => setShowSettings(false)}

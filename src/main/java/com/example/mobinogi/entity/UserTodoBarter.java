@@ -48,6 +48,9 @@ public class UserTodoBarter{
 	@Column(name = "completed", nullable = false)
 	private Boolean completed;
 
+	@Column(name = "completed_count", nullable = false, columnDefinition = "INT DEFAULT 0")
+	private Integer completedCount;
+
 	@Column(name = "checked_by_user_id", columnDefinition = "BIGINT UNSIGNED")
 	private Long checkedByUserId;
 
@@ -79,10 +82,22 @@ public class UserTodoBarter{
 		if(this.completed == null){
 			this.completed = false;
 		}
+		if(this.completedCount == null || this.completedCount < 0){
+			this.completedCount = this.completed ? 1 : 0;
+		}
+		if(this.completed && this.completedCount == 0){
+			this.completedCount = 1;
+		}
 	}
 
 	@PreUpdate
 	public void preUpdate(){
 		this.updatedAt = LocalDateTime.now();
+		if(this.completedCount == null || this.completedCount < 0){
+			this.completedCount = 0;
+		}
+		if(Boolean.TRUE.equals(this.completed) && this.completedCount == 0){
+			this.completedCount = 1;
+		}
 	}
 }

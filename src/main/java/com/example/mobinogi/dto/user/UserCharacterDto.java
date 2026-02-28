@@ -30,6 +30,7 @@ public class UserCharacterDto{
 	private Integer userPower;
 	private Integer userVitality;
 	private Integer userAttractiveness;
+	private LocalDateTime rankUpdatedAt;
 
 	public static String resolveServerName(Integer serverId){
 		if(serverId == null) return null;

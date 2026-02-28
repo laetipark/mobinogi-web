@@ -115,8 +115,11 @@ public class GameItemService{
 		log.info("GameItems query start - page: {}, size: {}, sortBy: {}, sortDir: {}, keyword: {}, itemMainMenu: {}, itemSubMenu: {}, itemType: {}, itemRarities: {}",
 			page, size, sortBy, sortDir, keyword, itemMainMenu, itemSubMenu, itemType, itemRarities);
 
-		String normalizedSortBy = StringUtils.hasText(sortBy) ? sortBy.trim() : "itemMainMenu";
-		Sort.Direction direction = "desc".equalsIgnoreCase(sortDir) ? Sort.Direction.DESC : Sort.Direction.ASC;
+		String normalizedSortBy = StringUtils.hasText(sortBy) ? sortBy.trim() : "itemRarity";
+		String normalizedSortDir = StringUtils.hasText(sortDir)
+			? sortDir.trim()
+			: ("itemRarity".equals(normalizedSortBy) ? "desc" : "asc");
+		Sort.Direction direction = "desc".equalsIgnoreCase(normalizedSortDir) ? Sort.Direction.DESC : Sort.Direction.ASC;
 		boolean useMenuAwareSort = isMenuAwareSort(normalizedSortBy);
 		boolean useRarityAwareSort = isRarityAwareSort(normalizedSortBy);
 		Pageable queryPageable = PageRequest.of(page, size, (useMenuAwareSort || useRarityAwareSort) ? Sort.unsorted() : buildSimpleSort(normalizedSortBy, direction));
@@ -273,6 +276,7 @@ public class GameItemService{
 
 	private static final String EQUIPMENT_MAIN_MENU = "\uC7A5\uBE44";
 	private static final String WEAPON_SUB_MENU = "\uBB34\uAE30";
+	private static final String WEAPON_RUNE_SUB_MENU = "\uBB34\uAE30 \uB8EC";
 
 	private static final List<String> WEAPON_ITEM_TYPE_PREFIX_ORDER = List.of(
 		"\uC804\uC0AC",
@@ -298,7 +302,8 @@ public class GameItemService{
 	);
 
 	private static final List<ItemTypePrefixOrderRule> ITEM_TYPE_PREFIX_ORDER_RULES = List.of(
-		new ItemTypePrefixOrderRule(EQUIPMENT_MAIN_MENU, WEAPON_SUB_MENU, WEAPON_ITEM_TYPE_PREFIX_ORDER)
+		new ItemTypePrefixOrderRule(EQUIPMENT_MAIN_MENU, WEAPON_SUB_MENU, WEAPON_ITEM_TYPE_PREFIX_ORDER),
+		new ItemTypePrefixOrderRule(EQUIPMENT_MAIN_MENU, WEAPON_RUNE_SUB_MENU, WEAPON_ITEM_TYPE_PREFIX_ORDER)
 	);
 
 	private record ItemTypePrefixOrderRule(String itemMainMenu, String itemSubMenu, List<String> prefixOrder){}
@@ -310,8 +315,8 @@ public class GameItemService{
 		List.of("\uC5D8\uB9AC\uD2B8", "\uC601\uC6C5", "elite"),
 		List.of("\uC5D0\uD53D", "epic"),
 		List.of("\uC720\uB2C8\uD06C", "unique"),
-		List.of("\uC804\uC124", "legendary"),
-		List.of("\uC2E0\uD654", "mythic")
+		List.of("\uC2E0\uD654", "mythic"),
+		List.of("\uC804\uC124", "legendary")
 	);
 
 	private static final List<String> ITEM_MAIN_MENU_ORDER = List.of(
@@ -323,7 +328,24 @@ public class GameItemService{
 	);
 
 	private static final Map<String, List<String>> ITEM_SUB_MENU_ORDER_BY_MAIN_MENU = Map.of(
-		"\uC7A5\uBE44", List.of("\uBB34\uAE30", "\uBC29\uC5B4\uAD6C", "\uC7A5\uC2E0\uAD6C", "\uBCF4\uC11D", "\uB8EC", "\uC5E0\uBE14\uB7FC", "\uC544\uD2F0\uD329\uD2B8"),
+		"\uC7A5\uBE44", List.of(
+			"\uB8EC",
+			"\uBB34\uAE30 \uB8EC",
+			"\uBC29\uC5B4\uAD6C \uB8EC",
+			"\uC5E0\uBE14\uB7FC \uB8EC",
+			"\uC7A5\uC2E0\uAD6C \uB8EC",
+			"\uBB34\uAE30",
+			"\uBC29\uC5B4\uAD6C",
+			"\uBAA8\uC790",
+			"\uC0C1\uC758",
+			"\uD558\uC758",
+			"\uC7A5\uAC11",
+			"\uC2E0\uBC1C",
+			"\uC7A5\uC2E0\uAD6C",
+			"\uBCF4\uC11D",
+			"\uC5E0\uBE14\uB7FC",
+			"\uC544\uD2F0\uD329\uD2B8"
+		),
 		"\uB3C4\uAD6C", List.of("\uC0DD\uD65C\uB3C4\uAD6C", "\uAC00\uBC29", "\uC545\uAE30", "\uC545\uBCF4", "\uB180\uC774", "\uB370\uCF54", "\uAE30\uD0C0"),
 		"\uC544\uC774\uD15C", List.of("\uC18C\uBAA8\uD488", "\uC74C\uC2DD", "\uD035\uC2AC\uB86F", "\uC7AC\uB8CC", "\uC7AC\uD654", "\uD018\uC2A4\uD2B8"),
 		"\uD328\uC158", List.of("\uC758\uC0C1", "\uC7A5\uC2DD", "\uD328\uC158 \uBB34\uAE30", "\uC5FC\uC0C9"),
@@ -367,6 +389,12 @@ public class GameItemService{
 		List<Order> orders = new ArrayList<>();
 		orders.add(toOrder(cb, buildItemRarityOrderExpression(root, cb, direction), direction));
 		orders.add(toOrder(cb, root.get("itemRarity"), direction));
+		orders.add(cb.asc(buildItemMainMenuOrderExpression(root, cb)));
+		orders.add(cb.asc(root.get("itemMainMenu")));
+		orders.add(cb.asc(buildItemSubMenuOrderExpression(root, cb)));
+		orders.add(cb.asc(root.get("itemSubMenu")));
+		orders.add(cb.asc(buildConditionalItemTypeOrderExpression(root, cb)));
+		orders.add(cb.asc(root.get("itemType")));
 		orders.add(cb.asc(root.get("itemName")));
 		orders.add(cb.asc(root.get("itemId")));
 		query.orderBy(orders);
@@ -476,7 +504,7 @@ public class GameItemService{
 	private Predicate buildItemTypePrefixMatchPredicate(Expression<String> itemType, CriteriaBuilder cb, String prefix){
 		return cb.or(
 			cb.equal(itemType, prefix),
-			cb.like(itemType, prefix + " %")
+			cb.like(itemType, prefix + "%")
 		);
 	}
 
@@ -531,7 +559,7 @@ public class GameItemService{
 	}
 
 	private boolean matchesItemTypePrefix(String itemType, String prefix){
-		return itemType.equals(prefix) || itemType.startsWith(prefix + " ");
+		return itemType.equals(prefix) || itemType.startsWith(prefix);
 	}
 
 	private List<String> expandRarityFilters(List<String> rarities){
