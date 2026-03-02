@@ -2,7 +2,7 @@ import React, {useEffect, useMemo, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {GameItemData, LifeBarter, LifeCraft} from "@/types";
 import GameItemService from "@/services/game-item-service";
-import {getItemRarityInfo, normalizeMultilineText, parseItemTranscendence, toItemDetailPath} from "@/utils";
+import {getItemRarityInfo, normalizeMultilineText, parseItemTranscendence, resolveItemEffectTemplate, toItemDetailPath} from "@/utils";
 import {X, ArrowRight, Hammer, ArrowLeftRight, Package, MapPin, User, RefreshCw, Pencil} from "lucide-react";
 import styles from "./item-detail-modal.module.scss";
 import type {ItemDetailModalProps} from "@/types/ui";
@@ -168,7 +168,13 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 		return Boolean(normalizedSubMenu) && normalizedSubMenu === normalizedType;
 	}, [displayItemSubMenu, displayItemType]);
 	const displayItemRarity = item.itemRarity || itemData?.itemRarity || "";
-	const displayItemEffect = normalizeMultilineText(item.itemEffect || itemData?.itemEffect || "");
+	const displayItemEffect = useMemo(
+		() => resolveItemEffectTemplate(
+			item.itemEffect || itemData?.itemEffect || "",
+			item.itemTranscendence ?? itemData?.itemTranscendence
+		),
+		[item.itemEffect, itemData?.itemEffect, item.itemTranscendence, itemData?.itemTranscendence]
+	);
 	const displayItemSource = normalizeMultilineText(item.itemSource || itemData?.itemSource || "");
 	const parsedTranscendence = useMemo(
 		() => parseItemTranscendence(item.itemTranscendence ?? itemData?.itemTranscendence),
@@ -245,9 +251,24 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 					</div>
 				)}
 
-				{displayItemEffect && (
+				{displayItemEffect.text && (
 					<div className={styles.itemEffect}>
-						{displayItemEffect}
+						{displayItemEffect.lines.map((line, lineIndex) => (
+							<React.Fragment key={`effect-line-${lineIndex}`}>
+								{line.map((segment, segmentIndex) => (
+									segment.highlighted ? (
+										<span key={`effect-segment-${lineIndex}-${segmentIndex}`} className={styles.itemEffectValue}>
+											{segment.text}
+										</span>
+									) : (
+										<React.Fragment key={`effect-segment-${lineIndex}-${segmentIndex}`}>
+											{segment.text}
+										</React.Fragment>
+									)
+								))}
+								{lineIndex < displayItemEffect.lines.length - 1 && <br/>}
+							</React.Fragment>
+						))}
 					</div>
 				)}
 

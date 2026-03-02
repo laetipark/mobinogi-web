@@ -1,6 +1,7 @@
 export interface UserGuild {
   id: number;
   memberName: string;
+  guildName: string | null;
   category: string | null;
   jobClass: string | null;
   contributionStart: number | null;
@@ -9,10 +10,8 @@ export interface UserGuild {
   contributionMiddle3: number | null;
   contributionFinish: number | null;
   contributionChanged: number | null;
+  guildRole: number | null;
   subCharacter: string | null;
-  textInfo: string | null;
-  notionPageId: string | null;
-  lastEditedTime: string;
   createdAt: string;
   updatedAt: string;
 }

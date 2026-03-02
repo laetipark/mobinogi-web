@@ -1,6 +1,6 @@
 package com.example.mobinogi.repository;
 
-import com.example.mobinogi.entity.UserGuild;
+import com.example.mobinogi.entity.UserGuildMember;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,76 +11,50 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface UserGuildRepository extends JpaRepository<UserGuild, Long>{
-	
-	/**
-	 * 멤버명으로 기여도 정보 조회
-	 */
-	List<UserGuild> findByMemberNameContaining(String memberName);
-	
-	/**
-	 * 직업별 기여도 정보 조회
-	 */
-	List<UserGuild> findByClassName(String className);
-	
-	/**
-	 * 계열별 기여도 정보 조회
-	 */
-	List<UserGuild> findByClassType(String classType);
-	
-	/**
-	 * Notion 페이지 ID로 조회 (중복 체크용)
-	 */
-	Optional<UserGuild> findByNotionPageId(String notionPageId);
-	
-	/**
-	 * 기여도 순으로 상위 N명 조회 (시작 기여도 기준)
-	 */
-	@Query("SELECT u FROM UserGuild u ORDER BY u.contributionStart DESC LIMIT :limit")
-	List<UserGuild> findTopByContributionStart(@Param("limit") int limit);
-	
-	/**
-	 * 마무리 기여도 순으로 상위 N명 조회
-	 */
-	@Query("SELECT u FROM UserGuild u ORDER BY u.contributionFinish DESC LIMIT :limit")
-	List<UserGuild> findTopByContributionFinish(@Param("limit") int limit);
-	
-	/**
-	 * 변화량 순으로 상위 N명 조회 (증가량이 가장 큰 순)
-	 */
-	@Query("SELECT u FROM UserGuild u ORDER BY u.contributionChanged DESC LIMIT :limit")
-	List<UserGuild> findTopByContributionChanged(@Param("limit") int limit);
-	
-	/**
-	 * 특정 시간 이후에 업데이트된 레코드 조회
-	 */
-	List<UserGuild> findByLastEditedTimeAfter(LocalDateTime dateTime);
-	
-	/**
-	 * 멤버명으로 정확히 일치하는 레코드 조회
-	 */
-	Optional<UserGuild> findByMemberName(String memberName);
-	
-	/**
-	 * 마지막으로 업데이트된 시간 조회 (동기화 시점 확인용)
-	 */
-	@Query("SELECT MAX(u.lastEditedTime) FROM UserGuild u")
-	LocalDateTime findLatestLastEditedTime();
-	
-	/**
-	 * 부캐릭터 정보로 조회
-	 */
-	List<UserGuild> findBySubCharacterContaining(String subCharacter);
-	
-	/**
-	 * 텍스트 정보로 조회
-	 */
-	List<UserGuild> findByTextInfoContaining(String textInfo);
-	
-	/**
-	 * 특정 기여도 범위로 조회
-	 */
-	@Query("SELECT u FROM UserGuild u WHERE u.contributionFinish BETWEEN :minContribution AND :maxContribution")
-	List<UserGuild> findByContributionFinishBetween(@Param("minContribution") Integer minContribution,
-													@Param("maxContribution") Integer maxContribution);
+public interface UserGuildRepository extends JpaRepository<UserGuildMember, Long> {
+
+    List<UserGuildMember> findByMemberNameContaining(String memberName);
+
+    List<UserGuildMember> findByClassName(String className);
+
+    List<UserGuildMember> findByClassType(String classType);
+
+    @Query("SELECT u FROM UserGuildMember u ORDER BY u.contributionStart DESC LIMIT :limit")
+    List<UserGuildMember> findTopByContributionStart(@Param("limit") int limit);
+
+    @Query("SELECT u FROM UserGuildMember u ORDER BY u.contributionFinish DESC LIMIT :limit")
+    List<UserGuildMember> findTopByContributionFinish(@Param("limit") int limit);
+
+    @Query("SELECT u FROM UserGuildMember u ORDER BY u.contributionChanged DESC LIMIT :limit")
+    List<UserGuildMember> findTopByContributionChanged(@Param("limit") int limit);
+
+    List<UserGuildMember> findByUpdatedAtAfter(LocalDateTime dateTime);
+
+    Optional<UserGuildMember> findByMemberName(String memberName);
+
+    Optional<UserGuildMember> findTopByOrderByUpdatedAtDesc();
+
+    List<UserGuildMember> findBySubCharacterContaining(String subCharacter);
+
+    @Query("SELECT u FROM UserGuildMember u WHERE u.contributionFinish BETWEEN :minContribution AND :maxContribution")
+    List<UserGuildMember> findByContributionFinishBetween(@Param("minContribution") Integer minContribution,
+                                                          @Param("maxContribution") Integer maxContribution);
+
+    Optional<UserGuildMember> findByIdAndDeletedAtIsNull(Long id);
+
+    List<UserGuildMember> findByGuild_GuildIdAndDeletedAtIsNullOrderByGuildRoleDescMemberNameAsc(Long guildId);
+
+    List<UserGuildMember> findByGuild_GuildIdAndMemberStatusAndDeletedAtIsNullOrderByCreatedAtAsc(Long guildId, String memberStatus);
+
+    Optional<UserGuildMember> findByGuild_GuildIdAndUser_UserIdAndDeletedAtIsNull(Long guildId, Long userId);
+
+    Optional<UserGuildMember> findFirstByGuild_GuildIdAndMemberNameIgnoreCaseAndDeletedAtIsNull(Long guildId, String memberName);
+
+    Optional<UserGuildMember> findFirstByUser_UserIdAndMemberStatusAndDeletedAtIsNullOrderByUpdatedAtDesc(Long userId, String memberStatus);
+
+    List<UserGuildMember> findByUser_UserIdAndMemberStatusAndDeletedAtIsNullOrderByCreatedAtDesc(Long userId, String memberStatus);
+
+    boolean existsByGuild_GuildIdAndUser_UserIdAndMemberStatusAndDeletedAtIsNull(Long guildId, Long userId, String memberStatus);
+
+    boolean existsByUser_UserIdAndMemberStatusAndDeletedAtIsNull(Long userId, String memberStatus);
 }

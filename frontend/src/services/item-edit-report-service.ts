@@ -30,6 +30,11 @@ class ItemEditReportService{
 		return response.reports ?? [];
 	}
 
+	async getPendingReports():Promise<ItemEditSuggestion[]>{
+		const response = await apiService.get<ReportListResponse>("/item-edit-reports/pending");
+		return response.reports ?? [];
+	}
+
 	async approveReport(suggestionId:number, review?:string | ReportReviewPayload):Promise<ItemEditSuggestion>{
 		const payload:ReportReviewPayload = typeof review === "string"
 			? (review ? {reviewNote : review} : {})

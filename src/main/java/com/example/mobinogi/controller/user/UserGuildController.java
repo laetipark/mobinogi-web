@@ -1,7 +1,7 @@
 package com.example.mobinogi.controller.user;
 
-import com.example.mobinogi.dto.user.UserGuildDto;
-import com.example.mobinogi.entity.UserGuild;
+import com.example.mobinogi.dto.user.UserGuildMemberListDto;
+import com.example.mobinogi.entity.UserGuildMember;
 import com.example.mobinogi.service.user.UserGuildService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ public class UserGuildController {
 	 * 길드원 목록 조회 (페이징)
 	 */
 	@GetMapping("/")
-	public Page<UserGuildDto> getAllUserGuilds(
+	public Page<UserGuildMemberListDto> getAllUserGuilds(
 		@RequestParam(defaultValue = "0") int page,
 		@RequestParam(defaultValue = "20") int size,
 		@RequestParam(defaultValue = "memberName") String sortBy,
@@ -36,18 +36,18 @@ public class UserGuildController {
 		// 프론트엔드 필드명을 백엔드 필드명으로 변환
 		String mappedSortBy = mapSortField(sortBy);
 
-		Page<UserGuild> result = userGuildService.getAllUserGuilds(page, size, mappedSortBy, sortDir);
-		return result.map(UserGuildDto::from);
+		Page<UserGuildMember> result = userGuildService.getAllUserGuilds(page, size, mappedSortBy, sortDir);
+		return result.map(UserGuildMemberListDto::from);
 	}
 
 	/**
 	 * 멤버명으로 검색
 	 */
 	@GetMapping("/search")
-	public List<UserGuildDto> searchByMemberName(@RequestParam String memberName) {
+	public List<UserGuildMemberListDto> searchByMemberName(@RequestParam String memberName) {
 		log.info("멤버명으로 검색 요청 - memberName: {}", memberName);
 		return userGuildService.searchByMemberName(memberName).stream()
-			.map(UserGuildDto::from)
+			.map(UserGuildMemberListDto::from)
 			.collect(Collectors.toList());
 	}
 
@@ -55,10 +55,10 @@ public class UserGuildController {
 	 * 정확한 멤버명으로 조회
 	 */
 	@GetMapping("/member/{memberName}")
-	public ResponseEntity<UserGuildDto> getByMemberName(@PathVariable String memberName) {
+	public ResponseEntity<UserGuildMemberListDto> getByMemberName(@PathVariable String memberName) {
 		log.info("정확한 멤버명으로 조회 요청 - memberName: {}", memberName);
 		return userGuildService.getByExactMemberName(memberName)
-			.map(UserGuildDto::from)
+			.map(UserGuildMemberListDto::from)
 			.map(ResponseEntity::ok)
 			.orElse(ResponseEntity.notFound().build());
 	}
@@ -67,10 +67,10 @@ public class UserGuildController {
 	 * 직업별 조회
 	 */
 	@GetMapping("/job/{jobClass}")
-	public List<UserGuildDto> getByJobClass(@PathVariable String jobClass) {
+	public List<UserGuildMemberListDto> getByJobClass(@PathVariable String jobClass) {
 		log.info("직업별 조회 요청 - jobClass: {}", jobClass);
 		return userGuildService.getByClassName(jobClass).stream()
-			.map(UserGuildDto::from)
+			.map(UserGuildMemberListDto::from)
 			.collect(Collectors.toList());
 	}
 
@@ -78,10 +78,10 @@ public class UserGuildController {
 	 * 계열별 조회
 	 */
 	@GetMapping("/category/{category}")
-	public List<UserGuildDto> getByCategory(@PathVariable String category) {
+	public List<UserGuildMemberListDto> getByCategory(@PathVariable String category) {
 		log.info("계열별 조회 요청 - category: {}", category);
 		return userGuildService.getByClassType(category).stream()
-			.map(UserGuildDto::from)
+			.map(UserGuildMemberListDto::from)
 			.collect(Collectors.toList());
 	}
 
@@ -89,10 +89,10 @@ public class UserGuildController {
 	 * 기여도 시작 랭킹
 	 */
 	@GetMapping("/ranking/contribution-start")
-	public List<UserGuildDto> getTopContributionStartRanking(@RequestParam(defaultValue = "10") int limit) {
+	public List<UserGuildMemberListDto> getTopContributionStartRanking(@RequestParam(defaultValue = "10") int limit) {
 		log.info("기여도 시작 랭킹 조회 요청 - limit: {}", limit);
 		return userGuildService.getTopContributionStartRanking(limit).stream()
-			.map(UserGuildDto::from)
+			.map(UserGuildMemberListDto::from)
 			.collect(Collectors.toList());
 	}
 
@@ -100,10 +100,10 @@ public class UserGuildController {
 	 * 기여도 마무리 랭킹
 	 */
 	@GetMapping("/ranking/contribution-finish")
-	public List<UserGuildDto> getTopContributionFinishRanking(@RequestParam(defaultValue = "10") int limit) {
+	public List<UserGuildMemberListDto> getTopContributionFinishRanking(@RequestParam(defaultValue = "10") int limit) {
 		log.info("기여도 마무리 랭킹 조회 요청 - limit: {}", limit);
 		return userGuildService.getTopContributionFinishRanking(limit).stream()
-			.map(UserGuildDto::from)
+			.map(UserGuildMemberListDto::from)
 			.collect(Collectors.toList());
 	}
 
@@ -111,10 +111,10 @@ public class UserGuildController {
 	 * 변화량 랭킹
 	 */
 	@GetMapping("/ranking/contribution-changed")
-	public List<UserGuildDto> getTopContributionChangedRanking(@RequestParam(defaultValue = "10") int limit) {
+	public List<UserGuildMemberListDto> getTopContributionChangedRanking(@RequestParam(defaultValue = "10") int limit) {
 		log.info("변화량 랭킹 조회 요청 - limit: {}", limit);
 		return userGuildService.getTopContributionChangedRanking(limit).stream()
-			.map(UserGuildDto::from)
+			.map(UserGuildMemberListDto::from)
 			.collect(Collectors.toList());
 	}
 
@@ -122,12 +122,12 @@ public class UserGuildController {
 	 * 기여도 범위 조회
 	 */
 	@GetMapping("/contribution-range")
-	public List<UserGuildDto> getByContributionRange(
+	public List<UserGuildMemberListDto> getByContributionRange(
 		@RequestParam Integer minContribution,
 		@RequestParam Integer maxContribution) {
 		log.info("기여도 범위 조회 요청 - min: {}, max: {}", minContribution, maxContribution);
 		return userGuildService.getByContributionRange(minContribution, maxContribution).stream()
-			.map(UserGuildDto::from)
+			.map(UserGuildMemberListDto::from)
 			.collect(Collectors.toList());
 	}
 

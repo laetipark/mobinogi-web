@@ -1,66 +1,19 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import React, {useEffect, useMemo, useRef, useState} from "react";
 import {useLocation, useNavigate, useParams} from "react-router-dom";
-import {GameItemData, GameItemSummary, ItemEditSuggestion, LifeBarter, LifeCraft} from "@/types";
+import {GameItemData, GameItemSummary, LifeBarter, LifeCraft} from "@/types";
 import GameItemService from "@/services/game-item-service";
-import itemEditReportService from "@/services/item-edit-report-service";
-import {fromItemSlug, getItemRarityInfo, normalizeMultilineText, parseItemTranscendence} from "@/utils";
+import {fromItemSlug, getItemRarityInfo, normalizeMultilineText, parseItemTranscendence, resolveItemEffectTemplate} from "@/utils";
 import ItemEditReportPanel from "@/components/game/item-edit-report-panel";
 import {useAuth} from "@/hooks";
-import {ArrowLeft, ArrowRight, Hammer, ArrowLeftRight, Package, MapPin, User, RefreshCw, Pencil, X, ShieldCheck, Check} from "lucide-react";
+import {ArrowLeft, ArrowRight, Hammer, ArrowLeftRight, Package, MapPin, User, RefreshCw, Pencil, X} from "lucide-react";
 import styles from "./item-detail.module.scss";
 
 type ItemDetailRouteState = {
 	openReportModal?:boolean;
 };
 
-const ITEM_EDIT_FIELD_LABEL_MAP:Record<string, string> = {
-	itemMainMenu : "상위 메뉴",
-	itemSubMenu : "하위 메뉴",
-	itemType : "유형",
-	itemRarity : "등급",
-	itemName : "아이템 이름",
-	itemEffect : "아이템 효과",
-	itemTranscendence : "초월",
-	itemSource : "획득처",
-	regionId : "지역 ID",
-	npcId : "NPC ID",
-	itemId : "아이템 ID",
-	itemWeight : "1회 획득 수량",
-	exchangeId : "교환 아이템 ID",
-	exchangeCost : "교환 비용",
-	barterQty : "교환 가능 횟수",
-	barterInitCycle : "초기 사이클",
-	barterInitDate : "초기 날짜",
-	barterInitDay : "초기 요일",
-	barterServer : "서버 공유",
-	barterNpc : "NPC 공유",
-	craftType : "제작 유형",
-	craftName : "제작명",
-	craftIngredientId : "재료 ID",
-	ingredientName : "재료 이름",
-	craftIngredientCost : "재료 수량",
-	craftableLevel : "제작 가능 레벨",
-	processingTime : "가공 시간",
-	craftSubId : "제작 서브 ID"
-};
-
 const normalizeComparableText = (value:string | null | undefined):string => {
 	return normalizeMultilineText(value).trim();
-};
-
-const getItemEditFieldLabel = (
-	fieldKey:string,
-	itemSubMenu?:string | null,
-	itemType?:string | null
-):string => {
-	if(fieldKey === "itemSubMenu"){
-		const normalizedSubMenu = normalizeComparableText(itemSubMenu);
-		const normalizedItemType = normalizeComparableText(itemType);
-		if(normalizedSubMenu && normalizedSubMenu === normalizedItemType){
-			return "유형";
-		}
-	}
-	return ITEM_EDIT_FIELD_LABEL_MAP[fieldKey] ?? fieldKey;
 };
 
 const formatCraftLevel = (craftableLevel:number | null | undefined):string => {
@@ -115,14 +68,7 @@ const ItemDetailPage:React.FC = () => {
 	const [error, setError] = useState(false);
 	const [activeTab, setActiveTab] = useState<"barter" | "craft">("barter");
 	const [showReportModal, setShowReportModal] = useState(false);
-	const [showAdminReviewFloating, setShowAdminReviewFloating] = useState(true);
-	const [pendingReports, setPendingReports] = useState<ItemEditSuggestion[]>([]);
-	const [pendingReportsLoading, setPendingReportsLoading] = useState(false);
-	const [pendingReportsError, setPendingReportsError] = useState<string | null>(null);
-	const [pendingReportActionId, setPendingReportActionId] = useState<number | null>(null);
-	const [pendingReportSuggestedEdits, setPendingReportSuggestedEdits] = useState<Record<number, string>>({});
 	const autoOpenedReportItemRef = useRef<string | null>(null);
-	const autoOpenedFloatingForItemRef = useRef<string | null>(null);
 
 	useEffect(() => {
 		if(!itemName){
@@ -165,55 +111,6 @@ const ItemDetailPage:React.FC = () => {
 		autoOpenedReportItemRef.current = itemName;
 		setShowReportModal(true);
 	}, [itemName, routeState?.openReportModal]);
-
-	const reviewTargetItemName = useMemo(
-		() => itemData?.itemName || (itemName ? fromItemSlug(itemName) : ""),
-		[itemData?.itemName, itemName]
-	);
-
-	const loadPendingReports = useCallback(async() => {
-		if(!user?.isAdmin || !reviewTargetItemName){
-			setPendingReports([]);
-			setPendingReportSuggestedEdits({});
-			setPendingReportsError(null);
-			setPendingReportsLoading(false);
-			return;
-		}
-
-		setPendingReportsLoading(true);
-		setPendingReportsError(null);
-		try{
-			const reports = await itemEditReportService.getItemReports(reviewTargetItemName, "PENDING");
-			setPendingReports(reports);
-			setPendingReportSuggestedEdits((prev) => {
-				const next:Record<number, string> = {};
-				for(const report of reports){
-					next[report.suggestionId] = prev[report.suggestionId] ?? normalizeMultilineText(report.suggestedValue || "");
-				}
-				return next;
-			});
-		}catch(err){
-			console.error("Failed to load pending item edit reports:", err);
-			setPendingReportsError("제보 목록을 불러오지 못했습니다.");
-		}finally{
-			setPendingReportsLoading(false);
-		}
-	}, [reviewTargetItemName, user?.isAdmin]);
-
-	useEffect(() => {
-		loadPendingReports();
-	}, [loadPendingReports]);
-
-	useEffect(() => {
-		if(!user?.isAdmin || pendingReports.length <= 0 || !reviewTargetItemName){
-			return;
-		}
-		if(autoOpenedFloatingForItemRef.current === reviewTargetItemName){
-			return;
-		}
-		autoOpenedFloatingForItemRef.current = reviewTargetItemName;
-		setShowAdminReviewFloating(true);
-	}, [pendingReports.length, reviewTargetItemName, user?.isAdmin]);
 
 	const renderBarterCard = (barter:LifeBarter) => {
 		const reward = getBarterRewardDisplay(barter);
@@ -290,7 +187,13 @@ const ItemDetailPage:React.FC = () => {
 	}, [displayItemSubMenu, displayItemType]);
 	const displayItemRarity = itemSummary?.itemRarity || itemData?.itemRarity || "";
 	const displayItemSource = normalizeMultilineText(itemSummary?.itemSource || itemData?.itemSource || "");
-	const displayItemEffect = normalizeMultilineText(itemSummary?.itemEffect || itemData?.itemEffect || "");
+	const displayItemEffect = useMemo(
+		() => resolveItemEffectTemplate(
+			itemSummary?.itemEffect || itemData?.itemEffect || "",
+			itemSummary?.itemTranscendence ?? itemData?.itemTranscendence
+		),
+		[itemSummary?.itemEffect, itemData?.itemEffect, itemSummary?.itemTranscendence, itemData?.itemTranscendence]
+	);
 	const parsedTranscendence = useMemo(
 		() => parseItemTranscendence(itemSummary?.itemTranscendence ?? itemData?.itemTranscendence),
 		[itemSummary?.itemTranscendence, itemData?.itemTranscendence]
@@ -299,49 +202,8 @@ const ItemDetailPage:React.FC = () => {
 	const barterAcquireCount = bartersByItemId.length;
 	const barterMaterialCount = bartersByExchangeId.length;
 	const craftRecipeCount = Object.keys(craftsBySubId).length;
-	const formatReportCreatedAt = (value:string):string => {
-		const date = new Date(value);
-		if(Number.isNaN(date.getTime())){
-			return value;
-		}
-		return date.toLocaleString();
-	};
-	const getAdminSuggestedEditValue = (report:ItemEditSuggestion):string => {
-		return pendingReportSuggestedEdits[report.suggestionId] ?? normalizeMultilineText(report.suggestedValue || "");
-	};
-	const handleAdminSuggestedEditChange = (reportId:number, nextValue:string) => {
-		setPendingReportSuggestedEdits((prev) => ({
-			...prev,
-			[reportId] : normalizeMultilineText(nextValue)
-		}));
-	};
 	const handleOpenReportModal = () => setShowReportModal(true);
 	const handleCloseReportModal = () => setShowReportModal(false);
-	const handleToggleAdminReviewFloating = () => setShowAdminReviewFloating((prev) => !prev);
-	const handleAdminReview = async(report:ItemEditSuggestion, action:"approve" | "reject") => {
-		setPendingReportActionId(report.suggestionId);
-		setPendingReportsError(null);
-		try{
-			if(action === "approve"){
-				const editedSuggestedValue = getAdminSuggestedEditValue(report).trim();
-				if(!editedSuggestedValue){
-					setPendingReportsError("제안값이 비어 있으면 반영할 수 없습니다.");
-					return;
-				}
-				await itemEditReportService.approveReport(report.suggestionId, {
-					suggestedValue : editedSuggestedValue
-				});
-			}else{
-				await itemEditReportService.rejectReport(report.suggestionId);
-			}
-			await loadPendingReports();
-		}catch(err){
-			console.error("Failed to review item edit report:", err);
-			setPendingReportsError(action === "approve" ? "제보 반영 처리에 실패했습니다." : "제보 반려 처리에 실패했습니다.");
-		}finally{
-			setPendingReportActionId(null);
-		}
-	};
 
 	return (
 		<div className={styles.itemDetailPage}>
@@ -488,13 +350,30 @@ const ItemDetailPage:React.FC = () => {
 								</section>
 							)}
 
-							{displayItemEffect && (
+							{displayItemEffect.text && (
 								<section className={styles.infoBlock}>
 									<div className={styles.infoBlockHeader}>
 										<h3>아이템 효과</h3>
 										<span>게임 내 설명 기준</span>
 									</div>
-									<div className={styles.itemEffect}>{displayItemEffect}</div>
+									<div className={styles.itemEffect}>
+										{displayItemEffect.lines.map((line, lineIndex) => (
+											<React.Fragment key={`effect-line-${lineIndex}`}>
+												{line.map((segment, segmentIndex) => (
+													segment.highlighted ? (
+														<span key={`effect-segment-${lineIndex}-${segmentIndex}`} className={styles.itemEffectValue}>
+															{segment.text}
+														</span>
+													) : (
+														<React.Fragment key={`effect-segment-${lineIndex}-${segmentIndex}`}>
+															{segment.text}
+														</React.Fragment>
+													)
+												))}
+												{lineIndex < displayItemEffect.lines.length - 1 && <br/>}
+											</React.Fragment>
+										))}
+									</div>
 								</section>
 							)}
 
@@ -628,94 +507,6 @@ const ItemDetailPage:React.FC = () => {
 								/>
 							</div>
 						</div>
-					</div>
-				)}
-				{user?.isAdmin && pendingReports.length > 0 && (
-					<div className={styles.adminFloating}>
-						<button
-							type="button"
-							className={styles.adminFloatingToggle}
-							onClick={handleToggleAdminReviewFloating}
-							aria-expanded={showAdminReviewFloating}
-						>
-							<ShieldCheck size={16}/>
-							<span>{"제보 " + pendingReports.length + "건"}</span>
-						</button>
-						{showAdminReviewFloating && (
-							<div className={styles.adminFloatingPanel}>
-								<div className={styles.adminFloatingHeader}>
-									<strong>{"대기 제보 목록"}</strong>
-									<button
-										type="button"
-										className={styles.adminFloatingRefreshBtn}
-										onClick={loadPendingReports}
-										disabled={pendingReportsLoading}
-									>
-										{pendingReportsLoading ? "불러오는 중..." : "새로고침"}
-									</button>
-								</div>
-								{pendingReportsError && (
-									<div className={styles.adminFloatingError}>{pendingReportsError}</div>
-								)}
-								<div className={styles.adminFloatingList}>
-									{pendingReports.map((report) => (
-										<div key={report.suggestionId} className={styles.adminFloatingCard}>
-											<div className={styles.adminFloatingBadges}>
-												<span className={styles.adminFloatingBadge}>{report.targetType}</span>
-												<span className={styles.adminFloatingBadgeMuted}>
-													{getItemEditFieldLabel(report.fieldKey, displayItemSubMenu, displayItemType)}
-												</span>
-											</div>
-											<div className={styles.adminFloatingMeta}>
-												<span>{report.requesterNickname || "-"}</span>
-												<span>{formatReportCreatedAt(report.createdAt)}</span>
-											</div>
-											<div className={styles.adminFloatingValues}>
-												<div>
-													<label>{"현재값"}</label>
-													<pre>{normalizeMultilineText(report.currentValue) || "-"}</pre>
-												</div>
-												<div>
-													<label>{"제안값"}</label>
-													<textarea
-														value={getAdminSuggestedEditValue(report)}
-														onChange={(e) => handleAdminSuggestedEditChange(report.suggestionId, e.target.value)}
-														rows={3}
-														disabled={pendingReportActionId === report.suggestionId}
-													/>
-												</div>
-											</div>
-											{report.reason && (
-												<div className={styles.adminFloatingReason}>
-													<label>{"사유"}</label>
-													<p>{normalizeMultilineText(report.reason)}</p>
-												</div>
-											)}
-											<div className={styles.adminFloatingActions}>
-												<button
-													type="button"
-													className={styles.adminApproveBtn}
-													onClick={() => handleAdminReview(report, "approve")}
-													disabled={pendingReportActionId === report.suggestionId}
-												>
-													<Check size={14}/>
-													<span>{pendingReportActionId === report.suggestionId ? "처리 중..." : "반영"}</span>
-												</button>
-												<button
-													type="button"
-													className={styles.adminRejectBtn}
-													onClick={() => handleAdminReview(report, "reject")}
-													disabled={pendingReportActionId === report.suggestionId}
-												>
-													<X size={14}/>
-													<span>{"반려"}</span>
-												</button>
-											</div>
-										</div>
-									))}
-								</div>
-							</div>
-						)}
 					</div>
 				)}
 			</div>

@@ -1,6 +1,6 @@
 import React, {useMemo} from "react";
 import {Info, Package, RefreshCw, Hammer, MapPin, User} from "lucide-react";
-import {getItemRarityInfo, normalizeMultilineText, parseItemTranscendence} from "@/utils";
+import {getItemRarityInfo, normalizeMultilineText, parseItemTranscendence, resolveItemEffectTemplate} from "@/utils";
 import styles from "./game-item-card.module.scss";
 import type {GameItemCardProps, GroupedBarterSource} from "@/types/ui";
 
@@ -32,7 +32,10 @@ const GameItemCard:React.FC<GameItemCardProps> = ({item, onClick}) => {
 		() => parseItemTranscendence(item.itemTranscendence),
 		[item.itemTranscendence]
 	);
-	const displayItemEffect = useMemo(() => normalizeMultilineText(item.itemEffect), [item.itemEffect]);
+	const displayItemEffect = useMemo(
+		() => resolveItemEffectTemplate(item.itemEffect, item.itemTranscendence),
+		[item.itemEffect, item.itemTranscendence]
+	);
 	const displayItemSource = useMemo(() => normalizeMultilineText(item.itemSource), [item.itemSource]);
 	const normalizedSubMenu = useMemo(() => normalizeMultilineText(item.itemSubMenu ?? "").trim(), [item.itemSubMenu]);
 	const normalizedItemType = useMemo(() => normalizeMultilineText(item.itemType ?? "").trim(), [item.itemType]);
@@ -86,8 +89,25 @@ const GameItemCard:React.FC<GameItemCardProps> = ({item, onClick}) => {
 					</div>
 				)}
 
-				{displayItemEffect && (
-					<p className={styles.effect}>{displayItemEffect}</p>
+				{displayItemEffect.text && (
+					<p className={styles.effect}>
+						{displayItemEffect.lines.map((line, lineIndex) => (
+							<React.Fragment key={`effect-line-${lineIndex}`}>
+								{line.map((segment, segmentIndex) => (
+									segment.highlighted ? (
+										<span key={`effect-segment-${lineIndex}-${segmentIndex}`} className={styles.itemEffectValue}>
+											{segment.text}
+										</span>
+									) : (
+										<React.Fragment key={`effect-segment-${lineIndex}-${segmentIndex}`}>
+											{segment.text}
+										</React.Fragment>
+									)
+								))}
+								{lineIndex < displayItemEffect.lines.length - 1 && <br/>}
+							</React.Fragment>
+						))}
+					</p>
 				)}
 
 				{(transcendencePreviewRows.length > 0 || parsedTranscendence.parseError) && (

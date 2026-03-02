@@ -13,7 +13,13 @@ apply: always
 - Do not re-save tracked files with legacy encodings such as CP949/EUC-KR/ANSI.
 - Keep line-ending style stable for each file unless the task explicitly requires changing it.
 
+## Edit Safety Rules
+- Do not rewrite entire existing files with shell redirection commands such as `Set-Content` or `Out-File`.
+- Prefer minimal patch-based edits on existing files to reduce accidental re-encoding risk.
+- If terminal output shows broken text, do not paste that broken text back into source files.
+
 ## Literal Rules
+- Default to ASCII for identifiers/comments whenever possible.
 - Do not write user-facing or domain literals as Unicode escapes (`\\uXXXX`) in Java/TypeScript/JavaScript.
 - Prefer direct readable UTF-8 text literals.
 - Allowed exception: protocol-level escapes, regex control characters, or binary/text conversion utilities where escaping is required.

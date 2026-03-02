@@ -24,6 +24,12 @@ export type {
 	CounterTask, PhantomTower, BossProgress, Vanguard, DailyTasks, Resources,
 	WeeklyTasks, TodoSettings, TodoMemo, TodoData, UserTodo, UserTodoBarter, FavoriteGameItem
 } from "./todo";
+export type {
+	GuildStatus, GuildMemberStatus, GuildRole, GuildInfo, GuildMember, GuildDashboard,
+	GuildDashboardResponse, GuildResponse, GuildMemberResponse,
+	GuildMemberRankRefreshSummary, GuildMemberRankRefreshResponse, GuildMemberRankRefreshTarget,
+	GuildMemberRankRefreshStatus, GuildMemberRankRefreshStatusResponse
+} from "./guild";
 export type {AppConfig} from "./config";
 export type {
 	ItemEditSuggestionTargetType, ItemEditSuggestionStatus, ItemEditSheetSyncStatus,

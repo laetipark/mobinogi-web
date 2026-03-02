@@ -1,4 +1,4 @@
-﻿import React, {useState, useEffect, useRef, useCallback, useMemo} from "react";
+import React, {useState, useEffect, useRef, useCallback, useMemo} from "react";
 import styles from "./todo.module.scss";
 import {LifeBarter, UserTodoBarter} from "@/types";
 import {GameItemService} from "@/services/game-item-service.ts";

@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {useNavigate, useLocation} from "react-router-dom";
-import {Shield, Package, LogOut, ClipboardCheck, MessageSquare, Megaphone, CalendarDays, Image, Menu, X} from "lucide-react";
+import {Shield, Package, LogOut, ClipboardCheck, MessageSquare, Megaphone, CalendarDays, Image, Menu, X, Users} from "lucide-react";
 import {useAuth} from "@/hooks/use-auth";
 
 const MOBILE_MENU_BREAKPOINT = 940;
@@ -83,6 +83,15 @@ const Header:React.FC = () => {
 				>
 					<ClipboardCheck size={16}/>
 					숙제
+				</button>
+			)}
+			{user && (
+				<button
+					className={`nav-btn ${isActive("/guild") ? "active" : ""}`}
+					onClick={() => handleNavigation("/guild")}
+				>
+					<Users size={16}/>
+					길드
 				</button>
 			)}
 			<button

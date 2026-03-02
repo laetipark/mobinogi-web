@@ -1,4 +1,4 @@
-﻿import React, {useMemo, useState} from "react";
+import React, {useMemo, useState} from "react";
 import styles from "./todo.module.scss";
 import {GameMonster} from "@/types";
 import {getDifficultyLabel} from "@/utils";

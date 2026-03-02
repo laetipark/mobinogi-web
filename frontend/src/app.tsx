@@ -3,6 +3,7 @@ import {BrowserRouter as Router, Routes, Route, Navigate} from "react-router-dom
 import {AuthProvider} from "./contexts/auth-context";
 import {useAuth} from "./hooks/use-auth";
 import Header from "./components/layout/header";
+import AdminGuildFloating from "./components/layout/admin-guild-floating";
 import HomePage from "./pages/home";
 import LoginPage from "./pages/auth/login";
 import RegisterNicknamePage from "./pages/auth/register-nickname";
@@ -12,6 +13,7 @@ import NewsPage from "./pages/game/news";
 import CharactersPage from "./pages/user/characters";
 import ProfilePage from "./pages/user/profile";
 import TodoPage from "./pages/user/todo";
+import GuildManagementPage from "./pages/guild/guild-management";
 import BoardListPage from "./pages/board/board-list";
 import BoardDetailPage from "./pages/board/board-detail";
 import BoardWritePage from "./pages/board/board-write";
@@ -45,6 +47,7 @@ const AppContent:React.FC = () => {
 			<main className="main page-bg-shell">
 				{content}
 			</main>
+			<AdminGuildFloating/>
 			<SiteFooter/>
 			<DarkModeToggle/>
 		</div>
@@ -87,6 +90,8 @@ const AppContent:React.FC = () => {
 				<Route path="/profile" element={<PrivateRoute><ProfilePage/></PrivateRoute>}/>
 				<Route path="/characters" element={<CharactersPage/>}/>
 				<Route path="/todo" element={<PrivateRoute><TodoPage/></PrivateRoute>}/>
+				<Route path="/guild" element={<PrivateRoute><GuildManagementPage/></PrivateRoute>}/>
+				<Route path="/guild/:guildName" element={<PrivateRoute><GuildManagementPage/></PrivateRoute>}/>
 				<Route path="/board" element={<BoardListPage/>}/>
 				<Route path="/board/external" element={<BoardDetailPage/>}/>
 				<Route path="/board/write" element={<PrivateRoute><BoardWritePage/></PrivateRoute>}/>

@@ -12,41 +12,33 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserGuildDto {
+public class UserGuildDto{
 
-	private Long id;
-	private String memberName;
-	private String category;
-	private String jobClass;
-	private Integer contributionStart;
-	private Integer contributionMiddle1;
-	private Integer contributionMiddle2;
-	private Integer contributionMiddle3;
-	private Integer contributionFinish;
-	private Integer contributionChanged;
-	private String subCharacter;
-	private String textInfo;
-	private String notionPageId;
-	private LocalDateTime lastEditedTime;
+	private Long guildId;
+	private String guildName;
+	private String description;
+	private Integer serverId;
+	private String status;
+	private Long ownerUserId;
+	private String ownerNickname;
+	private Long reviewedByUserId;
+	private LocalDateTime reviewedAt;
+	private String reviewNote;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
 
-	public static UserGuildDto from(UserGuild entity) {
+	public static UserGuildDto fromEntity(UserGuild entity){
 		return UserGuildDto.builder()
-			.id(entity.getId())
-			.memberName(entity.getMemberName())
-			.category(entity.getClassType())
-			.jobClass(entity.getClassName())
-			.contributionStart(entity.getContributionStart())
-			.contributionMiddle1(entity.getContributionMiddle1())
-			.contributionMiddle2(entity.getContributionMiddle2())
-			.contributionMiddle3(entity.getContributionMiddle3())
-			.contributionFinish(entity.getContributionFinish())
-			.contributionChanged(entity.getContributionChanged())
-			.subCharacter(entity.getSubCharacter())
-			.textInfo(entity.getTextInfo())
-			.notionPageId(entity.getNotionPageId())
-			.lastEditedTime(entity.getLastEditedTime())
+			.guildId(entity.getGuildId())
+			.guildName(entity.getGuildName())
+			.description(entity.getDescription())
+			.serverId(entity.getServerId())
+			.status(entity.getStatus())
+			.ownerUserId(entity.getOwner() != null ? entity.getOwner().getUserId() : null)
+			.ownerNickname(entity.getOwner() != null ? entity.getOwner().getNickname() : null)
+			.reviewedByUserId(entity.getReviewedBy() != null ? entity.getReviewedBy().getUserId() : null)
+			.reviewedAt(entity.getReviewedAt())
+			.reviewNote(entity.getReviewNote())
 			.createdAt(entity.getCreatedAt())
 			.updatedAt(entity.getUpdatedAt())
 			.build();

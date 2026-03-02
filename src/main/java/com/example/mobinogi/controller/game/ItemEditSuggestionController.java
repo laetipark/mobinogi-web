@@ -50,6 +50,17 @@ public class ItemEditSuggestionController{
 		}
 	}
 
+	@GetMapping("/pending")
+	public ResponseEntity<?> getPendingSuggestions(Authentication authentication){
+		try{
+			Long userId = requireUserId(authentication);
+			List<ItemEditSuggestionDto> reports = itemEditSuggestionService.getPendingSuggestions(userId);
+			return ResponseEntity.ok(Map.of("success", true, "reports", reports));
+		}catch(Exception e){
+			return errorResponse(e);
+		}
+	}
+
 	@PostMapping("/{suggestionId}/approve")
 	public ResponseEntity<?> approveSuggestion(
 		@PathVariable Long suggestionId,

@@ -11,4 +11,6 @@ public interface ItemEditSuggestionRepository extends JpaRepository<ItemEditSugg
 	List<ItemEditSuggestion> findByItemNameOrderByCreatedAtDesc(String itemName);
 
 	List<ItemEditSuggestion> findByItemNameAndStatusOrderByCreatedAtDesc(String itemName, ItemEditSuggestionStatus status);
+
+	List<ItemEditSuggestion> findByStatusOrderByCreatedAtDesc(ItemEditSuggestionStatus status);
 }

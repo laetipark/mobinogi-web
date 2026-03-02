@@ -94,6 +94,18 @@ public class ItemEditSuggestionService{
 		return entities.stream().map(ItemEditSuggestionDto::fromEntity).toList();
 	}
 
+	@Transactional(readOnly = true)
+	public List<ItemEditSuggestionDto> getPendingSuggestions(Long requesterUserId){
+		User requester = userService.findById(requesterUserId);
+		requireAdmin(requester);
+
+		return itemEditSuggestionRepository
+			.findByStatusOrderByCreatedAtDesc(ItemEditSuggestionStatus.PENDING)
+			.stream()
+			.map(ItemEditSuggestionDto::fromEntity)
+			.toList();
+	}
+
 	@Transactional
 	public ItemEditSuggestionDto approveSuggestion(Long suggestionId, Long reviewerUserId, String reviewNote, String adminSuggestedValue){
 		User reviewer = userService.findById(reviewerUserId);
