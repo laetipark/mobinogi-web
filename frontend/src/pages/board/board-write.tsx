@@ -20,6 +20,9 @@ import {ImagePlus, Search, Package, ArrowLeftRight, Hammer, X} from "lucide-reac
 import MarkdownToolbar from "@/components/board/markdown-toolbar";
 import styles from "./board-write.module.scss";
 
+/**
+ * Utility function renderReferenceTokenCard.
+ */
 const renderReferenceTokenCard = (className:string | undefined, rawValue:string) => {
 	const token = parseBoardReferenceToken(className, rawValue);
 	if(!token){
@@ -42,8 +45,17 @@ const renderReferenceTokenCard = (className:string | undefined, rawValue:string)
 			? "BARTER"
 			: "CRAFT";
 
+	/**
+	 * Utility function renderLinkOrText.
+	 */
 	const renderLinkOrText = (label:string, url?:string) => {
+		/**
+		 * Utility function normalizedLabel.
+		 */
 		const normalizedLabel = (label || "-").trim() || "-";
+		/**
+		 * Utility function normalizedUrl.
+		 */
 		const normalizedUrl = (url || "").trim();
 		if(!normalizedUrl){
 			return <span>{normalizedLabel}</span>;
@@ -122,6 +134,9 @@ const markdownComponents:Components = {
 	pre: ({children, ...props}) => {
 		const child = React.Children.toArray(children)[0];
 		if(React.isValidElement(child)){
+			/**
+			 * Utility function className.
+			 */
 			const className = (child.props as {className?:string}).className;
 			const rawValue = String((child.props as {children?:React.ReactNode}).children ?? "").trim();
 			const referenceCard = renderReferenceTokenCard(className, rawValue);
@@ -133,24 +148,45 @@ const markdownComponents:Components = {
 	}
 };
 
+/**
+ * Constant markdownRehypePlugins.
+ */
 const markdownRehypePlugins = [rehypeRaw, rehypeSanitize];
+/**
+ * Constant markdownRemarkPlugins.
+ */
 const markdownRemarkPlugins = [remarkGfm, remarkSoftBreaks];
 type ReferenceTab = "item" | "barter" | "craft";
 
+/**
+ * Constant MAX_REFERENCE_RESULTS.
+ */
 const MAX_REFERENCE_RESULTS = 8;
 
+/**
+ * Utility function toSingleLine.
+ */
 const toSingleLine = (value:string | null | undefined):string => (value ?? "").replace(/\s+/g, " ").trim();
 
+/**
+ * Utility function toSafeInteger.
+ */
 const toSafeInteger = (value:number | string | null | undefined):number => {
 	const numeric = Number(value);
 	return Number.isFinite(numeric) ? Math.trunc(numeric) : 0;
 };
 
+/**
+ * Utility function toDisplayValue.
+ */
 const toDisplayValue = (value:string | null | undefined, fallback:string = "-"):string => {
 	const normalized = toSingleLine(value);
 	return normalized || fallback;
 };
 
+/**
+ * Utility function formatProcessingTime.
+ */
 const formatProcessingTime = (processingTime:number | null | undefined):string => {
 	if(processingTime === null || processingTime === undefined){
 		return "-";
@@ -166,6 +202,9 @@ const formatProcessingTime = (processingTime:number | null | undefined):string =
 	return `${minutes}분 ${seconds}초`;
 };
 
+/**
+ * Utility function toItemNameAndUrl.
+ */
 const toItemNameAndUrl = (itemName:string | null | undefined):{name:string; url:string} => {
 	const normalized = toSingleLine(itemName);
 	if(!normalized){
@@ -177,6 +216,9 @@ const toItemNameAndUrl = (itemName:string | null | undefined):{name:string; url:
 	};
 };
 
+/**
+ * Utility function buildItemReferenceMarkdown.
+ */
 const buildItemReferenceMarkdown = (item:GameItemSummary):string => {
 	const category = [
 		toSingleLine(item.itemMainMenu ?? ""),
@@ -195,6 +237,9 @@ const buildItemReferenceMarkdown = (item:GameItemSummary):string => {
 	});
 };
 
+/**
+ * Utility function buildBarterReferenceMarkdown.
+ */
 const buildBarterReferenceMarkdown = (barter:LifeBarter):string => {
 	const rewardPerTrade = toSafeInteger(barter.itemWeight);
 	const maxTrades = toSafeInteger(barter.barterQty);
@@ -217,6 +262,9 @@ const buildBarterReferenceMarkdown = (barter:LifeBarter):string => {
 	});
 };
 
+/**
+ * Utility function buildCraftReferenceMarkdown.
+ */
 const buildCraftReferenceMarkdown = (craft:LifeCraft):string => {
 	const craftType = toSingleLine(craft.craftType) || "-";
 	const craftName = toSingleLine(craft.craftName) || "-";
@@ -285,6 +333,9 @@ const BoardWritePage:React.FC = () => {
 		if(isEditMode) loadPost();
 	}, []);
 
+	/**
+	 * Utility function async.
+	 */
 	const loadCategories = async () => {
 		try{
 			const data = await boardService.getCategories();
@@ -297,6 +348,9 @@ const BoardWritePage:React.FC = () => {
 		}
 	};
 
+	/**
+	 * Utility function async.
+	 */
 	const loadPost = async () => {
 		try{
 			const post = await boardService.getPost(parseInt(postId!));
@@ -305,11 +359,7 @@ const BoardWritePage:React.FC = () => {
 				navigate("/board");
 				return;
 			}
-			if(post.sourceType !== "USER"){
-				alert("외부 연동 게시글은 수정할 수 없습니다.");
-				navigate("/board");
-				return;
-			}
+
 			setCategoryId(post.categoryId);
 			setIsWiki(!!post.isWiki);
 			setTitle(post.title);
@@ -391,6 +441,9 @@ const BoardWritePage:React.FC = () => {
 		}
 	}, [insertImageMarkdown]);
 
+	/**
+	 * Utility function handleFileSelect.
+	 */
 	const handleFileSelect = (e:React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
 		if(file) handleImageUpload(file);
@@ -405,6 +458,9 @@ const BoardWritePage:React.FC = () => {
 		}
 	}, [handleImageUpload]);
 
+	/**
+	 * Utility function handleDragOver.
+	 */
 	const handleDragOver = (e:React.DragEvent) => {
 		e.preventDefault();
 	};
@@ -480,6 +536,9 @@ const BoardWritePage:React.FC = () => {
 		}
 	}, [referenceKeyword, referenceTab]);
 
+	/**
+	 * Utility function handleReferenceKeywordKeyDown.
+	 */
 	const handleReferenceKeywordKeyDown = (e:React.KeyboardEvent<HTMLInputElement>) => {
 		if(e.key === "Enter"){
 			e.preventDefault();
@@ -519,6 +578,9 @@ const BoardWritePage:React.FC = () => {
 			return;
 		}
 
+		/**
+		 * Utility function handlePointerDown.
+		 */
 		const handlePointerDown = (event:PointerEvent) => {
 			const target = event.target as Node | null;
 			if(!target){
@@ -533,6 +595,9 @@ const BoardWritePage:React.FC = () => {
 			setReferencePanelOpen(false);
 		};
 
+		/**
+		 * Utility function handleEsc.
+		 */
 		const handleEsc = (event:KeyboardEvent) => {
 			if(event.key === "Escape"){
 				setReferencePanelOpen(false);
@@ -547,6 +612,9 @@ const BoardWritePage:React.FC = () => {
 		};
 	}, [referencePanelOpen]);
 
+	/**
+	 * Utility function async.
+	 */
 	const handleSubmit = async (e:React.FormEvent) => {
 		e.preventDefault();
 		if(!title.trim()){

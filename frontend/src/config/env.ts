@@ -5,10 +5,16 @@
 import type {AppConfig} from "../types";
 
 // 환경변수에서 값 가져오기 (타입 안전성 보장)
+/**
+ * Utility function getEnvVar.
+ */
 const getEnvVar = (name:string, defaultValue:string = ""):string => {
 	return import.meta.env[name] || defaultValue;
 };
 
+/**
+ * Utility function getBooleanEnvVar.
+ */
 const getBooleanEnvVar = (name:string, defaultValue:boolean = false):boolean => {
 	const value = import.meta.env[name];
 	return value === "true" || (value === undefined && defaultValue);
@@ -46,6 +52,9 @@ export const config:AppConfig = {
 };
 
 // 디버그 로그 함수
+/**
+ * Utility function debugLog.
+ */
 export const debugLog = (...args:any[]) => {
 	if(config.features.enableDebugLogs){
 		console.log("[DEBUG]", ...args);

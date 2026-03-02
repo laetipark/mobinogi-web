@@ -2,8 +2,17 @@ package com.example.mobinogi.service.game;
 
 import com.example.mobinogi.dto.game.ItemEditSuggestionCreateRequest;
 import com.example.mobinogi.dto.game.ItemEditSuggestionDto;
-import com.example.mobinogi.entity.*;
-import com.example.mobinogi.repository.*;
+import com.example.mobinogi.entity.game.ItemEditSuggestion;
+import com.example.mobinogi.entity.game.ItemEditSuggestionStatus;
+import com.example.mobinogi.entity.game.ItemEditSuggestionTargetType;
+import com.example.mobinogi.entity.game.SheetSyncStatus;
+import com.example.mobinogi.entity.life.LifeBarter;
+import com.example.mobinogi.entity.life.LifeCraft;
+import com.example.mobinogi.entity.user.User;
+import com.example.mobinogi.repository.GameItemRepository;
+import com.example.mobinogi.repository.ItemEditSuggestionRepository;
+import com.example.mobinogi.repository.LifeBarterRepository;
+import com.example.mobinogi.repository.LifeCraftRepository;
 import com.example.mobinogi.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,17 +23,39 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
+/**
+ * Item edit suggestion service for player-submitted corrections.
+ */
 @Service
 @RequiredArgsConstructor
 public class ItemEditSuggestionService{
 
+	/** Suggestion persistence repository. */
 	private final ItemEditSuggestionRepository itemEditSuggestionRepository;
+
+	/** Item repository for target validation. */
 	private final GameItemRepository gameItemRepository;
+
+	/** Barter repository for barter target validation. */
 	private final LifeBarterRepository lifeBarterRepository;
+
+	/** Craft repository for craft target validation. */
 	private final LifeCraftRepository lifeCraftRepository;
+
+	/** User service for requester and reviewer resolution. */
 	private final UserService userService;
+
+	/** Google Sheets integration service. */
 	private final GoogleSheetsItemEditSyncService googleSheetsItemEditSyncService;
 
+	/**
+	 * Creates a new suggestion.
+	 * Admin submitters are auto-approved and synced immediately.
+	 *
+	 * @param requesterUserId authenticated requester user ID
+	 * @param request suggestion payload
+	 * @return created suggestion DTO
+	 */
 	@Transactional
 	public ItemEditSuggestionDto createSuggestion(Long requesterUserId, ItemEditSuggestionCreateRequest request){
 		if(requesterUserId == null){
@@ -42,6 +73,7 @@ public class ItemEditSuggestionService{
 		String suggestedValue = normalizeRequired(request.getSuggestedValue(), "suggestedValue");
 		ItemEditSuggestionTargetType targetType = parseTargetType(request.getTargetType());
 
+		// Validate target row ownership and supported field restrictions.
 		validateTarget(itemName, targetType, request.getTargetRecordId());
 		if(!googleSheetsItemEditSyncService.isSupportedField(targetType, fieldKey)){
 			throw new IllegalArgumentException("Unsupported field for target type: " + fieldKey);
@@ -66,6 +98,8 @@ public class ItemEditSuggestionService{
 			.build();
 
 		ItemEditSuggestion saved = itemEditSuggestionRepository.save(entity);
+
+		// Admin submit is immediately applied to the external sheet.
 		if(requesterIsAdmin){
 			GoogleSheetsItemEditSyncService.SheetApplyResult syncResult = googleSheetsItemEditSyncService.applyApprovedSuggestion(saved);
 			saved.setSheetSyncStatus(syncResult.status());
@@ -78,6 +112,15 @@ public class ItemEditSuggestionService{
 		return ItemEditSuggestionDto.fromEntity(saved);
 	}
 
+	/**
+	 * Returns suggestions for one item.
+	 * Only administrators can access this view.
+	 *
+	 * @param itemName item name
+	 * @param status optional status filter
+	 * @param requesterUserId requester user ID
+	 * @return suggestion list
+	 */
 	@Transactional(readOnly = true)
 	public List<ItemEditSuggestionDto> getItemSuggestions(String itemName, String status, Long requesterUserId){
 		User requester = userService.findById(requesterUserId);
@@ -91,9 +134,17 @@ public class ItemEditSuggestionService{
 			ItemEditSuggestionStatus parsedStatus = parseStatus(status);
 			entities = itemEditSuggestionRepository.findByItemNameAndStatusOrderByCreatedAtDesc(normalizedItemName, parsedStatus);
 		}
+
 		return entities.stream().map(ItemEditSuggestionDto::fromEntity).toList();
 	}
 
+	/**
+	 * Returns pending suggestions.
+	 * Only administrators can access this view.
+	 *
+	 * @param requesterUserId requester user ID
+	 * @return pending suggestion list
+	 */
 	@Transactional(readOnly = true)
 	public List<ItemEditSuggestionDto> getPendingSuggestions(Long requesterUserId){
 		User requester = userService.findById(requesterUserId);
@@ -106,8 +157,22 @@ public class ItemEditSuggestionService{
 			.toList();
 	}
 
+	/**
+	 * Approves a pending suggestion and applies it to Google Sheets.
+	 *
+	 * @param suggestionId suggestion ID
+	 * @param reviewerUserId admin reviewer user ID
+	 * @param reviewNote optional review note
+	 * @param adminSuggestedValue optional override value
+	 * @return approved suggestion DTO
+	 */
 	@Transactional
-	public ItemEditSuggestionDto approveSuggestion(Long suggestionId, Long reviewerUserId, String reviewNote, String adminSuggestedValue){
+	public ItemEditSuggestionDto approveSuggestion(
+		Long suggestionId,
+		Long reviewerUserId,
+		String reviewNote,
+		String adminSuggestedValue
+	){
 		User reviewer = userService.findById(reviewerUserId);
 		requireAdmin(reviewer);
 
@@ -117,6 +182,7 @@ public class ItemEditSuggestionService{
 			throw new IllegalStateException("Only pending suggestions can be approved");
 		}
 
+		// Persist review metadata before sheet synchronization.
 		suggestion.setStatus(ItemEditSuggestionStatus.APPROVED);
 		suggestion.setApprovedAt(LocalDateTime.now());
 		suggestion.setReviewerUserId(reviewer.getUserId());
@@ -135,6 +201,14 @@ public class ItemEditSuggestionService{
 		return ItemEditSuggestionDto.fromEntity(itemEditSuggestionRepository.save(suggestion));
 	}
 
+	/**
+	 * Rejects a pending suggestion.
+	 *
+	 * @param suggestionId suggestion ID
+	 * @param reviewerUserId admin reviewer user ID
+	 * @param reviewNote review note
+	 * @return rejected suggestion DTO
+	 */
 	@Transactional
 	public ItemEditSuggestionDto rejectSuggestion(Long suggestionId, Long reviewerUserId, String reviewNote){
 		User reviewer = userService.findById(reviewerUserId);
@@ -157,17 +231,23 @@ public class ItemEditSuggestionService{
 		suggestion.setSheetSyncedAt(null);
 
 		googleSheetsItemEditSyncService.logRejectedSuggestion(suggestion);
-
 		return ItemEditSuggestionDto.fromEntity(itemEditSuggestionRepository.save(suggestion));
 	}
 
+	/**
+	 * Validates whether target metadata belongs to the selected item.
+	 *
+	 * @param itemName item name
+	 * @param targetType target type
+	 * @param targetRecordId optional target row ID
+	 */
 	private void validateTarget(String itemName, ItemEditSuggestionTargetType targetType, Long targetRecordId){
 		gameItemRepository.findByItemName(itemName)
 			.orElseThrow(() -> new IllegalArgumentException("Item not found: " + itemName));
 
 		switch(targetType){
 			case ITEM -> {
-				// No extra target record needed.
+				// No target record linkage check is needed for item-level edits.
 			}
 			case BARTER -> {
 				if(targetRecordId == null){
@@ -196,12 +276,23 @@ public class ItemEditSuggestionService{
 		}
 	}
 
+	/**
+	 * Ensures requester has admin privileges.
+	 *
+	 * @param user requester entity
+	 */
 	private void requireAdmin(User user){
 		if(user == null || !Boolean.TRUE.equals(user.getIsAdmin())){
 			throw new SecurityException("Admin permission required");
 		}
 	}
 
+	/**
+	 * Parses raw target type.
+	 *
+	 * @param raw target type text
+	 * @return parsed enum
+	 */
 	private ItemEditSuggestionTargetType parseTargetType(String raw){
 		String normalized = normalizeRequired(raw, "targetType").toUpperCase(Locale.ROOT);
 		try{
@@ -211,6 +302,12 @@ public class ItemEditSuggestionService{
 		}
 	}
 
+	/**
+	 * Parses raw suggestion status.
+	 *
+	 * @param raw status text
+	 * @return parsed enum
+	 */
 	private ItemEditSuggestionStatus parseStatus(String raw){
 		String normalized = normalizeRequired(raw, "status").toUpperCase(Locale.ROOT);
 		try{
@@ -220,6 +317,12 @@ public class ItemEditSuggestionService{
 		}
 	}
 
+	/**
+	 * Resolves display name for audit fields.
+	 *
+	 * @param user user entity
+	 * @return display name
+	 */
 	private String resolveUserDisplayName(User user){
 		if(user == null){
 			return null;
@@ -227,12 +330,16 @@ public class ItemEditSuggestionService{
 		if(hasText(user.getNickname())){
 			return user.getNickname().trim();
 		}
-		if(hasText(user.getDiscordUsername())){
-			return user.getDiscordUsername().trim();
-		}
 		return "user#" + user.getUserId();
 	}
 
+	/**
+	 * Trims a required string and validates non-empty text.
+	 *
+	 * @param value raw value
+	 * @param fieldName field name for error message
+	 * @return normalized value
+	 */
 	private String normalizeRequired(String value, String fieldName){
 		String normalized = trimToNull(value);
 		if(normalized == null){
@@ -241,6 +348,12 @@ public class ItemEditSuggestionService{
 		return normalized;
 	}
 
+	/**
+	 * Trims a string and returns {@code null} when empty.
+	 *
+	 * @param value raw value
+	 * @return trimmed or null
+	 */
 	private String trimToNull(String value){
 		if(value == null){
 			return null;
@@ -249,6 +362,12 @@ public class ItemEditSuggestionService{
 		return trimmed.isEmpty() ? null : trimmed;
 	}
 
+	/**
+	 * Returns whether text contains non-whitespace characters.
+	 *
+	 * @param value text value
+	 * @return true when non-empty text
+	 */
 	private boolean hasText(String value){
 		return value != null && !value.trim().isEmpty();
 	}

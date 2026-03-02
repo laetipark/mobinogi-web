@@ -9,6 +9,9 @@ import MemoTaskModal from "./memo-task-modal";
 import BarterCart from "./barter-cart";
 import type {WeeklyTaskSectionProps} from "@/types/ui";
 
+/**
+ * Constant TXT.
+ */
 const TXT = {
 	summoningBarrier : "소환의 결계",
 	blackHole : "검은 구멍",
@@ -25,11 +28,29 @@ const TXT = {
 	weeklyMemoManage : "주간 메모 관리"
 } as const;
 
+/**
+ * Constant SUMMONING_BARRIER_MAX.
+ */
 const SUMMONING_BARRIER_MAX = 7;
+/**
+ * Constant ABYSS_REWARD_DEFAULT_MAX.
+ */
 const ABYSS_REWARD_DEFAULT_MAX = 4;
+/**
+ * Constant BLACK_HOLE_TOTAL.
+ */
 const BLACK_HOLE_TOTAL = 14;
+/**
+ * Constant BLACK_HOLE_DAILY_MAX.
+ */
 const BLACK_HOLE_DAILY_MAX = 8;
+/**
+ * Constant VANGUARD_REWARD_MAX.
+ */
 const VANGUARD_REWARD_MAX = 3;
+/**
+ * Constant FIELD_BOSS_MAX.
+ */
 const FIELD_BOSS_MAX = 3;
 
 const WEEKLY_TASK_DEFS:{key:string; label:string}[] = [
@@ -42,6 +63,9 @@ const WEEKLY_TASK_DEFS:{key:string; label:string}[] = [
 	{key : "barter", label : TXT.barter}
 ];
 
+/**
+ * Utility function getBlackHoleInfo.
+ */
 function getBlackHoleInfo(totalDone:number):{
 	maxForWeek:number;
 	todayAvailable:number;
@@ -55,6 +79,9 @@ function getBlackHoleInfo(totalDone:number):{
 
 	let day = kst.getDay();
 	if(kst.getHours() < 6){
+		/**
+		 * Utility function day.
+		 */
 		day = (day + 6) % 7;
 	}
 	const daysSinceMonday = day === 0 ? 6 : day - 1;
@@ -68,6 +95,9 @@ function getBlackHoleInfo(totalDone:number):{
 	return {maxForWeek, todayAvailable, todayWindowCount, passedCount};
 }
 
+/**
+ * Utility function normalizeAbyssCompletedSlots.
+ */
 function normalizeAbyssCompletedSlots(completed:number[] = [], tracked:number[] = []):number[]{
 	if(tracked.length === 0 || completed.length === 0){
 		return [];
@@ -166,6 +196,9 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 		return items;
 	}, [allDefs, settings, hidden]);
 
+	/**
+	 * Utility function getCompletedCount.
+	 */
 	const getCompletedCount = () => {
 		let completed = 0;
 		let total = 0;
@@ -212,6 +245,9 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 				default:
 					if(item.isMemo){
 						const memoId = item.key.replace("memo_", "");
+						/**
+						 * Utility function memo.
+						 */
 						const memo = (weeklyMemos || []).find(m => m.id === memoId);
 						if(memo){
 							total++;
@@ -225,11 +261,20 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 
 	const {completed : completedCount, total : totalItems} = getCompletedCount();
 
+	/**
+	 * Utility function toggleMemo.
+	 */
 	const toggleMemo = (id:string) => {
+		/**
+		 * Utility function updated.
+		 */
 		const updated = (weeklyMemos || []).map(m => (m.id === id ? {...m, completed : !m.completed} : m));
 		onMemosChange(updated);
 	};
 
+	/**
+	 * Utility function renderBlackHole.
+	 */
 	const renderBlackHole = () => {
 		const totalDone = weekly.blackHole;
 		const {maxForWeek, todayAvailable, todayWindowCount, passedCount} = blackHole;
@@ -278,6 +323,9 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 		);
 	};
 
+	/**
+	 * Utility function renderItem.
+	 */
 	const renderItem = (item:{key:string; label:string; isMemo?:boolean}) => {
 		switch(item.key){
 			case "summoningBarrier":
@@ -423,6 +471,9 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 			default:
 				if(item.isMemo){
 					const memoId = item.key.replace("memo_", "");
+					/**
+					 * Utility function memo.
+					 */
 					const memo = (weeklyMemos || []).find(m => m.id === memoId);
 					if(!memo) return null;
 					return (
@@ -538,6 +589,9 @@ const WeeklyTaskSection:React.FC<WeeklyTaskSectionProps> = ({
 					hiddenTasks={(settings?.hiddenTasks || []).filter(k => allDefs.some(t => t.key === k))}
 					onSave={(order, weeklyHidden) => {
 						const weeklyKeys = new Set(allDefs.map(t => t.key));
+						/**
+						 * Utility function otherHidden.
+						 */
 						const otherHidden = (settings?.hiddenTasks || []).filter(k => !weeklyKeys.has(k));
 						onSettingsChange({
 							...settings,

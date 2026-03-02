@@ -10,10 +10,25 @@ import java.util.List;
 @Getter
 @Setter
 public class GameItemFilterOptionsDto{
+	/**
+	 * Field itemMainMenus.
+	 */
 	private List<String> itemMainMenus;
+	/**
+	 * Field itemSubMenus.
+	 */
 	private List<String> itemSubMenus;
+	/**
+	 * Field itemTypes.
+	 */
 	private List<String> itemTypes;
+	/**
+	 * Field itemRarities.
+	 */
 	private List<String> itemRarities;
+	/**
+	 * Field itemCategoryTree.
+	 */
 	private List<ItemMainMenuOptionDto> itemCategoryTree;
 
 	@Getter
@@ -21,7 +36,13 @@ public class GameItemFilterOptionsDto{
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class ItemMainMenuOptionDto{
+		/**
+		 * Field itemMainMenu.
+		 */
 		private String itemMainMenu;
+		/**
+		 * Field subMenus.
+		 */
 		private List<ItemSubMenuOptionDto> subMenus;
 	}
 
@@ -30,7 +51,13 @@ public class GameItemFilterOptionsDto{
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class ItemSubMenuOptionDto{
+		/**
+		 * Field itemSubMenu.
+		 */
 		private String itemSubMenu;
+		/**
+		 * Field itemTypes.
+		 */
 		private List<String> itemTypes;
 	}
 }

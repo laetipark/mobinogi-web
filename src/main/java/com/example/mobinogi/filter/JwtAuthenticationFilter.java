@@ -15,15 +15,31 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Collections;
 
+/**
+ * Populates Spring Security context from JWT bearer token.
+ */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter{
 
+	/** JWT utility. */
 	private final JwtUtil jwtUtil;
 
+	/**
+	 * Initializes JWT filter.
+	 *
+	 * @param jwtUtil jwt utility
+	 */
 	public JwtAuthenticationFilter(JwtUtil jwtUtil){
 		this.jwtUtil = jwtUtil;
 	}
 
+	/**
+	 * Validates bearer token and sets authentication context.
+	 *
+	 * @param request http request
+	 * @param response http response
+	 * @param filterChain filter chain
+	 */
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException{
 		try{
@@ -48,6 +64,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 		filterChain.doFilter(request, response);
 	}
 
+	/**
+	 * Extracts bearer token from Authorization header.
+	 *
+	 * @param request http request
+	 * @return token or null
+	 */
 	private String getTokenFromRequest(HttpServletRequest request){
 		String bearerToken = request.getHeader("Authorization");
 		if(StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")){

@@ -21,6 +21,12 @@
 	margin-bottom:20px;
 }
 
+.topActions{
+	display:flex;
+	align-items:center;
+	gap:8px;
+}
+
 .backBtn{
 	padding:8px 16px;
 	background:var(--surface);
@@ -40,12 +46,21 @@
 	gap:8px;
 }
 
-.editBtn, .deleteBtn{
+.copyLinkBtn, .editBtn, .deleteBtn{
 	padding:8px 14px;
 	border:1px solid var(--border);
 	border-radius:$border-radius;
 	font-size:13px;
 	cursor:pointer;
+}
+
+.copyLinkBtn{
+	background:var(--surface);
+	color:var(--text);
+
+	&:hover{
+		background:var(--surface-hover);
+	}
 }
 
 .editBtn{
@@ -234,12 +249,13 @@
 .tableWrapper{
 	overflow-x:auto;
 	margin:0 0 14px;
+	max-width:100%;
 
 	table{
-		width:max-content;
-		min-width:100%;
+		width:100% !important;
+		max-width:100%;
 		border-collapse:collapse;
-		table-layout:auto;
+		table-layout:fixed;
 		border:1px solid #111;
 		background:#d9d9d9;
 	}
@@ -249,7 +265,8 @@
 		padding:10px 14px;
 		text-align:center;
 		vertical-align:middle;
-		word-break:keep-all;
+		word-break:break-word;
+		overflow-wrap:anywhere;
 		white-space:normal;
 		line-height:1.85;
 	}
@@ -274,6 +291,21 @@
 	td p + p,
 	th p + p{
 		margin-top:4px;
+	}
+
+	td img,
+	th img{
+		max-width:100%;
+		height:auto;
+		display:block;
+		margin:8px auto;
+	}
+
+	td table,
+	th table{
+		width:100% !important;
+		max-width:100%;
+		table-layout:fixed;
 	}
 
 	a{
@@ -602,7 +634,7 @@
 		font-size:13px;
 	}
 
-	.editBtn, .deleteBtn{
+	.copyLinkBtn, .editBtn, .deleteBtn{
 		padding:6px 10px;
 		font-size:12px;
 	}
@@ -656,6 +688,10 @@
 	}
 
 	.postActions{
+		gap:4px;
+	}
+
+	.topActions{
 		gap:4px;
 	}
 }

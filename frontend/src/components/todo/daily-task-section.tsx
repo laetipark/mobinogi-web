@@ -52,6 +52,9 @@ const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({
 		return items;
 	}, [allDefs, settings, hidden]);
 
+	/**
+	 * Utility function getCompletedCount.
+	 */
 	const getCompletedCount = () => {
 		let completed = 0;
 		let total = 0;
@@ -69,6 +72,9 @@ const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({
 				completed += barterProgress.completed;
 			}else if(item.isMemo){
 				const memoId = item.key.replace("memo_", "");
+				/**
+				 * Utility function memo.
+				 */
 				const memo = (dailyMemos || []).find(m => m.id === memoId);
 				if(memo){
 					total++;
@@ -82,13 +88,22 @@ const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({
 
 	const {completed : completedCount, total : totalCount} = getCompletedCount();
 
+	/**
+	 * Utility function toggleMemo.
+	 */
 	const toggleMemo = (id:string) => {
+		/**
+		 * Utility function updated.
+		 */
 		const updated = (dailyMemos || []).map(m =>
 			m.id === id ? {...m, completed : !m.completed} : m
 		);
 		onMemosChange(updated);
 	};
 
+	/**
+	 * Utility function renderItem.
+	 */
 	const renderItem = (item:{key:string; label:string; isMemo?:boolean}) => {
 		if(item.key === "dayDungeon"){
 			return (
@@ -157,6 +172,9 @@ const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({
 
 		if(item.isMemo){
 			const memoId = item.key.replace("memo_", "");
+			/**
+			 * Utility function memo.
+			 */
 			const memo = (dailyMemos || []).find(m => m.id === memoId);
 			if(!memo) return null;
 			return (
@@ -205,6 +223,9 @@ const DailyTaskSection:React.FC<DailyTaskSectionProps> = ({
 					hiddenTasks={(settings?.hiddenTasks || []).filter(k => allDefs.some(t => t.key === k))}
 					onSave={(order, dailyHidden) => {
 						const dailyKeys = new Set(allDefs.map(t => t.key));
+						/**
+						 * Utility function otherHidden.
+						 */
 						const otherHidden = (settings?.hiddenTasks || []).filter(k => !dailyKeys.has(k));
 						onSettingsChange({...settings, dailyOrder : order, hiddenTasks : [...otherHidden, ...dailyHidden]});
 						setShowSettings(false);

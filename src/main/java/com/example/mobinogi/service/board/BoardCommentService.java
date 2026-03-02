@@ -1,7 +1,9 @@
 package com.example.mobinogi.service.board;
 
-import com.example.mobinogi.dto.board.*;
-import com.example.mobinogi.entity.BoardComment;
+import com.example.mobinogi.dto.board.BoardCommentCreateRequest;
+import com.example.mobinogi.dto.board.BoardCommentDto;
+import com.example.mobinogi.dto.board.BoardCommentUpdateRequest;
+import com.example.mobinogi.entity.board.BoardComment;
 import com.example.mobinogi.repository.BoardCommentRepository;
 import com.example.mobinogi.repository.BoardPostRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,79 +15,113 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Board comment service.
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class BoardCommentService{
-	
+
+	/** Board comment repository. */
 	private final BoardCommentRepository commentRepository;
+
+	/** Board post repository for parent-post validation. */
 	private final BoardPostRepository postRepository;
-	
+
+	/**
+	 * Returns hierarchical comments for a post.
+	 *
+	 * @param postId post ID
+	 * @return root comments with nested replies
+	 */
 	public List<BoardCommentDto> getComments(Long postId){
 		postRepository.findByPostIdAndDeletedAtIsNull(postId)
-			.orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
-		
+			.orElseThrow(() -> new RuntimeException("Post not found."));
+
 		List<BoardComment> allComments = commentRepository
 			.findByPostIdAndDeletedAtIsNullOrderByCreatedAtAsc(postId);
-		
-		// 대댓글을 부모 댓글 ID별로 그룹화
+
+		// Group child comments by parent-comment ID.
 		Map<Long, List<BoardCommentDto>> repliesByParentId = allComments.stream()
 			.filter(c -> c.getParentCommentId() != null)
 			.map(BoardCommentDto::fromEntity)
 			.collect(Collectors.groupingBy(BoardCommentDto::getParentCommentId));
-		
-		// 최상위 댓글에 대댓글 연결
+
+		// Attach grouped replies to root comments.
 		return allComments.stream()
 			.filter(c -> c.getParentCommentId() == null)
 			.map(BoardCommentDto::fromEntity)
 			.peek(dto -> dto.setReplies(repliesByParentId.getOrDefault(dto.getCommentId(), List.of())))
 			.collect(Collectors.toList());
 	}
-	
+
+	/**
+	 * Creates a new post comment or reply.
+	 *
+	 * @param postId post ID
+	 * @param userId author user ID
+	 * @param request create request payload
+	 * @return created comment DTO
+	 */
 	@Transactional
 	public BoardCommentDto createComment(Long postId, Long userId, BoardCommentCreateRequest request){
 		postRepository.findByPostIdAndDeletedAtIsNull(postId)
-			.orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
-		
+			.orElseThrow(() -> new RuntimeException("Post not found."));
+
 		if(request.getParentCommentId() != null){
 			commentRepository.findByCommentIdAndDeletedAtIsNull(request.getParentCommentId())
-				.orElseThrow(() -> new RuntimeException("부모 댓글을 찾을 수 없습니다."));
+				.orElseThrow(() -> new RuntimeException("Parent comment not found."));
 		}
-		
+
 		BoardComment comment = BoardComment.builder()
 			.postId(postId)
 			.userId(userId)
 			.parentCommentId(request.getParentCommentId())
 			.content(request.getContent())
 			.build();
-		
+
 		comment = commentRepository.save(comment);
 		return BoardCommentDto.fromEntity(comment);
 	}
-	
+
+	/**
+	 * Updates comment content.
+	 *
+	 * @param commentId comment ID
+	 * @param userId requesting user ID
+	 * @param request update request payload
+	 * @return updated comment DTO
+	 */
 	@Transactional
 	public BoardCommentDto updateComment(Long commentId, Long userId, BoardCommentUpdateRequest request){
 		BoardComment comment = commentRepository.findByCommentIdAndDeletedAtIsNull(commentId)
-			.orElseThrow(() -> new RuntimeException("댓글을 찾을 수 없습니다."));
-		
+			.orElseThrow(() -> new RuntimeException("Comment not found."));
+
 		if(!comment.getUserId().equals(userId)){
-			throw new RuntimeException("댓글 수정 권한이 없습니다.");
+			throw new RuntimeException("No permission to edit this comment.");
 		}
-		
+
 		comment.setContent(request.getContent());
 		comment = commentRepository.save(comment);
 		return BoardCommentDto.fromEntity(comment);
 	}
-	
+
+	/**
+	 * Soft-deletes a comment.
+	 *
+	 * @param commentId comment ID
+	 * @param userId requesting user ID
+	 */
 	@Transactional
 	public void deleteComment(Long commentId, Long userId){
 		BoardComment comment = commentRepository.findByCommentIdAndDeletedAtIsNull(commentId)
-			.orElseThrow(() -> new RuntimeException("댓글을 찾을 수 없습니다."));
-		
+			.orElseThrow(() -> new RuntimeException("Comment not found."));
+
 		if(!comment.getUserId().equals(userId)){
-			throw new RuntimeException("댓글 삭제 권한이 없습니다.");
+			throw new RuntimeException("No permission to delete this comment.");
 		}
-		
+
 		comment.setDeletedAt(LocalDateTime.now());
 		commentRepository.save(comment);
 	}

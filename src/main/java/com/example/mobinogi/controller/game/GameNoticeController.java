@@ -14,15 +14,27 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Game notice lookup controller.
+ */
 @RestController
 @RequestMapping("/api/notices")
 @RequiredArgsConstructor
 @Slf4j
 public class GameNoticeController{
 
+	/** Generic failure message for notice API. */
 	private static final String INTERNAL_SERVER_ERROR_MESSAGE = "Failed to fetch notices.";
+
+	/** Notice service. */
 	private final GameNoticeService gameNoticeService;
 
+	/**
+	 * Returns notice list with optional category.
+	 *
+	 * @param category optional category filter
+	 * @return notice list response
+	 */
 	@GetMapping
 	public ResponseEntity<Map<String, Object>> getNotices(@RequestParam(required = false) String category){
 		try{
@@ -36,6 +48,12 @@ public class GameNoticeController{
 		}
 	}
 
+	/**
+	 * Builds success response body.
+	 *
+	 * @param notices notice list
+	 * @return success response map
+	 */
 	private Map<String, Object> successResponse(List<GameNoticeDto> notices){
 		Map<String, Object> response = new LinkedHashMap<>();
 		response.put("success", true);
@@ -43,6 +61,12 @@ public class GameNoticeController{
 		return response;
 	}
 
+	/**
+	 * Builds failure response body.
+	 *
+	 * @param message error message
+	 * @return failure response map
+	 */
 	private Map<String, Object> failureResponse(String message){
 		Map<String, Object> response = new LinkedHashMap<>();
 		response.put("success", false);

@@ -20,6 +20,9 @@ const GAME_CLASS_COLOR_MAP:Record<GameClassPrefix, string> = {
 	"thief_" : "#D8A14A"
 };
 
+/**
+ * Utility function getClassPrefixOrder.
+ */
 const getClassPrefixOrder = (classCode?:string | null):number => {
 	const prefix = getGameClassPrefix(classCode);
 	if(!prefix){
@@ -28,7 +31,13 @@ const getClassPrefixOrder = (classCode?:string | null):number => {
 	return GAME_CLASS_PREFIX_ORDER.indexOf(prefix);
 };
 
+/**
+ * Utility function getGameClassPrefix.
+ */
 export const getGameClassPrefix = (classCode?:string | null):GameClassPrefix | null => {
+	/**
+	 * Utility function value.
+	 */
 	const value = (classCode || "").trim().toLowerCase();
 	for(const prefix of GAME_CLASS_PREFIX_ORDER){
 		if(value.startsWith(prefix)){
@@ -38,11 +47,17 @@ export const getGameClassPrefix = (classCode?:string | null):GameClassPrefix | n
 	return null;
 };
 
+/**
+ * Utility function getGameClassColor.
+ */
 export const getGameClassColor = (classCode?:string | null):string | null => {
 	const prefix = getGameClassPrefix(classCode);
 	return prefix ? GAME_CLASS_COLOR_MAP[prefix] : null;
 };
 
+/**
+ * Utility function hexToRgba.
+ */
 const hexToRgba = (hex:string, alpha:number):string => {
 	const normalized = hex.replace("#", "");
 	if(normalized.length !== 6){
@@ -54,6 +69,9 @@ const hexToRgba = (hex:string, alpha:number):string => {
 	return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
+/**
+ * Utility function getGameClassColorStyle.
+ */
 export const getGameClassColorStyle = (classCode?:string | null):{color:string; backgroundColor:string; borderColor:string} | undefined => {
 	const color = getGameClassColor(classCode);
 	if(!color){
@@ -66,6 +84,9 @@ export const getGameClassColorStyle = (classCode?:string | null):{color:string; 
 	};
 };
 
+/**
+ * Utility function normalizeSelectableClasses.
+ */
 export const normalizeSelectableClasses = (classes:GameClassItem[]):GameClassItem[] => {
 	return [...classes]
 		.filter((cls) => !cls.isApprentice && !cls.className.includes("견습"))

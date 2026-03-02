@@ -1,7 +1,7 @@
 package com.example.mobinogi.repository;
 
-import com.example.mobinogi.entity.ItemEditSuggestion;
-import com.example.mobinogi.entity.ItemEditSuggestionStatus;
+import com.example.mobinogi.entity.game.ItemEditSuggestion;
+import com.example.mobinogi.entity.game.ItemEditSuggestionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

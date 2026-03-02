@@ -20,6 +20,9 @@ const CoinCounter:React.FC<CoinCounterProps> = ({
 			return;
 		}
 		
+		/**
+		 * Utility function calculateCharge.
+		 */
 		const calculateCharge = () => {
 			const lastCharge = new Date(lastChargeTime).getTime();
 			const now = Date.now();

@@ -13,11 +13,32 @@ import java.time.LocalDateTime;
 @Builder
 public class GuildMemberRankRefreshSummaryDto{
 
+	/**
+	 * Field guildId.
+	 */
 	private Long guildId;
+	/**
+	 * Field totalMemberCount.
+	 */
 	private Integer totalMemberCount;
+	/**
+	 * Field requestedCount.
+	 */
 	private Integer requestedCount;
+	/**
+	 * Field successCount.
+	 */
 	private Integer successCount;
+	/**
+	 * Field failedCount.
+	 */
 	private Integer failedCount;
+	/**
+	 * Field skippedCount.
+	 */
 	private Integer skippedCount;
+	/**
+	 * Field refreshedAt.
+	 */
 	private LocalDateTime refreshedAt;
 }

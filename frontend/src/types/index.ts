@@ -28,7 +28,10 @@ export type {
 	GuildStatus, GuildMemberStatus, GuildRole, GuildInfo, GuildMember, GuildDashboard,
 	GuildDashboardResponse, GuildResponse, GuildMemberResponse,
 	GuildMemberRankRefreshSummary, GuildMemberRankRefreshResponse, GuildMemberRankRefreshTarget,
-	GuildMemberRankRefreshStatus, GuildMemberRankRefreshStatusResponse
+	GuildMemberRankRefreshStatus, GuildMemberRankRefreshStatusResponse,
+	GuildGalleryImage, GuildGalleryImageListResponse, GuildGalleryImageResponse,
+	GuildBoardPost, GuildBoardPostListResponse, GuildBoardPostResponse,
+	GuildBoardCategory, GuildBoardCategoryListResponse, GuildBoardCategoryResponse
 } from "./guild";
 export type {AppConfig} from "./config";
 export type {

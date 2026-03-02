@@ -1,6 +1,9 @@
 import apiService from "./api";
 import type {ApiResponse, UserTodo, UserTodoBarter, TodoData, GameMonster} from "../types";
 
+/**
+ * Constant todoService.
+ */
 export const todoService = {
 	getTodos : async():Promise<UserTodo[]> => {
 		const response = await apiService.get<ApiResponse & {todos:UserTodo[]}>("/user/todo");

@@ -10,9 +10,24 @@ import lombok.*;
 @Builder
 public class AuthResponse{
 
+	/**
+	 * Field success.
+	 */
 	private boolean success;
+	/**
+	 * Field message.
+	 */
 	private String message;
+	/**
+	 * Field token.
+	 */
 	private String token;
+	/**
+	 * Field user.
+	 */
 	private UserDto user;
+	/**
+	 * Field isNewUser.
+	 */
 	private boolean isNewUser;
 }

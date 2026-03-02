@@ -6,7 +6,6 @@ import {gameClassService} from "@/services/game-class-service";
 import {getGameClassColorStyle} from "@/utils";
 import profileService from "@/services/profile-service";
 import {uploadService} from "@/services/upload-service";
-import {discordService} from "@/services/discord-service";
 import {useSeo} from "@/hooks/use-seo";
 import {
 	User,
@@ -30,7 +29,7 @@ const ProfilePage:React.FC = () => {
 	const {user, checkLoginStatus} = useAuth();
 	useSeo({
 		title : "프로필",
-		description : "프로필, 캐릭터, 디스코드 연동 정보를 관리하세요.",
+		description : "프로필과 캐릭터 정보를 관리하세요.",
 		canonicalPath : "/profile",
 		noindex : true
 	});
@@ -64,6 +63,9 @@ const ProfilePage:React.FC = () => {
 	const [classes, setClasses] = useState<GameClassItem[]>([]);
 	const classCodeById = useMemo(() => new Map(classes.map((cls) => [cls.classId, cls.classCode])), [classes]);
 	const classCodeByName = useMemo(() => new Map(classes.map((cls) => [cls.className, cls.classCode])), [classes]);
+	/**
+	 * Utility function resolveClassCode.
+	 */
 	const resolveClassCode = (classId?:number, className?:string | null) => {
 		if(classId && classCodeById.has(classId)){
 			return classCodeById.get(classId);
@@ -81,6 +83,9 @@ const ProfilePage:React.FC = () => {
 	// Rank 로딩 상태
 	const [rankLoading, setRankLoading] = useState<Set<number>>(new Set());
 	const RANK_STALE_MS = 10 * 60 * 1000;
+	/**
+	 * Utility function isRankStale.
+	 */
 	const isRankStale = (rankUpdatedAt?:string):boolean => {
 		if(!rankUpdatedAt){
 			return true;
@@ -91,10 +96,6 @@ const ProfilePage:React.FC = () => {
 		}
 		return Date.now() - updatedAtMs >= RANK_STALE_MS;
 	};
-	
-	// Discord 연동 상태
-	const [discordLoading, setDiscordLoading] = useState(false);
-	const [discordMessage, setDiscordMessage] = useState<{type:"success" | "error"; text:string} | null>(null);
 	
 	// 초기화
 	useEffect(() => {
@@ -108,6 +109,9 @@ const ProfilePage:React.FC = () => {
 	}, [user]);
 	
 	// 캐릭터 로드
+	/**
+	 * Utility function async.
+	 */
 	const loadCharacters = async() => {
 		setCharactersLoading(true);
 		try{
@@ -121,6 +125,9 @@ const ProfilePage:React.FC = () => {
 		}
 	};
 	
+	/**
+	 * Utility function fetchRanks.
+	 */
 	const fetchRanks = (chars:UserCharacter[]) => {
 		const targets = chars.filter(c =>
 			c.serverId != null &&
@@ -160,6 +167,9 @@ const ProfilePage:React.FC = () => {
 	};
 	
 	// 프로필 이미지 업로드
+	/**
+	 * Utility function async.
+	 */
 	const handleProfileImageUpload = async(file:File) => {
 		setUploadProgress(0);
 		setProfileMessage(null);
@@ -183,12 +193,18 @@ const ProfilePage:React.FC = () => {
 		}
 	};
 	
+	/**
+	 * Utility function handleFileSelect.
+	 */
 	const handleFileSelect = (e:React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
 		if(file) handleProfileImageUpload(file);
 		e.target.value = "";
 	};
 	
+	/**
+	 * Utility function handleImageClick.
+	 */
 	const handleImageClick = () => {
 		if(!useUrlInput){
 			fileInputRef.current?.click();
@@ -196,6 +212,9 @@ const ProfilePage:React.FC = () => {
 	};
 	
 	// 프로필 저장
+	/**
+	 * Utility function async.
+	 */
 	const handleProfileSave = async() => {
 		setProfileLoading(true);
 		setProfileMessage(null);
@@ -214,6 +233,9 @@ const ProfilePage:React.FC = () => {
 	};
 	
 	// 캐릭터 추가
+	/**
+	 * Utility function async.
+	 */
 	const handleAddCharacter = async() => {
 		if(!characterForm.characterName.trim()){
 			return;
@@ -229,6 +251,9 @@ const ProfilePage:React.FC = () => {
 	};
 	
 	// 캐릭터 수정
+	/**
+	 * Utility function async.
+	 */
 	const handleEditCharacter = async() => {
 		if(!editingCharacter || !characterForm.characterName.trim()){
 			return;
@@ -244,6 +269,9 @@ const ProfilePage:React.FC = () => {
 	};
 	
 	// 캐릭터 삭제
+	/**
+	 * Utility function async.
+	 */
 	const handleDeleteCharacter = async(characterId:number) => {
 		if(!confirm("정말 이 캐릭터를 삭제하시겠습니까?")){
 			return;
@@ -257,6 +285,9 @@ const ProfilePage:React.FC = () => {
 	};
 	
 	// 수정 모드 시작
+	/**
+	 * Utility function startEditCharacter.
+	 */
 	const startEditCharacter = (character:UserCharacter) => {
 		setEditingCharacter(character);
 		setCharacterForm({
@@ -268,12 +299,18 @@ const ProfilePage:React.FC = () => {
 	};
 	
 	// 수정 모드 취소
+	/**
+	 * Utility function cancelEdit.
+	 */
 	const cancelEdit = () => {
 		setEditingCharacter(null);
 		setCharacterForm({characterName : "", serverId : 2, classId : undefined});
 	};
 	
 	// 추가 모드 시작
+	/**
+	 * Utility function startAddCharacter.
+	 */
 	const startAddCharacter = () => {
 		setShowAddForm(true);
 		setEditingCharacter(null);
@@ -281,6 +318,9 @@ const ProfilePage:React.FC = () => {
 	};
 	
 	// 순서 변경 모드
+	/**
+	 * Utility function startReorderMode.
+	 */
 	const startReorderMode = () => {
 		setReorderList(characters.map(c => ({
 			characterId : c.characterId,
@@ -292,11 +332,17 @@ const ProfilePage:React.FC = () => {
 		setEditingCharacter(null);
 	};
 	
+	/**
+	 * Utility function cancelReorderMode.
+	 */
 	const cancelReorderMode = () => {
 		setReorderMode(false);
 		setReorderList([]);
 	};
 	
+	/**
+	 * Utility function async.
+	 */
 	const handleReorderSave = async() => {
 		setReorderSaving(true);
 		try{
@@ -308,41 +354,6 @@ const ProfilePage:React.FC = () => {
 			console.error("순서 변경 실패:", error);
 		}finally{
 			setReorderSaving(false);
-		}
-	};
-	
-	// Discord 연동
-	const handleDiscordLink = async() => {
-		setDiscordLoading(true);
-		setDiscordMessage(null);
-		try{
-			const authUrl = await discordService.getAuthorizeUrl();
-			// Discord OAuth 페이지로 이동
-			window.location.href = authUrl;
-		}catch(error:any){
-			setDiscordMessage({type : "error", text : error.message || "Discord 연동 실패"});
-			setDiscordLoading(false);
-		}
-	};
-	
-	// Discord 연동 해제
-	const handleDiscordUnlink = async() => {
-		if(!confirm("Discord 연동을 해제하시겠습니까?")){
-			return;
-		}
-		setDiscordLoading(true);
-		setDiscordMessage(null);
-		try{
-			const result = await discordService.unlinkDiscord();
-			setDiscordMessage({type : "success", text : result.message});
-			// 로그인 상태 갱신
-			if(checkLoginStatus){
-				await checkLoginStatus();
-			}
-		}catch(error:any){
-			setDiscordMessage({type : "error", text : error.message || "연동 해제 실패"});
-		}finally{
-			setDiscordLoading(false);
 		}
 	};
 	
@@ -359,10 +370,7 @@ const ProfilePage:React.FC = () => {
 	return (
 		<div className={styles.profilePage}>
 			<div className={styles.container}>
-				<div className="page-heading">
-					<h1>프로필 설정</h1>
-					<p className="page-heading-subtitle">프로필, Discord 연동, 캐릭터 정보를 한 번에 관리하세요</p>
-				</div>
+				<h1 className="page-heading">프로필 설정</h1>
 				
 				{/* 프로필 섹션 */}
 				<section className={styles.section}>
@@ -472,57 +480,6 @@ const ProfilePage:React.FC = () => {
 								)}
 							</button>
 						</div>
-					</div>
-				</section>
-				
-				{/* Discord 연동 섹션 */}
-				<section className={styles.section}>
-					<h2 className={styles.sectionTitle}>
-						<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-							<path
-								d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"/>
-						</svg>
-						<span>Discord 연동</span>
-					</h2>
-					
-					<div className={styles.discordSection}>
-						{user.discordId ? (
-							<div className={styles.discordLinked}>
-								<div className={styles.discordInfo}>
-									{user.discordAvatar && (
-										<img src={user.discordAvatar} alt="Discord" className={styles.discordAvatar}/>
-									)}
-									<div>
-										<div className={styles.discordUsername}>{user.discordUsername}</div>
-										<div className={styles.discordId}>ID: {user.discordId}</div>
-									</div>
-								</div>
-								<button
-									className={styles.unlinkBtn}
-									onClick={handleDiscordUnlink}
-									disabled={discordLoading}
-								>
-									{discordLoading ? "처리 중..." : "연동 해제"}
-								</button>
-							</div>
-						) : (
-							<div className={styles.discordUnlinked}>
-								<p>Discord 계정을 연동하면 Discord에서 작성한 게시물이 내 게시물로 표시됩니다.</p>
-								<button
-									className={styles.linkBtn}
-									onClick={handleDiscordLink}
-									disabled={discordLoading}
-								>
-									{discordLoading ? "처리 중..." : "Discord 연동하기"}
-								</button>
-							</div>
-						)}
-						
-						{discordMessage && (
-							<div className={`${styles.message} ${styles[discordMessage.type]}`}>
-								{discordMessage.text}
-							</div>
-						)}
 					</div>
 				</section>
 				

@@ -5,6 +5,9 @@ import {todoService} from "@/services/todo-service.ts";
 import BarterSettingsModal from "./barter-settings-modal";
 import type {BarterCartProps} from "@/types/ui";
 
+/**
+ * Constant TXT.
+ */
 const TXT = {
 	barter : "물물교환",
 	loading : "로딩 중...",
@@ -12,6 +15,9 @@ const TXT = {
 	qty : "횟수"
 } as const;
 
+/**
+ * Utility function toSafeBarterQty.
+ */
 const toSafeBarterQty = (value:unknown):number => {
 	const parsed = Number(value);
 	if(!Number.isFinite(parsed)){
@@ -20,6 +26,9 @@ const toSafeBarterQty = (value:unknown):number => {
 	return Math.max(1, Math.floor(parsed));
 };
 
+/**
+ * Utility function clampCompletedQty.
+ */
 const clampCompletedQty = (value:unknown, qty:number):number => {
 	const parsed = Number(value);
 	if(!Number.isFinite(parsed)){
@@ -28,6 +37,9 @@ const clampCompletedQty = (value:unknown, qty:number):number => {
 	return Math.min(qty, Math.max(0, Math.floor(parsed)));
 };
 
+/**
+ * Utility function resolveCompletedQty.
+ */
 const resolveCompletedQty = (barter:UserTodoBarter, qty:number):number => {
 	const parsedCompletedQty = Number(barter.completedCount);
 	if(Number.isFinite(parsedCompletedQty)){
@@ -52,6 +64,9 @@ const BarterCart:React.FC<BarterCartProps> = ({
 		loadBarters();
 	}, [characterId]);
 
+	/**
+	 * Utility function async.
+	 */
 	const loadBarters = async() => {
 		try{
 			setLoading(true);
@@ -64,6 +79,9 @@ const BarterCart:React.FC<BarterCartProps> = ({
 		}
 	};
 
+	/**
+	 * Utility function async.
+	 */
 	const handleSetCompletedQty = async(barter:UserTodoBarter, nextCompletedQty:number, qty:number) => {
 		if(toggling.has(barter.id)) return;
 		const safeCompletedQty = clampCompletedQty(nextCompletedQty, qty);
@@ -125,6 +143,9 @@ const BarterCart:React.FC<BarterCartProps> = ({
 		onProgressChange?.(progress);
 	}, [onProgressChange, progress.completed, progress.total]);
 
+	/**
+	 * Utility function getCheckedByLabel.
+	 */
 	const getCheckedByLabel = (barter:UserTodoBarter, completedQty:number):string => {
 		const isServerShared = Number(barter.barterServer) > 0;
 		if(!isServerShared || completedQty <= 0){

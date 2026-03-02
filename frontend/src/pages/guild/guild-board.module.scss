@@ -1,0 +1,616 @@
+.guildBoardComposer{
+	display:flex;
+	flex-direction:column;
+	gap:0;
+	padding:28px;
+	border:1px solid var(--border);
+	border-radius:16px;
+	background:var(--surface);
+}
+
+.guildBoardWriteSection{
+	border:none;
+	border-radius:0;
+	background:transparent;
+	box-shadow:none;
+	padding:0;
+}
+
+.guildBoardComposerGroup{
+	margin-bottom:20px;
+}
+
+.guildBoardComposerLabel{
+	font-size:14px;
+	font-weight:500;
+	color:var(--text-muted);
+}
+
+.guildBoardComposerControl{
+	font-size:14px;
+}
+
+.guildBoardComposerControl:not(textarea){
+	padding:10px 14px;
+	border:1px solid var(--border);
+	border-radius:10px;
+	background:var(--background);
+}
+
+.guildBoardComposerControl:not(textarea):focus{
+	outline:none;
+	border-color:var(--primary);
+	background:var(--background);
+	box-shadow:none;
+}
+
+.guildBoardComposerContentHead{
+	display:flex;
+	align-items:center;
+	justify-content:space-between;
+	gap:10px;
+	flex-wrap:wrap;
+}
+
+.guildBoardComposerContentActions{
+	display:flex;
+	align-items:center;
+	gap:8px;
+}
+
+.guildBoardComposerTabToggle{
+	display:flex;
+	border:1px solid var(--border);
+	border-radius:10px;
+	overflow:hidden;
+}
+
+.guildBoardComposerToggleBtn{
+	padding:5px 14px;
+	border:none;
+	background:var(--background);
+	color:var(--text-muted);
+	font-size:13px;
+	font-weight:500;
+	line-height:1;
+	cursor:pointer;
+	transition:background-color 0.2s ease, color 0.2s ease;
+}
+
+.guildBoardComposerToggleBtn:hover{
+	background:var(--surface-hover);
+}
+
+.guildBoardComposerToggleBtnActive{
+	background:var(--primary);
+	color:#fff;
+}
+
+.guildBoardEditorWrap{
+	display:flex;
+	flex-direction:column;
+	gap:8px;
+	position:relative;
+}
+
+.guildBoardReferenceFloatingLayer{
+	position:absolute;
+	top:44px;
+	right:0;
+	z-index:32;
+	width:min(720px, 100%);
+	pointer-events:none;
+}
+
+.guildBoardReferencePanel{
+	padding:12px;
+	border:1px solid var(--border);
+	border-radius:11px;
+	background:color-mix(in srgb, var(--surface) 94%, transparent);
+	box-shadow:var(--shadow-md);
+	max-height:min(66vh, 560px);
+	overflow:auto;
+	display:flex;
+	flex-direction:column;
+	gap:10px;
+	pointer-events:auto;
+}
+
+.guildBoardReferenceHeader{
+	display:flex;
+	align-items:flex-start;
+	justify-content:space-between;
+	gap:10px;
+}
+
+.guildBoardReferenceHeaderText{
+	display:flex;
+	flex-direction:column;
+	gap:4px;
+
+	strong{
+		font-size:13px;
+		color:var(--text);
+	}
+
+	span{
+		font-size:12px;
+		color:var(--text-muted);
+	}
+}
+
+.guildBoardReferencePanelCloseBtn{
+	display:inline-flex;
+	align-items:center;
+	justify-content:center;
+	width:26px;
+	height:26px;
+	padding:0;
+	border:1px solid var(--border);
+	border-radius:9px;
+	background:var(--surface-hover);
+	color:var(--text-muted);
+	cursor:pointer;
+	transition:all 0.2s ease;
+	flex:0 0 auto;
+}
+
+.guildBoardReferencePanelCloseBtn:hover{
+	background:var(--surface);
+	border-color:var(--primary-light);
+	color:var(--text);
+}
+
+.guildBoardReferenceControls{
+	display:flex;
+	flex-direction:column;
+	gap:8px;
+}
+
+.guildBoardReferenceTabs{
+	display:flex;
+	gap:6px;
+	flex-wrap:wrap;
+}
+
+.guildBoardReferenceTabBtn{
+	display:inline-flex;
+	align-items:center;
+	gap:6px;
+	padding:6px 10px;
+	border:1px solid var(--border);
+	border-radius:9px;
+	background:var(--surface-hover);
+	color:var(--text-muted);
+	font-size:12px;
+	cursor:pointer;
+	transition:all 0.2s ease;
+}
+
+.guildBoardReferenceTabBtnActive{
+	background:var(--primary);
+	border-color:var(--primary);
+	color:#fff;
+}
+
+.guildBoardReferenceSearch{
+	display:flex;
+	gap:8px;
+}
+
+.guildBoardReferenceInput{
+	flex:1;
+	min-width:0;
+	padding:8px 10px;
+	border:1px solid var(--border);
+	border-radius:9px;
+	background:var(--surface);
+	color:var(--text);
+	font-size:13px;
+	outline:none;
+}
+
+.guildBoardReferenceInput:focus{
+	border-color:var(--primary);
+}
+
+.guildBoardReferenceSearchBtn{
+	display:inline-flex;
+	align-items:center;
+	gap:6px;
+	padding:8px 12px;
+	border:1px solid var(--border);
+	border-radius:9px;
+	background:var(--surface-hover);
+	color:var(--text);
+	font-size:12px;
+	cursor:pointer;
+	transition:all 0.2s ease;
+}
+
+.guildBoardReferenceSearchBtn:hover{
+	background:var(--primary);
+	border-color:var(--primary);
+	color:#fff;
+}
+
+.guildBoardReferenceSearchBtn:disabled{
+	opacity:0.6;
+	cursor:not-allowed;
+}
+
+.guildBoardReferenceError,
+.guildBoardReferenceLoading,
+.guildBoardReferenceEmpty{
+	padding:8px 10px;
+	border-radius:9px;
+	font-size:12px;
+}
+
+.guildBoardReferenceError{
+	background:#fef2f2;
+	border:1px solid #fecaca;
+	color:#dc2626;
+}
+
+.guildBoardReferenceLoading,
+.guildBoardReferenceEmpty{
+	background:var(--surface-hover);
+	border:1px dashed var(--border);
+	color:var(--text-muted);
+}
+
+.guildBoardReferenceResults{
+	display:grid;
+	grid-template-columns:repeat(auto-fit, minmax(230px, 1fr));
+	gap:8px;
+}
+
+.guildBoardReferenceResultCard{
+	display:flex;
+	flex-direction:column;
+	gap:8px;
+	padding:10px;
+	border:1px solid var(--border);
+	border-radius:9px;
+	background:var(--surface);
+}
+
+.guildBoardReferenceResultTitleRow{
+	display:flex;
+	align-items:center;
+	gap:6px;
+	font-size:13px;
+	color:var(--text);
+}
+
+.guildBoardReferenceResultMeta{
+	display:flex;
+	flex-direction:column;
+	gap:4px;
+	font-size:12px;
+	color:var(--text-muted);
+	line-height:1.4;
+}
+
+.guildBoardReferenceInsertBtn{
+	margin-top:auto;
+	padding:7px 10px;
+	border:1px solid var(--primary-light);
+	border-radius:9px;
+	background:var(--surface-hover);
+	color:var(--primary-dark);
+	font-size:12px;
+	font-weight:600;
+	cursor:pointer;
+	transition:all 0.2s ease;
+}
+
+.guildBoardReferenceInsertBtn:hover{
+	background:var(--primary);
+	border-color:var(--primary);
+	color:#fff;
+}
+
+.guildBoardComposerTextarea{
+	width:100%;
+	padding:14px;
+	border:1px solid var(--border);
+	border-radius:10px;
+	background:var(--background);
+	color:var(--text);
+	font-size:14px;
+	font-family:inherit;
+	resize:vertical;
+	line-height:1.7;
+	min-height:520px;
+}
+
+.guildBoardComposerTextarea:focus{
+	outline:none;
+	border-color:var(--primary);
+	box-shadow:none;
+}
+
+.guildBoardComposerPreview{
+	min-height:520px;
+	padding:14px;
+	border:1px solid var(--border);
+	border-radius:10px;
+	background:var(--background);
+	color:var(--text);
+	font-size:14px;
+	line-height:1.7;
+	word-break:break-word;
+	overflow-wrap:anywhere;
+	overflow-y:auto;
+}
+
+.guildBoardComposerPreviewEmpty{
+	color:var(--text-muted);
+	font-style:italic;
+}
+
+.guildBoardComposerPreview :global(h1),
+.guildBoardComposerPreview :global(h2),
+.guildBoardComposerPreview :global(h3){
+	margin:0.7em 0 0.45em;
+	line-height:1.3;
+}
+
+.guildBoardComposerPreview :global(p),
+.guildBoardComposerPreview :global(ul),
+.guildBoardComposerPreview :global(ol),
+.guildBoardComposerPreview :global(blockquote),
+.guildBoardComposerPreview :global(pre){
+	margin:0.55em 0;
+}
+
+.guildBoardComposerPreview :global(code){
+	padding:0.1em 0.35em;
+	border-radius:6px;
+	background:color-mix(in srgb, var(--surface-hover) 82%, var(--surface) 18%);
+	font-size:0.86em;
+}
+
+.guildBoardComposerPreview :global(pre code){
+	display:block;
+	padding:10px 11px;
+	overflow-x:auto;
+}
+
+.guildBoardComposerSubmitBtn{
+	width:100%;
+	padding:12px;
+	background:var(--primary);
+	color:#fff;
+	border:none;
+	border-radius:10px;
+	font-size:15px;
+	font-weight:600;
+	cursor:pointer;
+	transition:opacity 0.2s ease;
+}
+
+.guildBoardComposerSubmitBtn:disabled{
+	opacity:0.5;
+	cursor:not-allowed;
+}
+
+.guildBoardComposerSubmitBtn:hover:not(:disabled){
+	opacity:0.9;
+}
+
+.guildBoardComposerTableWrap{
+	width:100%;
+	overflow-x:auto;
+	border:1px solid var(--border-light);
+	border-radius:11px;
+	background:var(--surface);
+}
+
+.guildBoardComposerTableWrap :global(table){
+	width:100%;
+	border-collapse:collapse;
+}
+
+.guildBoardComposerTableWrap :global(th),
+.guildBoardComposerTableWrap :global(td){
+	padding:8px 10px;
+	border-bottom:1px solid var(--border-light);
+	text-align:left;
+	font-size:0.82rem;
+	white-space:nowrap;
+}
+
+.guildBoardComposerTableWrap :global(tr:last-child td){
+	border-bottom:none;
+}
+
+.guildBoardCategoryManager{
+	display:flex;
+	flex-direction:column;
+	gap:8px;
+	padding:10px;
+	border:1px solid var(--border-light);
+	border-radius:12px;
+	background:color-mix(in srgb, var(--surface-hover) 72%, var(--surface) 28%);
+}
+
+.guildBoardCategoryList{
+	display:flex;
+	flex-wrap:wrap;
+	gap:8px;
+}
+
+.guildBoardCategoryItem{
+	display:inline-flex;
+	align-items:center;
+	gap:6px;
+	border:1px solid var(--border-light);
+	border-radius:999px;
+	padding:4px 8px;
+	background:var(--surface);
+	font-size:0.76rem;
+}
+
+.guildBoardFilters{
+	display:flex;
+	align-items:center;
+	justify-content:space-between;
+	flex-wrap:wrap;
+	gap:10px;
+}
+
+.guildBoardTabs{
+	display:flex;
+	flex-wrap:wrap;
+	gap:6px;
+}
+
+.guildBoardTab{
+	padding:7px 12px;
+	border:1px solid var(--border);
+	border-radius:10px;
+	background:var(--surface);
+	color:var(--text-muted);
+	font-size:0.78rem;
+	font-weight:700;
+	line-height:1;
+	cursor:pointer;
+	transition:border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.guildBoardTab:hover{
+	border-color:color-mix(in srgb, var(--primary) 46%, var(--border) 54%);
+	color:var(--text);
+}
+
+.guildBoardTabActive{
+	border-color:var(--primary);
+	background:var(--primary);
+	color:var(--text-on-primary);
+}
+
+.guildBoardSearchForm{
+	display:flex;
+	align-items:center;
+	gap:8px;
+	flex:1;
+	max-width:360px;
+	min-width:240px;
+}
+
+.guildBoardSearchInput{
+	width:100%;
+	border:1px solid var(--border);
+	border-radius:11px;
+	padding:9px 11px;
+	background:var(--surface);
+	color:var(--text);
+	font-size:0.85rem;
+	outline:none;
+}
+
+.guildBoardSearchInput:focus{
+	border-color:var(--primary);
+	box-shadow:0 0 0 3px var(--focus-ring);
+}
+
+.guildBoardSearchButton{
+	padding:8px 13px;
+	border:1px solid var(--border);
+	border-radius:11px;
+	background:var(--surface);
+	color:var(--text);
+	font-size:0.78rem;
+	font-weight:700;
+	cursor:pointer;
+	white-space:nowrap;
+}
+
+.guildBoardSearchButton:hover{
+	background:var(--surface-hover);
+}
+
+.guildBoardDeleteButton{
+	min-height:28px;
+	padding:4px 8px;
+	font-size:0.74rem;
+}
+
+.guildBoardCategoryBadge{
+	display:inline-flex;
+	align-items:center;
+	align-self:flex-start;
+	padding:2px 8px;
+	border-radius:999px;
+	background:color-mix(in srgb, var(--primary-light) 60%, transparent);
+	color:color-mix(in srgb, var(--primary) 74%, var(--text) 26%);
+	font-size:0.72rem;
+	font-weight:800;
+	line-height:1;
+}
+
+@media (max-width:900px){
+	.guildBoardComposer{
+		padding:16px;
+	}
+
+	.guildBoardComposerContentHead{
+		flex-wrap:wrap;
+		gap:8px;
+	}
+
+	.guildBoardComposerContentActions{
+		gap:4px;
+	}
+
+	.guildBoardFilters{
+		flex-direction:column;
+		align-items:stretch;
+	}
+
+	.guildBoardReferenceFloatingLayer{
+		left:0;
+		right:0;
+		width:auto;
+		top:40px;
+	}
+
+	.guildBoardReferencePanel{
+		padding:10px;
+		max-height:60vh;
+	}
+
+	.guildBoardReferenceSearch{
+		flex-direction:column;
+	}
+
+	.guildBoardReferenceSearchBtn{
+		justify-content:center;
+	}
+
+	.guildBoardReferenceResults{
+		grid-template-columns:1fr;
+	}
+
+	.guildBoardComposerTextarea{
+		min-height:360px;
+	}
+
+	.guildBoardComposerPreview{
+		min-height:360px;
+	}
+
+	.guildBoardSearchForm{
+		max-width:none;
+		min-width:0;
+	}
+
+	.guildBoardDeleteButton{
+		min-height:28px;
+		padding:4px 8px;
+	}
+}
+

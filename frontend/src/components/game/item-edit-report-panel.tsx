@@ -72,6 +72,9 @@ const CRAFT_FIELD_OPTIONS:FieldOption[] = [
 	{value : "craftSubId", label : "제작 서브 ID"}
 ];
 
+/**
+ * Utility function getFieldOptions.
+ */
 const getFieldOptions = (targetType:ItemEditSuggestionTargetType):FieldOption[] => {
 	switch(targetType){
 		case "ITEM":
@@ -85,6 +88,9 @@ const getFieldOptions = (targetType:ItemEditSuggestionTargetType):FieldOption[] 
 	}
 };
 
+/**
+ * Utility function stringifyValue.
+ */
 const stringifyValue = (value:unknown):string => {
 	if(value === null || value === undefined){
 		return "";
@@ -92,6 +98,9 @@ const stringifyValue = (value:unknown):string => {
 	return String(value);
 };
 
+/**
+ * Utility function createChangeEntry.
+ */
 const createChangeEntry = (id:number, fieldKey:string, currentValue = ""):ChangeEntry => ({
 	id,
 	fieldKey,
@@ -99,15 +108,24 @@ const createChangeEntry = (id:number, fieldKey:string, currentValue = ""):Change
 	suggestedValue : ""
 });
 
+/**
+ * Utility function displayMultilineValue.
+ */
 const displayMultilineValue = (value:string | null | undefined):string => {
 	const normalized = normalizeMultilineText(value);
 	return normalized || "-";
 };
 
+/**
+ * Utility function normalizeComparableText.
+ */
 const normalizeComparableText = (value:string | null | undefined):string => {
 	return normalizeMultilineText(value).trim();
 };
 
+/**
+ * Utility function getErrorMessage.
+ */
 const getErrorMessage = (error:unknown):string => {
 	if(typeof error === "object" && error !== null){
 		const maybeResponse = error as {response?:{data?:{message?:string}}; message?:string};
@@ -121,6 +139,9 @@ const getErrorMessage = (error:unknown):string => {
 	return "요청 처리 중 오류가 발생했습니다.";
 };
 
+/**
+ * Utility function formatDateTime.
+ */
 const formatDateTime = (value:string | null | undefined):string => {
 	if(!value){
 		return "-";
@@ -132,6 +153,9 @@ const formatDateTime = (value:string | null | undefined):string => {
 	return date.toLocaleString();
 };
 
+/**
+ * Utility function getBarterFieldValue.
+ */
 const getBarterFieldValue = (barter:LifeBarter, fieldKey:string):string => {
 	switch(fieldKey){
 		case "regionId":
@@ -163,6 +187,9 @@ const getBarterFieldValue = (barter:LifeBarter, fieldKey:string):string => {
 	}
 };
 
+/**
+ * Utility function getCraftFieldValue.
+ */
 const getCraftFieldValue = (craft:LifeCraft, fieldKey:string):string => {
 	switch(fieldKey){
 		case "itemId":
@@ -305,6 +332,9 @@ const ItemEditReportPanel:React.FC<Props> = ({itemName, itemData, itemSummary}) 
 		[changeEntries]
 	);
 
+	/**
+	 * Utility function resolveCurrentFieldValue.
+	 */
 	const resolveCurrentFieldValue = (nextFieldKey:string):string => {
 		if(targetType === "ITEM"){
 			return normalizeMultilineText(stringifyValue(itemFieldValues[nextFieldKey as keyof typeof itemFieldValues]));
@@ -315,6 +345,9 @@ const ItemEditReportPanel:React.FC<Props> = ({itemName, itemData, itemSummary}) 
 		return normalizeMultilineText(selectedCraft ? getCraftFieldValue(selectedCraft, nextFieldKey) : "");
 	};
 
+	/**
+	 * Utility function buildEntriesForFieldOptions.
+	 */
 	const buildEntriesForFieldOptions = (options:FieldOption[], prevEntries:ChangeEntry[]):ChangeEntry[] => {
 		const prevByField = new Map(prevEntries.map((entry) => [entry.fieldKey, entry]));
 		return options.map((option) => {
@@ -329,6 +362,9 @@ const ItemEditReportPanel:React.FC<Props> = ({itemName, itemData, itemSummary}) 
 		});
 	};
 
+	/**
+	 * Utility function handleChangeEditMode.
+	 */
 	const handleChangeEditMode = (nextMode:ChangeEditMode) => {
 		setChangeEditMode(nextMode);
 		setChangeEntries((prev) => {
@@ -345,6 +381,9 @@ const ItemEditReportPanel:React.FC<Props> = ({itemName, itemData, itemSummary}) 
 		});
 	};
 
+	/**
+	 * Utility function async.
+	 */
 	const loadPendingReports = async() => {
 		if(!user?.isAdmin || !itemName){
 			setPendingReports([]);
@@ -434,10 +473,16 @@ const ItemEditReportPanel:React.FC<Props> = ({itemName, itemData, itemSummary}) 
 		});
 	}, [changeEditMode, fieldOptions, itemFieldValues, selectedBarter, selectedCraft, targetType]);
 
+	/**
+	 * Utility function updateChangeEntry.
+	 */
 	const updateChangeEntry = (entryId:number, updater:(entry:ChangeEntry) => ChangeEntry) => {
 		setChangeEntries((prev) => prev.map((entry) => (entry.id === entryId ? updater(entry) : entry)));
 	};
 
+	/**
+	 * Utility function handleChangeEntryFieldKey.
+	 */
 	const handleChangeEntryFieldKey = (entryId:number, nextFieldKey:string) => {
 		updateChangeEntry(entryId, (entry) => ({
 			...entry,
@@ -446,6 +491,9 @@ const ItemEditReportPanel:React.FC<Props> = ({itemName, itemData, itemSummary}) 
 		}));
 	};
 
+	/**
+	 * Utility function handleChangeEntryCurrentValue.
+	 */
 	const handleChangeEntryCurrentValue = (entryId:number, nextValue:string) => {
 		updateChangeEntry(entryId, (entry) => ({
 			...entry,
@@ -453,6 +501,9 @@ const ItemEditReportPanel:React.FC<Props> = ({itemName, itemData, itemSummary}) 
 		}));
 	};
 
+	/**
+	 * Utility function handleChangeEntrySuggestedValue.
+	 */
 	const handleChangeEntrySuggestedValue = (entryId:number, nextValue:string) => {
 		updateChangeEntry(entryId, (entry) => ({
 			...entry,
@@ -460,6 +511,9 @@ const ItemEditReportPanel:React.FC<Props> = ({itemName, itemData, itemSummary}) 
 		}));
 	};
 
+	/**
+	 * Utility function handleAddChangeEntry.
+	 */
 	const handleAddChangeEntry = () => {
 		if(changeEditMode === "BULK"){
 			return;
@@ -472,6 +526,9 @@ const ItemEditReportPanel:React.FC<Props> = ({itemName, itemData, itemSummary}) 
 		]);
 	};
 
+	/**
+	 * Utility function handleRemoveChangeEntry.
+	 */
 	const handleRemoveChangeEntry = (entryId:number) => {
 		if(changeEditMode === "BULK"){
 			return;
@@ -484,6 +541,9 @@ const ItemEditReportPanel:React.FC<Props> = ({itemName, itemData, itemSummary}) 
 		});
 	};
 
+		/**
+		 * Utility function async.
+		 */
 		const handleSubmit = async() => {
 		if(!user){
 			setSubmitError("로그인 후 제보할 수 있습니다.");
@@ -567,10 +627,16 @@ const ItemEditReportPanel:React.FC<Props> = ({itemName, itemData, itemSummary}) 
 			setSubmitLoading(false);
 		}
 	};
+	/**
+	 * Utility function getAdminSuggestedEditValue.
+	 */
 	const getAdminSuggestedEditValue = (report:ItemEditSuggestion):string => {
 		return adminSuggestedEdits[report.suggestionId] ?? normalizeMultilineText(report.suggestedValue || "");
 	};
 
+	/**
+	 * Utility function handleAdminSuggestedEditChange.
+	 */
 	const handleAdminSuggestedEditChange = (suggestionId:number, nextValue:string) => {
 		setAdminSuggestedEdits((prev) => ({
 			...prev,
@@ -578,6 +644,9 @@ const ItemEditReportPanel:React.FC<Props> = ({itemName, itemData, itemSummary}) 
 		}));
 	};
 
+/**
+ * Utility function async.
+ */
 const handleReview = async(report:ItemEditSuggestion, action:"approve" | "reject") => {
 		setAdminActionId(report.suggestionId);
 		setAdminError(null);
@@ -602,6 +671,9 @@ const handleReview = async(report:ItemEditSuggestion, action:"approve" | "reject
 		}
 	};
 
+	/**
+	 * Utility function setQuickPreset.
+	 */
 	const setQuickPreset = (nextType:ItemEditSuggestionTargetType, nextFieldKey:string) => {
 		setTargetType(nextType);
 		setChangeEntries((prev) => {

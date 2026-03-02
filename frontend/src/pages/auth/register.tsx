@@ -18,6 +18,9 @@ const RegisterPage:React.FC = () => {
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [error, setError] = useState<string>("");
 	
+	/**
+	 * Utility function async.
+	 */
 	const handleSubmit = async(e:FormEvent<HTMLFormElement>):Promise<void> => {
 		e.preventDefault();
 		setIsLoading(true);
@@ -46,6 +49,9 @@ const RegisterPage:React.FC = () => {
 		}
 	};
 	
+	/**
+	 * Utility function handleChange.
+	 */
 	const handleChange = (e:ChangeEvent<HTMLInputElement>):void => {
 		const {name, value} = e.target;
 		setFormData(prev => ({

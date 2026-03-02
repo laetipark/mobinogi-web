@@ -12,5 +12,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BarterFilterOptionsDto{
+	/**
+	 * Field regions.
+	 */
 	private List<BarterFilterRegionDto> regions;
 }

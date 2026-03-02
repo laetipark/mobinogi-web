@@ -1,6 +1,9 @@
 package com.example.mobinogi.service.game;
 
-import com.example.mobinogi.entity.*;
+import com.example.mobinogi.entity.game.GameItem;
+import com.example.mobinogi.entity.game.ItemEditSuggestion;
+import com.example.mobinogi.entity.game.ItemEditSuggestionTargetType;
+import com.example.mobinogi.entity.game.SheetSyncStatus;
 import com.example.mobinogi.repository.GameItemRepository;
 import com.example.mobinogi.repository.LifeBarterRepository;
 import com.example.mobinogi.repository.LifeCraftRepository;
@@ -27,7 +30,10 @@ import java.util.*;
 @Slf4j
 public class GoogleSheetsItemEditSyncService{
 
+	/** OAuth scope for Google Sheets access. */
 	private static final String SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets";
+
+	/** Column mapping for item sheet fields. */
 	private static final Map<String, String> ITEM_FIELD_TO_COLUMN = Map.of(
 		"itemMainMenu", "A",
 		"itemSubMenu", "B",
@@ -38,6 +44,8 @@ public class GoogleSheetsItemEditSyncService{
 		"itemTranscendence", "G",
 		"itemSource", "H"
 	);
+
+	/** Column mapping for barter sheet fields. */
 	private static final Map<String, String> BARTER_FIELD_TO_COLUMN = Map.ofEntries(
 		Map.entry("regionId", "A"),
 		Map.entry("npcId", "C"),
@@ -52,6 +60,8 @@ public class GoogleSheetsItemEditSyncService{
 		Map.entry("barterServer", "O"),
 		Map.entry("barterNpc", "P")
 	);
+
+	/** Column mapping for craft sheet fields. */
 	private static final Map<String, String> CRAFT_FIELD_TO_COLUMN = Map.of(
 		"itemId", "A",
 		"craftType", "B",
@@ -65,20 +75,46 @@ public class GoogleSheetsItemEditSyncService{
 		"craftSubId", "J"
 	);
 
+	/** Item repository. */
 	private final GameItemRepository gameItemRepository;
+
+	/** Barter repository. */
 	private final LifeBarterRepository lifeBarterRepository;
+
+	/** Craft repository. */
 	private final LifeCraftRepository lifeCraftRepository;
+
+	/** HTTP client for Google Sheets API calls. */
 	private final RestTemplate restTemplate = new RestTemplate();
 
+	/** Credential file path setting. */
 	@Value("${GOOGLE_CREDENTIALS_PATH:}")
+	/**
+	 * Field googleCredentialsPath.
+	 */
 	private String googleCredentialsPath;
 
+	/** Target spreadsheet ID. */
 	@Value("${GOOGLE_SHEETS_ID:}")
+	/**
+	 * Field googleSheetsId.
+	 */
 	private String googleSheetsId;
 
+	/** Change log worksheet name. */
 	@Value("${GOOGLE_SHEETS_CHANGE_LOG_SHEET:item_change_log}")
+	/**
+	 * Field changeLogSheetName.
+	 */
 	private String changeLogSheetName;
 
+	/**
+	 * Returns whether a field is supported for target type.
+	 *
+	 * @param targetType suggestion target type
+	 * @param fieldKey field key
+	 * @return true when field is syncable
+	 */
 	public boolean isSupportedField(ItemEditSuggestionTargetType targetType, String fieldKey){
 		if(targetType == null || fieldKey == null){
 			return false;
@@ -90,6 +126,12 @@ public class GoogleSheetsItemEditSyncService{
 		};
 	}
 
+	/**
+	 * Applies an approved suggestion to Google Sheets.
+	 *
+	 * @param suggestion approved suggestion
+	 * @return sync result payload
+	 */
 	public SheetApplyResult applyApprovedSuggestion(ItemEditSuggestion suggestion){
 		if(!isConfigured()){
 			String message = "Google Sheets sync disabled: GOOGLE_CREDENTIALS_PATH or GOOGLE_SHEETS_ID missing";
@@ -112,14 +154,30 @@ public class GoogleSheetsItemEditSyncService{
 		}
 	}
 
+	/**
+	 * Writes a rejection log row without updating sheet values.
+	 *
+	 * @param suggestion rejected suggestion
+	 */
 	public void logRejectedSuggestion(ItemEditSuggestion suggestion){
 		appendChangeLogQuietly(suggestion, "REJECTED", "SKIPPED", null, "Rejected by admin");
 	}
 
+	/**
+	 * Returns whether Google Sheets integration is configured.
+	 *
+	 * @return true when credentials and sheet ID are provided
+	 */
 	private boolean isConfigured(){
 		return hasText(googleCredentialsPath) && hasText(googleSheetsId);
 	}
 
+	/**
+	 * Resolves A1 notation cell range for suggestion target.
+	 *
+	 * @param suggestion approved suggestion
+	 * @return target cell range
+	 */
 	private String resolveTargetRange(ItemEditSuggestion suggestion){
 		String fieldKey = suggestion.getFieldKey();
 		return switch(suggestion.getTargetType()){
@@ -166,6 +224,13 @@ public class GoogleSheetsItemEditSyncService{
 		};
 	}
 
+	/**
+	 * Updates one cell in Google Sheets.
+	 *
+	 * @param range A1 notation range
+	 * @param value cell value
+	 * @throws IOException when token acquisition fails
+	 */
 	private void updateSingleCell(String range, String value) throws IOException{
 		String accessToken = getAccessToken();
 		String encodedRange = UriUtils.encodePathSegment(range, StandardCharsets.UTF_8);
@@ -193,6 +258,15 @@ public class GoogleSheetsItemEditSyncService{
 		}
 	}
 
+	/**
+	 * Appends change log row and ignores failures.
+	 *
+	 * @param suggestion suggestion
+	 * @param action action label
+	 * @param syncResult sync result label
+	 * @param range applied range
+	 * @param message log message
+	 */
 	private void appendChangeLogQuietly(ItemEditSuggestion suggestion, String action, String syncResult, String range, String message){
 		if(!isConfigured()){
 			return;
@@ -205,6 +279,16 @@ public class GoogleSheetsItemEditSyncService{
 		}
 	}
 
+	/**
+	 * Appends one structured change log row.
+	 *
+	 * @param suggestion suggestion
+	 * @param action action label
+	 * @param syncResult sync result label
+	 * @param range applied range
+	 * @param message log message
+	 * @throws IOException when token acquisition fails
+	 */
 	private void appendChangeLog(ItemEditSuggestion suggestion, String action, String syncResult, String range, String message) throws IOException{
 		String accessToken = getAccessToken();
 		String appendRange = (hasText(changeLogSheetName) ? changeLogSheetName.trim() : "item_change_log") + "!A:K";
@@ -247,6 +331,12 @@ public class GoogleSheetsItemEditSyncService{
 		}
 	}
 
+	/**
+	 * Acquires OAuth access token from service account credentials.
+	 *
+	 * @return bearer token
+	 * @throws IOException when credentials cannot be read
+	 */
 	private String getAccessToken() throws IOException{
 		Path credentialsFile = resolveCredentialsFile();
 		if(credentialsFile == null || !Files.exists(credentialsFile)){
@@ -267,6 +357,11 @@ public class GoogleSheetsItemEditSyncService{
 		}
 	}
 
+	/**
+	 * Resolves credentials path candidates.
+	 *
+	 * @return resolved path
+	 */
 	private Path resolveCredentialsFile(){
 		if(!hasText(googleCredentialsPath)){
 			return null;
@@ -296,14 +391,34 @@ public class GoogleSheetsItemEditSyncService{
 		return direct.toAbsolutePath().normalize();
 	}
 
+	/**
+	 * Returns whether text has non-whitespace characters.
+	 *
+	 * @param value text value
+	 * @return true when non-empty
+	 */
 	private boolean hasText(String value){
 		return value != null && !value.trim().isEmpty();
 	}
 
+	/**
+	 * Converts nullable text to non-null value.
+	 *
+	 * @param value text value
+	 * @return empty string when null
+	 */
 	private String nullSafe(String value){
 		return value == null ? "" : value;
 	}
 
+	/**
+	 * Google Sheets write result.
+	 *
+	 * @param status sync status
+	 * @param message result message
+	 * @param appliedRange applied A1 range
+	 * @param appliedAt applied timestamp
+	 */
 	public record SheetApplyResult(
 		SheetSyncStatus status,
 		String message,

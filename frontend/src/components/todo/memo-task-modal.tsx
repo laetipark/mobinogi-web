@@ -8,6 +8,9 @@ const MemoTaskModal:React.FC<MemoTaskModalProps> = ({title, memos, onSave, onClo
 	const [items, setItems] = useState<TodoMemo[]>(memos.map(m => ({...m})));
 	const [newLabel, setNewLabel] = useState("");
 	
+	/**
+	 * Utility function addMemo.
+	 */
 	const addMemo = () => {
 		const label = newLabel.trim();
 		if(!label) return;
@@ -15,14 +18,23 @@ const MemoTaskModal:React.FC<MemoTaskModalProps> = ({title, memos, onSave, onClo
 		setNewLabel("");
 	};
 	
+	/**
+	 * Utility function removeMemo.
+	 */
 	const removeMemo = (id:string) => {
 		setItems(items.filter(m => m.id !== id));
 	};
 	
+	/**
+	 * Utility function updateLabel.
+	 */
 	const updateLabel = (id:string, label:string) => {
 		setItems(items.map(m => m.id === id ? {...m, label} : m));
 	};
 	
+	/**
+	 * Utility function handleKeyDown.
+	 */
 	const handleKeyDown = (e:React.KeyboardEvent) => {
 		if(e.key === "Enter"){
 			e.preventDefault();

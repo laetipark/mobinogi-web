@@ -1,6 +1,9 @@
 import apiService from "./api";
 import type {ApiResponse, User, ProfileUpdateRequest} from "../types";
 
+/**
+ * Constant profileService.
+ */
 export const profileService = {
 	updateProfile: async(data:ProfileUpdateRequest):Promise<User> => {
 		const response = await apiService.put<ApiResponse & {user:User}>("/auth/profile", data);

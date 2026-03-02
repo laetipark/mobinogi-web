@@ -1,6 +1,6 @@
 package com.example.mobinogi.repository;
 
-import com.example.mobinogi.entity.BoardPostHistory;
+import com.example.mobinogi.entity.board.BoardPostHistory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;

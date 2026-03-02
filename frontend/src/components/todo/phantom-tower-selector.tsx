@@ -2,7 +2,13 @@ import React, {useState, useRef, useEffect} from "react";
 import styles from "./todo.module.scss";
 import type {PhantomTowerSelectorProps} from "@/types/ui";
 
+/**
+ * Constant MAX_FLOOR.
+ */
 const MAX_FLOOR = 30;
+/**
+ * Constant MAX_STAGE.
+ */
 const MAX_STAGE = 5;
 
 const PhantomTowerSelector:React.FC<PhantomTowerSelectorProps> = ({value, onChange}) => {
@@ -27,6 +33,9 @@ const PhantomTowerSelector:React.FC<PhantomTowerSelectorProps> = ({value, onChan
 		}
 	}, [editingStage]);
 
+	/**
+	 * Utility function handleUp.
+	 */
 	const handleUp = () => {
 		if(value.stage < MAX_STAGE){
 			onChange({...value, stage : value.stage + 1});
@@ -35,6 +44,9 @@ const PhantomTowerSelector:React.FC<PhantomTowerSelectorProps> = ({value, onChan
 		}
 	};
 
+	/**
+	 * Utility function handleDown.
+	 */
 	const handleDown = () => {
 		if(value.stage > 1){
 			onChange({...value, stage : value.stage - 1});
@@ -43,6 +55,9 @@ const PhantomTowerSelector:React.FC<PhantomTowerSelectorProps> = ({value, onChan
 		}
 	};
 
+	/**
+	 * Utility function commitFloor.
+	 */
 	const commitFloor = () => {
 		const num = parseInt(floorInput, 10);
 		if(!isNaN(num) && num >= 1 && num <= MAX_FLOOR){
@@ -51,6 +66,9 @@ const PhantomTowerSelector:React.FC<PhantomTowerSelectorProps> = ({value, onChan
 		setEditingFloor(false);
 	};
 
+	/**
+	 * Utility function commitStage.
+	 */
 	const commitStage = () => {
 		const num = parseInt(stageInput, 10);
 		if(!isNaN(num) && num >= 1 && num <= MAX_STAGE){
@@ -59,11 +77,17 @@ const PhantomTowerSelector:React.FC<PhantomTowerSelectorProps> = ({value, onChan
 		setEditingStage(false);
 	};
 
+	/**
+	 * Utility function handleFloorKey.
+	 */
 	const handleFloorKey = (e:React.KeyboardEvent) => {
 		if(e.key === "Enter") commitFloor();
 		if(e.key === "Escape") setEditingFloor(false);
 	};
 
+	/**
+	 * Utility function handleStageKey.
+	 */
 	const handleStageKey = (e:React.KeyboardEvent) => {
 		if(e.key === "Enter") commitStage();
 		if(e.key === "Escape") setEditingStage(false);

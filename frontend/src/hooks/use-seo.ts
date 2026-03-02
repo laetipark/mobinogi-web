@@ -1,4 +1,4 @@
-import {useEffect} from "react";
+	import {useEffect} from "react";
 import {useLocation} from "react-router-dom";
 import {config} from "@/config/env";
 
@@ -17,19 +17,40 @@ export type SeoOptions = {
 	author?:string;
 };
 
+/**
+ * Constant DEFAULT_SITE_URL.
+ */
 const DEFAULT_SITE_URL = "https://laetipark.me";
+/**
+ * Constant DEFAULT_IMAGE_PATH.
+ */
 const DEFAULT_IMAGE_PATH = "/thumbnail.png";
+/**
+ * Constant DEFAULT_DESCRIPTION.
+ */
 const DEFAULT_DESCRIPTION = "Sexynogi에서 마비노기 모바일 공지, 이벤트, 게시판, 아이템, 갤러리를 한 번에 확인하세요.";
+/**
+ * Constant DEFAULT_KEYWORDS.
+ */
 const DEFAULT_KEYWORDS = "Sexynogi,sexynogi,마비노기 모바일,모비노기,게시판,이벤트,아이템,갤러리,숙제";
 
+/**
+ * Utility function resolveOrigin.
+ */
 const resolveOrigin = ():string => {
 	if(typeof window !== "undefined" && window.location?.origin){
 		return window.location.origin;
 	}
+	/**
+	 * Utility function envSiteUrl.
+	 */
 	const envSiteUrl = (import.meta.env.VITE_SITE_URL as string | undefined) || DEFAULT_SITE_URL;
 	return envSiteUrl.replace(/\/+$/, "");
 };
 
+/**
+ * Utility function toAbsoluteUrl.
+ */
 const toAbsoluteUrl = (value:string, origin:string):string => {
 	if(/^https?:\/\//i.test(value)){
 		return value;
@@ -40,6 +61,9 @@ const toAbsoluteUrl = (value:string, origin:string):string => {
 	return `${origin}${value.startsWith("/") ? "" : "/"}${value}`;
 };
 
+/**
+ * Utility function setMetaByName.
+ */
 const setMetaByName = (name:string, content:string) => {
 	if(typeof document === "undefined"){
 		return;
@@ -53,6 +77,9 @@ const setMetaByName = (name:string, content:string) => {
 	element.setAttribute("content", content);
 };
 
+/**
+ * Utility function setMetaByProperty.
+ */
 const setMetaByProperty = (property:string, content:string) => {
 	if(typeof document === "undefined"){
 		return;
@@ -66,6 +93,9 @@ const setMetaByProperty = (property:string, content:string) => {
 	element.setAttribute("content", content);
 };
 
+/**
+ * Utility function removeMetaByProperty.
+ */
 const removeMetaByProperty = (property:string) => {
 	if(typeof document === "undefined"){
 		return;
@@ -73,6 +103,9 @@ const removeMetaByProperty = (property:string) => {
 	document.head.querySelector(`meta[property="${property}"]`)?.remove();
 };
 
+/**
+ * Utility function setCanonicalLink.
+ */
 const setCanonicalLink = (href:string) => {
 	if(typeof document === "undefined"){
 		return;
@@ -86,6 +119,9 @@ const setCanonicalLink = (href:string) => {
 	element.setAttribute("href", href);
 };
 
+/**
+ * Utility function toSeoDateTime.
+ */
 const toSeoDateTime = (value?:string):string => {
 	if(!value){
 		return "";
@@ -97,6 +133,9 @@ const toSeoDateTime = (value?:string):string => {
 	return parsed.toISOString();
 };
 
+/**
+ * Utility function useSeo.
+ */
 export const useSeo = (options:SeoOptions = {}) => {
 	const location = useLocation();
 	const {
@@ -117,6 +156,9 @@ export const useSeo = (options:SeoOptions = {}) => {
 			return;
 		}
 
+		/**
+		 * Utility function siteName.
+		 */
 		const siteName = (config.app.title || "sexynogi").trim();
 		const pageTitle = title?.trim();
 		const fullTitle = pageTitle && pageTitle !== siteName

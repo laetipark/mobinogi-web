@@ -222,12 +222,21 @@ const UNIT_SUFFIXES:Array<{suffix:string; unit:string}> = [
 	{suffix : "_count", unit : "개"}
 ];
 
+/**
+ * Utility function isRecord.
+ */
 const isRecord = (value:unknown):value is Record<string, unknown> =>
 	typeof value === "object" && value !== null && !Array.isArray(value);
 
+/**
+ * Utility function isPrimitive.
+ */
 const isPrimitive = (value:unknown):value is string | number | boolean | null =>
 	value === null || ["string", "number", "boolean"].includes(typeof value);
 
+/**
+ * Utility function formatNumber.
+ */
 const formatNumber = (value:number):string => {
 	if(Number.isInteger(value)){
 		return `${value}`;
@@ -235,6 +244,9 @@ const formatNumber = (value:number):string => {
 	return `${value}`.replace(/(\.\d*?[1-9])0+$/u, "$1").replace(/\.0$/u, "");
 };
 
+/**
+ * Utility function formatScalarValue.
+ */
 const formatScalarValue = (key:string, value:unknown):string => {
 	if(value === null){
 		return "-";
@@ -253,6 +265,9 @@ const formatScalarValue = (key:string, value:unknown):string => {
 	return JSON.stringify(value);
 };
 
+/**
+ * Utility function humanizeFallbackKey.
+ */
 const humanizeFallbackKey = (key:string):string => {
 	const normalized = key.trim();
 	if(!normalized){
@@ -285,8 +300,14 @@ const humanizeFallbackKey = (key:string):string => {
 	return unitLabel ? `${label} (${unitLabel})` : label;
 };
 
+/**
+ * Utility function getKeyLabel.
+ */
 const getKeyLabel = (key:string):string => ITEM_TRANSCENDENCE_KEY_LABELS[key] ?? humanizeFallbackKey(key);
 
+/**
+ * Utility function isTierValueObject.
+ */
 const isTierValueObject = (value:unknown):value is Record<string, string | number | boolean | null> => {
 	if(!isRecord(value)){
 		return false;
@@ -298,11 +319,17 @@ const isTierValueObject = (value:unknown):value is Record<string, string | numbe
 	return keys.every((key) => /^\d+$/u.test(key) && isPrimitive(value[key]));
 };
 
+/**
+ * Utility function parseItemTranscendence.
+ */
 export const parseItemTranscendence = (raw:string | null | undefined):ParsedItemTranscendence => {
 	if(!raw || !raw.trim()){
 		return {rows : [], rawText : null, parseError : false};
 	}
 
+	/**
+	 * Utility function tryParse.
+	 */
 	const tryParse = (text:string):unknown => {
 		try{
 			return JSON.parse(text);

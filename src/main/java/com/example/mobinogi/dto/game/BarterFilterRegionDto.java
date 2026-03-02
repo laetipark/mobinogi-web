@@ -12,7 +12,16 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BarterFilterRegionDto{
+	/**
+	 * Field regionId.
+	 */
 	private Long regionId;
+	/**
+	 * Field regionName.
+	 */
 	private String regionName;
+	/**
+	 * Field npcs.
+	 */
 	private List<BarterFilterNpcDto> npcs;
 }

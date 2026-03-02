@@ -52,10 +52,16 @@ const DIFFICULTY_LABELS: Record<string, string> = {
 	'18': '지옥15',
 };
 
+/**
+ * Utility function getDifficultyLabel.
+ */
 export const getDifficultyLabel = (difficulty: string): string => {
 	return DIFFICULTY_LABELS[difficulty] || difficulty;
 };
 
+/**
+ * Utility function normalizeMultilineText.
+ */
 export const normalizeMultilineText = (value:string | null | undefined):string => {
 	if(!value){
 		return "";
@@ -66,6 +72,9 @@ export const normalizeMultilineText = (value:string | null | undefined):string =
 		.replace(/\r\n/g, "\n");
 };
 
+/**
+ * Constant storage.
+ */
 export const storage = {
 	get : <T>(key:string):T | null => {
 		try{

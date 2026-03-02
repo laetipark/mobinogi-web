@@ -7,6 +7,9 @@ import {X, ArrowRight, Hammer, ArrowLeftRight, Package, MapPin, User, RefreshCw,
 import styles from "./item-detail-modal.module.scss";
 import type {ItemDetailModalProps} from "@/types/ui";
 
+/**
+ * Utility function formatCraftLevel.
+ */
 const formatCraftLevel = (craftableLevel:number | null | undefined):string => {
 	if(craftableLevel === null || craftableLevel === undefined){
 		return "-";
@@ -14,6 +17,9 @@ const formatCraftLevel = (craftableLevel:number | null | undefined):string => {
 	return `${craftableLevel}`;
 };
 
+/**
+ * Utility function formatProcessingTime.
+ */
 const formatProcessingTime = (processingTime:number | null | undefined):string => {
 	if(processingTime === null || processingTime === undefined){
 		return "-";
@@ -30,6 +36,9 @@ const formatProcessingTime = (processingTime:number | null | undefined):string =
 	return `${minutes}분 ${seconds}초`;
 };
 
+/**
+ * Utility function toSafeBarterCount.
+ */
 const toSafeBarterCount = (value:unknown):number => {
 	const parsed = Number(value);
 	if(!Number.isFinite(parsed) || parsed < 0){
@@ -38,6 +47,9 @@ const toSafeBarterCount = (value:unknown):number => {
 	return Math.trunc(parsed);
 };
 
+/**
+ * Utility function getBarterRewardDisplay.
+ */
 const getBarterRewardDisplay = (barter:LifeBarter) => {
 	const rewardPerTrade = toSafeBarterCount(barter.itemWeight);
 	const maxTrades = toSafeBarterCount(barter.barterQty);
@@ -55,6 +67,9 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 	const [activeTab, setActiveTab] = useState<"barter" | "craft">("barter");
 
 	useEffect(() => {
+		/**
+		 * Utility function async.
+		 */
 		const fetchItemData = async() => {
 			setLoading(true);
 			try{
@@ -70,6 +85,9 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 		fetchItemData();
 	}, [item.itemName]);
 
+	/**
+	 * Utility function handleBackdropClick.
+	 */
 	const handleBackdropClick = (e:React.MouseEvent) => {
 		if(e.target === e.currentTarget){
 			onClose();
@@ -77,6 +95,9 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 	};
 
 	useEffect(() => {
+		/**
+		 * Utility function handleEsc.
+		 */
 		const handleEsc = (e:KeyboardEvent) => {
 			if(e.key === "Escape"){
 				onClose();
@@ -95,6 +116,9 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 		};
 	}, [onClose]);
 
+	/**
+	 * Utility function renderBarterCard.
+	 */
 	const renderBarterCard = (barter:LifeBarter) => {
 		const reward = getBarterRewardDisplay(barter);
 		const hasServerShare = Number(barter.barterServer) > 0;
@@ -130,6 +154,9 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 		);
 	};
 
+	/**
+	 * Utility function renderCraftGroup.
+	 */
 	const renderCraftGroup = (subId:number, crafts:LifeCraft[]) => (
 		<div key={subId} className={styles.craftGroup}>
 			<div className={styles.craftResult}>
@@ -186,6 +213,9 @@ const ItemDetailModal:React.FC<ItemDetailModalProps> = ({item, onClose}) => {
 		"--rarity-color" : rarityInfo.color,
 		"--rarity-bg" : rarityInfo.bg
 	} as React.CSSProperties;
+	/**
+	 * Utility function handleOpenReportPage.
+	 */
 	const handleOpenReportPage = () => {
 		navigate(toItemDetailPath(item.itemName), {
 			state : {openReportModal : true}

@@ -11,6 +11,9 @@ import type {
 	BoardPostHistory
 } from "../types";
 
+/**
+ * Constant boardService.
+ */
 export const boardService = {
 	getCategories: async ():Promise<BoardCategory[]> => {
 		const response = await apiService.get<ApiResponse & {categories:BoardCategory[]}>("/board/categories");
@@ -22,12 +25,10 @@ export const boardService = {
 		page:number = 0,
 		size:number = 20,
 		categoryId?:number | null,
-		sourceType?:string | null,
 		keyword?:string | null
 	):Promise<BoardPostPage> => {
 		const params:Record<string, any> = {page, size};
 		if(categoryId) params.categoryId = categoryId;
-		if(sourceType) params.sourceType = sourceType;
 		if(keyword) params.keyword = keyword;
 
 		const response = await apiService.get<ApiResponse & {data:BoardPostPage}>("/board/posts", params);

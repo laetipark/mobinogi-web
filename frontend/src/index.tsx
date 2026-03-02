@@ -3,6 +3,9 @@ import ReactDOM from "react-dom/client";
 import App from "./app.tsx";
 import "./index.css";
 
+/**
+ * Constant rootElement.
+ */
 const rootElement = document.getElementById("root");
 
 if(!rootElement){

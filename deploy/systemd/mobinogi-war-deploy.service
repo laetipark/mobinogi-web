@@ -1,0 +1,11 @@
+[Unit]
+Description=Deploy mobinogi app when WAR is updated
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/laeti/mobinogi
+Environment=APP_ROOT=/home/laeti/mobinogi
+ExecStart=/home/laeti/mobinogi/scripts/deploy-war.sh
+

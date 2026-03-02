@@ -1,5 +1,6 @@
 import React, {useEffect, useMemo, useState} from "react";
 import {ExternalLink, Megaphone, RefreshCw} from "lucide-react";
+import {useLocation, useNavigate} from "react-router-dom";
 import {noticeService} from "@/services";
 import type {GameNotice, NoticeCategory} from "@/types";
 import {useSeo} from "@/hooks/use-seo";
@@ -7,11 +8,34 @@ import styles from "./news.module.scss";
 import type {NoticeTab} from "@/types/ui";
 
 const NOTICE_TABS:NoticeTab[] = [
-	{key: "notice", label: "공지", description: "일반 공지 + 점검 관련 안내"},
-	{key: "updateNote", label: "업데이트 노트", description: "버전 업데이트 상세 내용"},
-	{key: "erinNote", label: "에린 노트", description: "운영/개발자 노트"}
+	{key : "notice", label : "공지", description : "일반 공지와 점검 관련 안내"},
+	{key : "updateNote", label : "업데이트 노트", description : "버전 업데이트 상세 내용"},
+	{key : "erinNote", label : "에린 노트", description : "운영과 개발 노트"}
 ];
 
+const NOTICE_TAB_PATHS:Record<NoticeCategory, string> = {
+	notice : "/news/notice",
+	updateNote : "/news/update-note",
+	erinNote : "/news/erin-note"
+};
+
+/**
+ * Utility function resolveNoticeTabFromPath.
+ */
+const resolveNoticeTabFromPath = (pathname:string):NoticeCategory => {
+	const normalizedPath = pathname.replace(/\/+$/, "");
+	if(normalizedPath === NOTICE_TAB_PATHS.updateNote){
+		return "updateNote";
+	}
+	if(normalizedPath === NOTICE_TAB_PATHS.erinNote){
+		return "erinNote";
+	}
+	return "notice";
+};
+
+/**
+ * Utility function formatDate.
+ */
 const formatDate = (publishedDate:string | null) => {
 	if(!publishedDate){
 		return "날짜 미정";
@@ -24,6 +48,9 @@ const formatDate = (publishedDate:string | null) => {
 	return publishedDate;
 };
 
+/**
+ * Utility function getNoticeTypeLabel.
+ */
 const getNoticeTypeLabel = (noticeType:string) => {
 	switch(noticeType){
 		case "maintenanceInProgress":
@@ -39,19 +66,24 @@ const getNoticeTypeLabel = (noticeType:string) => {
 	}
 };
 
+/**
+ * Utility function getNoticeLink.
+ */
 const getNoticeLink = (noticeType:string, noticeId:string) => {
 	switch(noticeType){
 		case "updateNote":
-			return `https://mabinogimobile.nexon.com/News/UpdateNote/${noticeId}`;
+			return `https://mabinogimobile.nexon.com/News/Update/${noticeId}`;
 		case "erinNote":
-			return `https://mabinogimobile.nexon.com/News/ErinNote/${noticeId}`;
+			return `https://mabinogimobile.nexon.com/News/Devnote/${noticeId}`;
 		default:
 			return `https://mabinogimobile.nexon.com/News/Notice/${noticeId}`;
 	}
 };
 
 const NewsPage:React.FC = () => {
-	const [activeTab, setActiveTab] = useState<NoticeCategory>("notice");
+	const location = useLocation();
+	const navigate = useNavigate();
+	const activeTab = useMemo(() => resolveNoticeTabFromPath(location.pathname), [location.pathname]);
 
 	const seoTitle = activeTab === "updateNote"
 		? "업데이트 노트"
@@ -60,9 +92,9 @@ const NewsPage:React.FC = () => {
 			: "공지";
 
 	useSeo({
-		title : seoTitle,
-		description : "마비노기 모바일 공식 공지와 업데이트 노트를 확인하세요.",
-		canonicalPath : "/news"
+		title : `${seoTitle} - 게임 소식`,
+		description : "마비노기 모바일 공식 공지와 업데이트 소식을 확인하세요.",
+		canonicalPath : NOTICE_TAB_PATHS[activeTab]
 	});
 
 	const [notices, setNotices] = useState<GameNotice[]>([]);
@@ -70,6 +102,9 @@ const NewsPage:React.FC = () => {
 	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
+		/**
+		 * Utility function async.
+		 */
 		const fetchNotices = async() => {
 			try{
 				setLoading(true);
@@ -84,8 +119,18 @@ const NewsPage:React.FC = () => {
 			}
 		};
 
-		fetchNotices();
+		void fetchNotices();
 	}, [activeTab]);
+
+	/**
+	 * Utility function handleTabClick.
+	 */
+	const handleTabClick = (tab:NoticeCategory) => {
+		const nextPath = NOTICE_TAB_PATHS[tab];
+		if(location.pathname !== nextPath){
+			navigate(nextPath);
+		}
+	};
 
 	const activeTabInfo = useMemo(
 		() => NOTICE_TABS.find((tab) => tab.key === activeTab) ?? NOTICE_TABS[0],
@@ -95,10 +140,7 @@ const NewsPage:React.FC = () => {
 	return (
 		<div className={styles.newsPage}>
 			<div className={styles.container}>
-				<div className="page-heading">
-					<h1>게임 소식</h1>
-					<p className="page-heading-subtitle">공지, 업데이트 노트, 에린 노트를 한 화면에서 확인하세요</p>
-				</div>
+				<h1 className="page-heading">게임 소식</h1>
 
 				<div className={styles.tabContainer}>
 					{NOTICE_TABS.map((tab) => (
@@ -106,7 +148,7 @@ const NewsPage:React.FC = () => {
 							key={tab.key}
 							type="button"
 							className={`${styles.tabButton} ${activeTab === tab.key ? styles.active : ""}`}
-							onClick={() => setActiveTab(tab.key)}
+							onClick={() => handleTabClick(tab.key)}
 						>
 							{tab.label}
 						</button>

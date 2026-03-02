@@ -37,7 +37,13 @@ const ITEM_RARITY_ALIASES:Record<string, string> = {
 	"unique" : "유니크"
 };
 
+/**
+ * Utility function getItemRarityInfo.
+ */
 export const getItemRarityInfo = (rarity?:string | null):ItemRarityInfo => {
+	/**
+	 * Utility function value.
+	 */
 	const value = (rarity || "").trim();
 	const lowerValue = value.toLowerCase();
 	const normalized = ITEM_RARITY_ALIASES[lowerValue] || ITEM_RARITY_ALIASES[value] || "일반";

@@ -12,6 +12,9 @@ const ResourceItem:React.FC<ResourceItemProps> = ({label, max, chargeIntervalMin
 
 		const chargeMs = chargeIntervalMinutes * 60 * 1000;
 
+		/**
+		 * Utility function checkCharge.
+		 */
 		const checkCharge = () => {
 			const lastCharge = new Date(value.lastChargeTime!).getTime();
 			const now = Date.now();
@@ -40,6 +43,9 @@ const ResourceItem:React.FC<ResourceItemProps> = ({label, max, chargeIntervalMin
 		const remaining = max - current;
 		const chargeMs = chargeIntervalMinutes * 60 * 1000;
 
+		/**
+		 * Utility function updateText.
+		 */
 		const updateText = () => {
 			if(value?.lastChargeTime){
 				const lastCharge = new Date(value.lastChargeTime).getTime();
@@ -65,6 +71,9 @@ const ResourceItem:React.FC<ResourceItemProps> = ({label, max, chargeIntervalMin
 		return () => clearInterval(interval);
 	}, [current, max, chargeIntervalMinutes, value?.lastChargeTime]);
 
+	/**
+	 * Utility function handleChange.
+	 */
 	const handleChange = (e:React.ChangeEvent<HTMLInputElement>) => {
 		const val = e.target.value;
 		if(val === ""){

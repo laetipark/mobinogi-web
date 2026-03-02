@@ -28,14 +28,14 @@
 	}
 }
 
-// 플렉스 센터 정렬
+// 플렉스 중앙 정렬
 @mixin flex-center{
 	display:flex;
 	align-items:center;
 	justify-content:center;
 }
 
-// 플렉스 사이 정렬
+// 플렉스 양끝 정렬
 @mixin flex-between{
 	display:flex;
 	align-items:center;
@@ -49,7 +49,7 @@
 	gap:$gap;
 }
 
-// ?섏씠吏 怨듯넻 而⑦뀒?대꼫
+// 페이지 공통 컨테이너
 @mixin page-container($max-width: 1120px, $padding: null){
 	max-width:$max-width;
 	margin:0 auto;
@@ -59,7 +59,7 @@
 	}
 }
 
-// 스피닝 애니메이션
+// 페이지 셸 애니메이션/배경
 @mixin page-shell(
 	$padding: 28px 20px 40px,
 	$mobile-padding: 18px 10px 28px,
@@ -125,14 +125,14 @@
 	}
 }
 
-// 데스크탑 반응형
+// 데스크톱 반응형
 @mixin desktop{
 	@media (min-width:$desktop){
 		@content;
 	}
 }
 
-// 다크모드 스타일
+// 다크모드 분기
 @mixin dark-mode{
 	@if &{
 		.dark-mode &{

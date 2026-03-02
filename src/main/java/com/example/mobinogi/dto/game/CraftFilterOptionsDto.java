@@ -12,5 +12,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CraftFilterOptionsDto{
+	/**
+	 * Field craftTypes.
+	 */
 	private List<CraftFilterTypeDto> craftTypes;
 }

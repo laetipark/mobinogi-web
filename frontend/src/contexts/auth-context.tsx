@@ -6,6 +6,9 @@ import axios from "axios";
 import {config} from "../config/env";
 import type {AuthProviderProps} from "@/types/ui";
 
+/**
+ * Constant AuthContext.
+ */
 export const AuthContext = createContext<ExtendedAuthContextType | undefined>(undefined);
 
 // axios 기본 설정
@@ -60,6 +63,9 @@ export const AuthProvider:React.FC<AuthProviderProps> = ({children}) => {
 	} = useKakaoLogin();
 
 	useEffect(() => {
+		/**
+		 * Utility function async.
+		 */
 		const init = async() => {
 			// 기존 로컬 사용자 확인
 			const savedUser = storage.get<User>("user");
@@ -84,6 +90,9 @@ export const AuthProvider:React.FC<AuthProviderProps> = ({children}) => {
 		}
 	}, [kakaoUser, isKakaoLoggedIn]);
 
+	/**
+	 * Utility function async.
+	 */
 	const login = async(username:string, password:string):Promise<User> => {
 		setLoading(true);
 
@@ -144,6 +153,9 @@ export const AuthProvider:React.FC<AuthProviderProps> = ({children}) => {
 		}
 	};
 
+	/**
+	 * Utility function async.
+	 */
 	const register = async(username:string, email:string, password:string):Promise<User> => {
 		setLoading(true);
 
@@ -209,6 +221,9 @@ export const AuthProvider:React.FC<AuthProviderProps> = ({children}) => {
 		}
 	};
 
+	/**
+	 * Utility function logout.
+	 */
 	const logout = ():void => {
 		// 카카오 로그인인 경우 카카오 로그아웃도 함께 실행
 		if(user?.provider === "kakao"){
@@ -221,10 +236,16 @@ export const AuthProvider:React.FC<AuthProviderProps> = ({children}) => {
 	};
 
 	// 카카오 전용 로그인/로그아웃 함수
+	/**
+	 * Utility function kakaoLogin.
+	 */
 	const kakaoLogin = () => {
 		performKakaoLogin();
 	};
 
+	/**
+	 * Utility function kakaoLogout.
+	 */
 	const kakaoLogout = () => {
 		performKakaoLogout();
 		setUser(null);
@@ -232,6 +253,9 @@ export const AuthProvider:React.FC<AuthProviderProps> = ({children}) => {
 	};
 
 	// 카카오 회원가입 완료
+	/**
+	 * Utility function async.
+	 */
 	const completeKakaoRegistration = async(nickname:string) => {
 		await performCompleteKakaoRegistration(nickname);
 	};

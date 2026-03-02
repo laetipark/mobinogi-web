@@ -15,6 +15,9 @@ type CaretState = {
 	scrollLeft:number;
 };
 
+/**
+ * Utility function focusWithoutScroll.
+ */
 const focusWithoutScroll = (textarea:HTMLTextAreaElement) => {
 	try{
 		textarea.focus({preventScroll : true});
@@ -23,6 +26,9 @@ const focusWithoutScroll = (textarea:HTMLTextAreaElement) => {
 	}
 };
 
+/**
+ * Utility function restoreCaret.
+ */
 const restoreCaret = (
 	textarea:HTMLTextAreaElement,
 	nextStart:number,
@@ -183,6 +189,9 @@ const MarkdownToolbar:React.FC<MarkdownToolbarProps> = ({
 			return;
 		}
 
+		/**
+		 * Utility function onKeyDown.
+		 */
 		const onKeyDown = (event:KeyboardEvent) => {
 			const isModifier = event.ctrlKey || event.metaKey;
 			if(!isModifier){

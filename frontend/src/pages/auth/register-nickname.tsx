@@ -24,6 +24,9 @@ const RegisterNicknamePage:React.FC = () => {
 		}
 	}, [pendingKakaoUser, navigate]);
 
+	/**
+	 * Utility function async.
+	 */
 	const handleSubmit = async(e:React.FormEvent) => {
 		e.preventDefault();
 		setError(null);

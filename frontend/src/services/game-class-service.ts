@@ -4,6 +4,9 @@ import {normalizeSelectableClasses} from "@/utils";
 
 let cachedClasses:GameClassItem[] | null = null;
 
+/**
+ * Constant gameClassService.
+ */
 export const gameClassService = {
 	getClasses : async():Promise<GameClassItem[]> => {
 		if(cachedClasses){

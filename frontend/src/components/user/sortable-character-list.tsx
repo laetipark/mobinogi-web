@@ -65,6 +65,9 @@ const SortableCharacterList:React.FC<SortableCharacterListProps> = ({items, onRe
 		useSensor(TouchSensor, {activationConstraint : {delay : 150, tolerance : 5}})
 	);
 	
+	/**
+	 * Utility function handleDragEnd.
+	 */
 	const handleDragEnd = (event:DragEndEvent) => {
 		const {active, over} = event;
 		if(!over || active.id === over.id) return;

@@ -1,140 +1,50 @@
-import React, {useState, useEffect, useCallback, useMemo, useRef} from "react";
+import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {useLocation, useNavigate, useParams} from "react-router-dom";
 import {
-	BarterFilterRegionOption, CraftFilterTypeOption, GameItem, GameItemFilterMainMenuOption, GameItemSummary, LifeBarter, LifeCraft, ListSearchParams
+	BarterFilterRegionOption,
+	CraftFilterTypeOption,
+	GameItem,
+	GameItemFilterMainMenuOption,
+	GameItemSummary,
+	LifeBarter,
+	LifeCraft,
+	ListSearchParams
 } from "@/types";
 import GameItemService from "@/services/game-item-service";
-import GameItemCard from "@/components/game/game-item-card";
-import BarterCard from "@/components/game/barter-card";
-import CraftCard from "@/components/game/craft-card";
 import ItemDetailModal from "@/components/game/item-detail-modal";
-import {Search, RefreshCw, Package, ArrowLeftRight, Hammer} from "lucide-react";
 import {fromItemSlug, getItemRarityInfo, toItemDetailPath} from "@/utils";
 import {useSeo} from "@/hooks/use-seo";
+import {
+	DEFAULT_ITEM_MAIN_MENU,
+	DEFAULT_ITEM_RARITY_OPTIONS,
+	DEFAULT_ITEM_SUB_MENU,
+	EQUIPMENT_MAIN_MENU,
+	EQUIPMENT_SUB_MENU_ORDER,
+	GameItemsControls,
+	GameItemsResults,
+	GameItemsTabs,
+	ITEM_MAIN_MENU_ORDER_INDEX,
+	ITEM_SUB_MENU_ORDER_INDEX_BY_MAIN_MENU,
+	ITEM_TAB_PATHS,
+	MAX_SEARCH_SUGGESTIONS,
+	normalizeMainMenuForOrder,
+	resolveTabFromPath,
+	sortByPreferredOrder,
+	sortRarityLabelsForFilter
+} from "@/features/game-items";
+import type {SearchSuggestion, SortOption, TabType} from "@/features/game-items";
 import ItemDetailPage from "./item-detail";
 import styles from "./game-items.module.scss";
 
-type TabType = "items" | "barter" | "craft";
 type GameItemsRouteState = {
 	openAsModal?:boolean;
 	modalRuntimeId?:string;
 };
 
-type SearchSuggestion = {
-	key:string;
-	keyword:string;
-	title:string;
-	subtitle?:string;
-	meta?:string;
-};
-
+/**
+ * Constant MODAL_ROUTE_RUNTIME_ID.
+ */
 const MODAL_ROUTE_RUNTIME_ID = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-const MAX_SEARCH_SUGGESTIONS = 8;
-
-const DEFAULT_ITEM_RARITY_OPTIONS = ["일반", "고급", "레어", "엘리트", "에픽", "유니크", "전설", "신화"];
-const EQUIPMENT_MAIN_MENU = "장비";
-const DEFAULT_ITEM_MAIN_MENU = "";
-const DEFAULT_ITEM_SUB_MENU = "";
-const EQUIPMENT_SUB_MENU_ORDER = [
-	"룬",
-	"무기 룬",
-	"방어구 룬",
-	"엠블럼 룬",
-	"장신구 룬",
-	"무기",
-	"방어구",
-	"모자",
-	"상의",
-	"하의",
-	"장갑",
-	"신발",
-	"장신구",
-	"보석",
-	"엠블럼",
-	"아티팩트"
-] as const;
-
-const ITEM_MAIN_MENU_ORDER = [EQUIPMENT_MAIN_MENU, "가구", "아이템", "포션", "의상/탈것"] as const;
-
-const ITEM_SUB_MENU_ORDER_BY_MAIN_MENU:Record<string, string[]> = {
-	[EQUIPMENT_MAIN_MENU] : [...EQUIPMENT_SUB_MENU_ORDER]
-};
-
-const createOrderIndexMap = (values:readonly string[]):Map<string, number> => new Map(values.map((value, index) => [value, index]));
-
-const ITEM_MAIN_MENU_ORDER_INDEX = createOrderIndexMap(ITEM_MAIN_MENU_ORDER);
-const ITEM_SUB_MENU_ORDER_INDEX_BY_MAIN_MENU:Record<string, Map<string, number>> = Object.fromEntries(
-	Object.entries(ITEM_SUB_MENU_ORDER_BY_MAIN_MENU).map(([mainMenu, subMenus]) => [mainMenu, createOrderIndexMap(subMenus)])
-);
-
-const compareByPreferredOrder = (a:string, b:string, orderIndexMap?:Map<string, number>):number => {
-	const fallbackIndex = Number.MAX_SAFE_INTEGER;
-	const aOrder = orderIndexMap?.get(a) ?? fallbackIndex;
-	const bOrder = orderIndexMap?.get(b) ?? fallbackIndex;
-
-	if(aOrder !== bOrder){
-		return aOrder - bOrder;
-	}
-
-	return a.localeCompare(b, "ko");
-};
-
-const ITEM_RARITY_FILTER_ORDER = ["일반", "고급", "레어", "엘리트", "에픽", "유니크", "전설", "신화"] as const;
-const ITEM_RARITY_FILTER_ORDER_INDEX = createOrderIndexMap(ITEM_RARITY_FILTER_ORDER);
-
-const sortRarityLabelsForFilter = (rarities:string[]):string[] => [...rarities].sort((a, b) => compareByPreferredOrder(a, b, ITEM_RARITY_FILTER_ORDER_INDEX));
-
-const normalizeSortText = (value:string | null | undefined):string => (value ?? "").trim();
-
-const normalizeMainMenuForOrder = (value:string | null | undefined):string => {
-	const normalized = normalizeSortText(value);
-	if(!normalized){
-		return normalized;
-	}
-
-	const canonicalSlashMenu = ITEM_MAIN_MENU_ORDER.find((menu) => menu.includes("/"));
-	if(!canonicalSlashMenu || normalized === canonicalSlashMenu){
-		return normalized;
-	}
-
-	const toSignature = (menu:string):string => menu
-		.split("/")
-		.map((part) => part.trim())
-		.filter(Boolean)
-		.sort((a, b) => a.localeCompare(b, "ko"))
-		.join("|");
-
-	if(toSignature(normalized) === toSignature(canonicalSlashMenu)){
-		return canonicalSlashMenu;
-	}
-
-	return normalized;
-};
-
-const ITEM_TAB_PATHS:Record<TabType, string> = {
-	items : "/items",
-	barter : "/barter",
-	craft : "/craft"
-};
-
-const resolveTabFromPath = (pathname:string):TabType => {
-	const normalizedPath = pathname.toLowerCase();
-	if(
-		normalizedPath.startsWith("/barter")
-		|| normalizedPath.startsWith("/items/barter")
-		|| normalizedPath.startsWith("/item/barter")
-	){
-		return "barter";
-	}
-	if(
-		normalizedPath.startsWith("/craft")
-		|| normalizedPath.startsWith("/items/craft")
-		|| normalizedPath.startsWith("/item/craft")
-	){
-		return "craft";
-	}
-	return "items";
-};
 
 const GameItemsPage:React.FC = () => {
 	const location = useLocation();
@@ -147,10 +57,10 @@ const GameItemsPage:React.FC = () => {
 		&& routeState?.openAsModal === true
 		&& routeState?.modalRuntimeId === MODAL_ROUTE_RUNTIME_ID;
 	const isStandaloneDetailPage = isDetailRoute && !isModalDetailRoute;
-	
+
 	const [selectedItem, setSelectedItem] = useState<GameItem | GameItemSummary | null>(null);
 	const [activeTab, setActiveTab] = useState<TabType>(() => resolveTabFromPath(location.pathname));
-	
+
 	const seoTitle = decodedItemName
 		? decodedItemName
 		: activeTab === "barter"
@@ -161,24 +71,24 @@ const GameItemsPage:React.FC = () => {
 	const seoDescription = decodedItemName
 		? `${decodedItemName} 아이템 상세 정보 페이지입니다.`
 		: activeTab === "barter"
-			? "물물교환 교환 정보와 재료를 검색할 수 있습니다."
+			? "물물교환 교환 정보와 재료를 확인할 수 있습니다."
 			: activeTab === "craft"
-				? "제작 레시피와 재료 정보를 검색할 수 있습니다."
-				: "아이템 스펙, 획득처, 분류 정보를 검색할 수 있습니다.";
+				? "제작 레시피와 재료 정보를 확인할 수 있습니다."
+				: "아이템 스펙, 획득처 분류 정보를 확인할 수 있습니다.";
 	const seoCanonicalPath = decodedItemName
 		? toItemDetailPath(decodedItemName)
 		: ITEM_TAB_PATHS[activeTab];
-	
+
 	useSeo({
 		title : seoTitle,
 		description : seoDescription,
 		canonicalPath : seoCanonicalPath
 	});
-	
+
 	const [items, setItems] = useState<GameItemSummary[]>([]);
 	const [barters, setBarters] = useState<LifeBarter[]>([]);
 	const [crafts, setCrafts] = useState<LifeCraft[]>([]);
-	
+
 	const [loading, setLoading] = useState(false);
 	const [hasMoreData, setHasMoreData] = useState(true);
 	const [, setCurrentPage] = useState(0);
@@ -208,7 +118,7 @@ const GameItemsPage:React.FC = () => {
 	const currentPageRef = useRef(0);
 	const hasMoreDataRef = useRef(true);
 	const searchBoxRef = useRef<HTMLDivElement>(null);
-	
+
 	useEffect(() => {
 		if(isModalDetailRoute && decodedItemName){
 			setSelectedItem((prev) => {
@@ -221,7 +131,7 @@ const GameItemsPage:React.FC = () => {
 		}
 		setSelectedItem(null);
 	}, [decodedItemName, isModalDetailRoute]);
-	
+
 	useEffect(() => {
 		if(isStandaloneDetailPage){
 			return;
@@ -272,9 +182,21 @@ const GameItemsPage:React.FC = () => {
 
 					const deduped = new Map<string, SearchSuggestion>();
 					for(const barter of response.content){
+						/**
+						 * Utility function obtainedName.
+						 */
 						const obtainedName = (barter.gameItem?.itemName || "").trim();
+						/**
+						 * Utility function exchangeName.
+						 */
 						const exchangeName = (barter.exchangeItem?.itemName || "").trim();
+						/**
+						 * Utility function npcName.
+						 */
 						const npcName = (barter.gameNpc?.npcName || "").trim();
+						/**
+						 * Utility function regionName.
+						 */
 						const regionName = (barter.gameRegion?.regionName || "").trim();
 						const keywordCandidate = obtainedName || exchangeName;
 						if(!keywordCandidate){
@@ -289,7 +211,7 @@ const GameItemsPage:React.FC = () => {
 							keyword : keywordCandidate,
 							title : `${obtainedName || "-"} ↔ ${exchangeName || "-"}`,
 							subtitle : `${regionName || "-"} / ${npcName || "-"}`,
-							meta : `교환 ${barter.exchangeCost ?? 0}개 · 최대 ${barter.barterQty ?? 0}회`
+							meta : `교환 ${barter.exchangeCost ?? 0}개, 최대 ${barter.barterQty ?? 0}회`
 						});
 					}
 					if(active){
@@ -308,7 +230,13 @@ const GameItemsPage:React.FC = () => {
 
 					const deduped = new Map<string, SearchSuggestion>();
 					for(const craft of response.content){
+						/**
+						 * Utility function productName.
+						 */
 						const productName = (craft.itemName || craft.gameItem?.itemName || "").trim();
+						/**
+						 * Utility function ingredientName.
+						 */
 						const ingredientName = (craft.ingredientName || craft.ingredientItem?.itemName || "").trim();
 						if(!productName){
 							continue;
@@ -360,6 +288,9 @@ const GameItemsPage:React.FC = () => {
 	]);
 
 	useEffect(() => {
+		/**
+		 * Utility function handlePointerDown.
+		 */
 		const handlePointerDown = (event:PointerEvent) => {
 			const target = event.target as Node | null;
 			if(!target){
@@ -376,7 +307,7 @@ const GameItemsPage:React.FC = () => {
 			document.removeEventListener("pointerdown", handlePointerDown);
 		};
 	}, []);
-	
+
 	useEffect(() => {
 		if(isStandaloneDetailPage){
 			return;
@@ -384,7 +315,10 @@ const GameItemsPage:React.FC = () => {
 		if(activeTab !== "items"){
 			return;
 		}
-		
+
+		/**
+		 * Utility function async.
+		 */
 		const fetchFilterOptions = async() => {
 			try{
 				const response = await GameItemService.getGameItemFilterOptions();
@@ -397,10 +331,10 @@ const GameItemsPage:React.FC = () => {
 				console.error("아이템 필터 옵션 로드 실패:", error);
 			}
 		};
-		
+
 		fetchFilterOptions();
 	}, [activeTab, isStandaloneDetailPage]);
-	
+
 	useEffect(() => {
 		if(isStandaloneDetailPage){
 			return;
@@ -408,7 +342,10 @@ const GameItemsPage:React.FC = () => {
 		if(activeTab !== "barter" || barterRegionOptions.length > 0){
 			return;
 		}
-		
+
+		/**
+		 * Utility function async.
+		 */
 		const fetchBarterFilterOptions = async() => {
 			try{
 				const response = await GameItemService.getBarterFilterOptions();
@@ -417,10 +354,10 @@ const GameItemsPage:React.FC = () => {
 				console.error("물물교환 필터 옵션 로드 실패:", error);
 			}
 		};
-		
+
 		fetchBarterFilterOptions();
 	}, [activeTab, barterRegionOptions.length, isStandaloneDetailPage]);
-	
+
 	useEffect(() => {
 		if(isStandaloneDetailPage){
 			return;
@@ -428,7 +365,10 @@ const GameItemsPage:React.FC = () => {
 		if(activeTab !== "craft" || craftTypeOptions.length > 0){
 			return;
 		}
-		
+
+		/**
+		 * Utility function async.
+		 */
 		const fetchCraftFilterOptions = async() => {
 			try{
 				const response = await GameItemService.getCraftFilterOptions();
@@ -437,41 +377,45 @@ const GameItemsPage:React.FC = () => {
 				console.error("제작 필터 옵션 로드 실패:", error);
 			}
 		};
-		
+
 		fetchCraftFilterOptions();
 	}, [activeTab, craftTypeOptions.length, isStandaloneDetailPage]);
-	
-	const getSortOptions = () => {
+
+	const getSortOptions = useCallback(():SortOption[] => {
 		switch(activeTab){
 			case "items":
 				return [
-					{value : "itemMainMenu-asc", label : "상위 메뉴 오름차순"},
-					{value : "itemMainMenu-desc", label : "상위 메뉴 내림차순"},
-					{value : "itemSubMenu-asc", label : "하위 메뉴 오름차순"},
-					{value : "itemSubMenu-desc", label : "하위 메뉴 내림차순"},
-					{value : "itemType-asc", label : "유형 오름차순"},
-					{value : "itemType-desc", label : "유형 내림차순"},
-					{value : "itemName-asc", label : "이름 오름차순"},
-					{value : "itemName-desc", label : "이름 내림차순"},
-					{value : "itemRarity-asc", label : "등급 오름차순"},
-					{value : "itemRarity-desc", label : "등급 내림차순"}
+					{value : "itemMainMenu-asc", label : "상위 메뉴 이름차순"},
+					{value : "itemMainMenu-desc", label : "상위 메뉴 역순"},
+					{value : "itemSubMenu-asc", label : "하위 메뉴 이름차순"},
+					{value : "itemSubMenu-desc", label : "하위 메뉴 역순"},
+					{value : "itemType-asc", label : "유형 이름차순"},
+					{value : "itemType-desc", label : "유형 역순"},
+					{value : "itemName-asc", label : "이름 이름차순"},
+					{value : "itemName-desc", label : "이름 역순"},
+					{value : "itemRarity-asc", label : "등급 이름차순"},
+					{value : "itemRarity-desc", label : "등급 역순"}
 				];
 			case "barter":
 				return [
-					{value : "regionId-asc", label : "지역 오름차순"},
-					{value : "regionId-desc", label : "지역 내림차순"},
-					{value : "npcId-asc", label : "NPC 오름차순"},
-					{value : "npcId-desc", label : "NPC 내림차순"}
+					{value : "regionId-asc", label : "지역 이름차순"},
+					{value : "regionId-desc", label : "지역 역순"},
+					{value : "npcId-asc", label : "NPC 이름차순"},
+					{value : "npcId-desc", label : "NPC 역순"}
 				];
 			case "craft":
 				return [
-					{value : "craftType-asc", label : "가공/제작 오름차순"},
-					{value : "craftType-desc", label : "가공/제작 내림차순"},
-					{value : "craftName-asc", label : "소분류 오름차순"},
-					{value : "craftName-desc", label : "소분류 내림차순"}
+					{value : "craftType-asc", label : "가공/제작 이름차순"},
+					{value : "craftType-desc", label : "가공/제작 역순"},
+					{value : "craftName-asc", label : "세부분류 이름차순"},
+					{value : "craftName-desc", label : "세부분류 역순"}
 				];
 		}
-	};
+	}, [activeTab]);
+
+	/**
+	 * Utility function getDefaultSort.
+	 */
 	const getDefaultSort = (tab:TabType) => {
 		switch(tab){
 			case "items":
@@ -482,7 +426,7 @@ const GameItemsPage:React.FC = () => {
 				return {sortBy : "craftType", sortDir : "asc" as const};
 		}
 	};
-	
+
 	const loadData = useCallback(async(reset = false) => {
 		if(isStandaloneDetailPage){
 			return;
@@ -490,10 +434,10 @@ const GameItemsPage:React.FC = () => {
 		if(inFlightRef.current || (!hasMoreDataRef.current && !reset)){
 			return;
 		}
-		
+
 		inFlightRef.current = true;
 		setLoading(true);
-		
+
 		try{
 			const params:ListSearchParams & {
 				itemMainMenu?:string;
@@ -511,7 +455,7 @@ const GameItemsPage:React.FC = () => {
 				sortDir,
 				keyword : keyword || undefined
 			};
-			
+
 			if(activeTab === "items"){
 				params.itemMainMenu = selectedItemMainMenu || undefined;
 				params.itemSubMenu = selectedItemSubMenu || undefined;
@@ -524,7 +468,7 @@ const GameItemsPage:React.FC = () => {
 				params.craftType = selectedCraftType || undefined;
 				params.craftName = selectedCraftName || undefined;
 			}
-			
+
 			if(activeTab === "items"){
 				const response = await GameItemService.getGameItems(params);
 				if(reset){
@@ -607,8 +551,8 @@ const GameItemsPage:React.FC = () => {
 		sortBy,
 		sortDir
 	]);
-	
-	const resetPagingState = () => {
+
+	const resetPagingState = useCallback(() => {
 		currentPageRef.current = 0;
 		hasMoreDataRef.current = true;
 		setCurrentPage(0);
@@ -616,8 +560,7 @@ const GameItemsPage:React.FC = () => {
 		setItems([]);
 		setBarters([]);
 		setCrafts([]);
-	};
-
+	}, []);
 
 	const applyTabState = useCallback((tab:TabType) => {
 		setActiveTab(tab);
@@ -638,7 +581,7 @@ const GameItemsPage:React.FC = () => {
 		setSearchSuggestions([]);
 		setSearchSuggestionsLoading(false);
 		resetPagingState();
-	}, []);
+	}, [resetPagingState]);
 
 	useEffect(() => {
 		if(isDetailRoute){
@@ -652,7 +595,10 @@ const GameItemsPage:React.FC = () => {
 
 		applyTabState(tabFromPath);
 	}, [activeTab, applyTabState, isDetailRoute, location.pathname]);
-	
+
+	/**
+	 * Utility function handleTabChange.
+	 */
 	const handleTabChange = (tab:TabType) => {
 		const targetPath = ITEM_TAB_PATHS[tab];
 		if(location.pathname !== targetPath){
@@ -662,14 +608,20 @@ const GameItemsPage:React.FC = () => {
 			applyTabState(tab);
 		}
 	};
-	
+
+	/**
+	 * Utility function handleSearch.
+	 */
 	const handleSearch = () => {
 		setKeyword(searchInput.trim());
 		setShowSearchSuggestions(false);
 		resetPagingState();
 		setManualSearchTick((prev) => prev + 1);
 	};
-	
+
+	/**
+	 * Utility function handleReset.
+	 */
 	const handleReset = () => {
 		setSearchInput("");
 		setKeyword("");
@@ -688,6 +640,9 @@ const GameItemsPage:React.FC = () => {
 		setManualSearchTick((prev) => prev + 1);
 	};
 
+	/**
+	 * Utility function applySearchSuggestion.
+	 */
 	const applySearchSuggestion = (nextKeyword:string) => {
 		const trimmed = nextKeyword.trim();
 		if(!trimmed){
@@ -699,13 +654,19 @@ const GameItemsPage:React.FC = () => {
 		resetPagingState();
 		setManualSearchTick((prev) => prev + 1);
 	};
-	
+
+	/**
+	 * Utility function handleSortChange.
+	 */
 	const handleSortChange = (newSortBy:string, newSortDir:"asc" | "desc") => {
 		setSortBy(newSortBy);
 		setSortDir(newSortDir);
 		resetPagingState();
 	};
-	
+
+	/**
+	 * Utility function handleToggleRarity.
+	 */
 	const handleToggleRarity = (rarity:string) => {
 		setSelectedRarities((prev) => {
 			if(prev.includes(rarity)){
@@ -714,7 +675,7 @@ const GameItemsPage:React.FC = () => {
 			return [...prev, rarity];
 		});
 	};
-	
+
 	const handleScroll = useCallback(() => {
 		if(
 			window.innerHeight + document.documentElement.scrollTop >=
@@ -723,13 +684,16 @@ const GameItemsPage:React.FC = () => {
 			loadData();
 		}
 	}, [loadData]);
-	
-	const handleKeyPress = (e:React.KeyboardEvent) => {
-		if(e.key === "Enter"){
+
+	/**
+	 * Utility function handleKeyPress.
+	 */
+	const handleKeyPress = (event:React.KeyboardEvent<HTMLInputElement>) => {
+		if(event.key === "Enter"){
 			handleSearch();
 		}
 	};
-	
+
 	useEffect(() => {
 		if(isStandaloneDetailPage){
 			return;
@@ -752,7 +716,7 @@ const GameItemsPage:React.FC = () => {
 		isStandaloneDetailPage,
 		loadData
 	]);
-	
+
 	useEffect(() => {
 		if(isStandaloneDetailPage){
 			return;
@@ -760,7 +724,7 @@ const GameItemsPage:React.FC = () => {
 		window.addEventListener("scroll", handleScroll);
 		return () => window.removeEventListener("scroll", handleScroll);
 	}, [handleScroll, isStandaloneDetailPage]);
-	
+
 	const currentDataLength = useMemo(() => {
 		switch(activeTab){
 			case "items":
@@ -771,7 +735,6 @@ const GameItemsPage:React.FC = () => {
 				return crafts.length;
 		}
 	}, [activeTab, barters.length, crafts.length, items.length]);
-	
 
 	const tabTitle = useMemo(() => {
 		switch(activeTab){
@@ -783,7 +746,7 @@ const GameItemsPage:React.FC = () => {
 				return "제작";
 		}
 	}, [activeTab]);
-	
+
 	const availableItemMainMenus = useMemo(
 		() => Array.from(
 			new Set(
@@ -791,21 +754,21 @@ const GameItemsPage:React.FC = () => {
 					.map((category) => category.itemMainMenu)
 					.filter((value):value is string => Boolean(value))
 			)
-		).sort((a, b) => compareByPreferredOrder(normalizeMainMenuForOrder(a), normalizeMainMenuForOrder(b), ITEM_MAIN_MENU_ORDER_INDEX)),
+		).sort((a, b) => sortByPreferredOrder(normalizeMainMenuForOrder(a), normalizeMainMenuForOrder(b), ITEM_MAIN_MENU_ORDER_INDEX)),
 		[itemCategoryTree]
 	);
-	
+
 	const selectedMainMenuCategory = useMemo(
 		() => itemCategoryTree.find((category) => category.itemMainMenu === selectedItemMainMenu) || null,
 		[itemCategoryTree, selectedItemMainMenu]
 	);
-	
+
 	const availableItemSubMenus = useMemo(
 		() => {
 			const subMenus = selectedMainMenuCategory?.subMenus || [];
 			const normalizedMainMenu = normalizeMainMenuForOrder(selectedItemMainMenu);
 			const orderIndexMap = normalizedMainMenu ? ITEM_SUB_MENU_ORDER_INDEX_BY_MAIN_MENU[normalizedMainMenu] : undefined;
-			return [...subMenus].sort((a, b) => compareByPreferredOrder(a.itemSubMenu, b.itemSubMenu, orderIndexMap));
+			return [...subMenus].sort((a, b) => sortByPreferredOrder(a.itemSubMenu, b.itemSubMenu, orderIndexMap));
 		},
 		[selectedItemMainMenu, selectedMainMenuCategory]
 	);
@@ -838,42 +801,42 @@ const GameItemsPage:React.FC = () => {
 		setSelectedItemSubMenu(fallbackSubMenu);
 		setSelectedItemType("");
 	}, [activeTab, availableItemSubMenus, selectedItemMainMenu, selectedItemSubMenu]);
-	
+
 	const selectedSubMenuCategory = useMemo(
 		() => availableItemSubMenus.find((subMenu) => subMenu.itemSubMenu === selectedItemSubMenu) || null,
 		[availableItemSubMenus, selectedItemSubMenu]
 	);
-	
+
 	const availableItemTypes = useMemo(() => {
 		if(selectedSubMenuCategory){
 			return selectedSubMenuCategory.itemTypes || [];
 		}
-		
+
 		if(itemCategoryTree.length > 0){
 			return [];
 		}
-		
+
 		return itemTypeOptions;
 	}, [itemCategoryTree.length, itemTypeOptions, selectedSubMenuCategory]);
-	
+
 	const useHierarchicalItemFilters = itemCategoryTree.length > 0;
 	const isItemSubMenuDisabled = !useHierarchicalItemFilters || !selectedItemMainMenu;
 	const isItemTypeDisabled = useHierarchicalItemFilters && !selectedItemSubMenu;
-	
+
 	const availableBarterNpcs = useMemo(() => {
 		if(!selectedBarterRegionId){
 			return [];
 		}
-		
+
 		const region = barterRegionOptions.find((option) => String(option.regionId) === selectedBarterRegionId);
 		return region?.npcs || [];
 	}, [barterRegionOptions, selectedBarterRegionId]);
-	
+
 	const availableCraftNames = useMemo(() => {
 		if(!selectedCraftType){
 			return [];
 		}
-		
+
 		const selectedType = craftTypeOptions.find((option) => option.craftType === selectedCraftType);
 		return selectedType?.craftNames || [];
 	}, [craftTypeOptions, selectedCraftType]);
@@ -881,367 +844,136 @@ const GameItemsPage:React.FC = () => {
 	if(isStandaloneDetailPage){
 		return <ItemDetailPage/>;
 	}
-	
+
 	return (
 		<div className={styles.gameItemsPage}>
 			<div className={styles.container}>
-				<div className="page-heading">
-					<h1>{"게임 데이터"}</h1>
-					<p className="page-heading-subtitle">{"아이템, 물물교환, 제작 정보를 탐색해보세요."}</p>
-				</div>
-				
-				<div className={styles.tabContainer}>
-					<button
-						className={`${styles.tabButton} ${activeTab === "items" ? styles.active : ""}`}
-						onClick={() => handleTabChange("items")}
-					>
-						<Package size={18}/>
-						<span>{"아이템"}</span>
-					</button>
-					<button
-						className={`${styles.tabButton} ${activeTab === "barter" ? styles.active : ""}`}
-						onClick={() => handleTabChange("barter")}
-					>
-						<ArrowLeftRight size={18}/>
-						<span>{"물물교환"}</span>
-					</button>
-					<button
-						className={`${styles.tabButton} ${activeTab === "craft" ? styles.active : ""}`}
-						onClick={() => handleTabChange("craft")}
-					>
-						<Hammer size={18}/>
-						<span>{"제작"}</span>
-					</button>
-				</div>
-				
-				<div className={styles.controlsSection}>
-					<div className={styles.controlsTopRow}>
-						<div className={styles.searchContainer}>
-							<div className={styles.searchBox} ref={searchBoxRef}>
-								<Search size={20} className={styles.searchIcon}/>
-								<input
-									type="text"
-									placeholder={`${tabTitle} 이름으로 검색...`}
-									value={searchInput}
-									onChange={(e) => {
-										const value = e.target.value;
-										setSearchInput(value);
-										setShowSearchSuggestions(Boolean(value.trim()));
-									}}
-									onKeyPress={handleKeyPress}
-									onFocus={() => {
-										if(searchInput.trim()){
-											setShowSearchSuggestions(true);
-										}
-									}}
-									className={styles.searchInput}
-								/>
-								{showSearchSuggestions && searchInput.trim() && (
-									<div className={styles.searchSuggestionDropdown}>
-										{searchSuggestions.length > 0 ? (
-											searchSuggestions.map((suggestion) => (
-												<button
-													key={suggestion.key}
-													type="button"
-													className={styles.searchSuggestionItem}
-													onClick={() => applySearchSuggestion(suggestion.keyword)}
-												>
-													<span className={styles.searchSuggestionTitle}>{suggestion.title}</span>
-													{suggestion.subtitle && <span className={styles.searchSuggestionSubtitle}>{suggestion.subtitle}</span>}
-													{suggestion.meta && <span className={styles.searchSuggestionMeta}>{suggestion.meta}</span>}
-												</button>
-											))
-										) : (
-											<div className={styles.searchSuggestionEmpty}>
-												{searchSuggestionsLoading ? "검색 중..." : "추천 검색 결과가 없습니다."}
-											</div>
-										)}
-									</div>
-								)}
-							</div>
-							<button onClick={handleSearch} className={styles.searchBtn} disabled={loading}>
-								{loading ? <RefreshCw className={styles.spinning} size={16}/> : "검색"}
-							</button>
-							<button onClick={handleReset} className={styles.resetBtn} disabled={loading}>
-								{"초기화"}
-							</button>
-						</div>
-						
-						<div className={styles.sortContainer}>
-							<label>{"정렬"}</label>
-							<select
-								value={`${sortBy}-${sortDir}`}
-								onChange={(e) => {
-									const [newSortBy, newSortDir] = e.target.value.split("-");
-									handleSortChange(newSortBy, newSortDir as "asc" | "desc");
-								}}
-								className={styles.sortSelect}
-							>
-								{getSortOptions().map((option) => (
-									<option key={option.value} value={option.value}>{option.label}</option>
-								))}
-							</select>
-						</div>
-					</div>
-					<div className={styles.filtersSection}>
-						{activeTab === "items" && (
-							<div className={`${styles.filterGrid} ${styles.itemFilterGrid}`}>
-								<div className={styles.filterField}>
-									<label htmlFor="item-main-menu-filter">{"상위 메뉴"}</label>
-									<select
-										id="item-main-menu-filter"
-										value={selectedItemMainMenu}
-										onChange={(e) => {
-											setSelectedItemMainMenu(e.target.value);
-											setSelectedItemSubMenu("");
-											setSelectedItemType("");
-											resetPagingState();
-										}}
-										className={styles.filterSelect}
-										disabled={!useHierarchicalItemFilters}
-									>
-										<option value="">{"전체"}</option>
-										{availableItemMainMenus.map((itemMainMenu) => (
-											<option key={itemMainMenu} value={itemMainMenu}>{itemMainMenu}</option>
-										))}
-									</select>
-								</div>
-								
-								<div className={styles.filterField}>
-									<label htmlFor="item-sub-menu-filter">{"하위 메뉴"}</label>
-									<select
-										id="item-sub-menu-filter"
-										value={selectedItemSubMenu}
-										onChange={(e) => {
-											setSelectedItemSubMenu(e.target.value);
-											setSelectedItemType("");
-											resetPagingState();
-										}}
-										className={styles.filterSelect}
-										disabled={isItemSubMenuDisabled}
-									>
-										<option value="">{"전체"}</option>
-										{availableItemSubMenus.map((subMenu) => (
-											<option key={subMenu.itemSubMenu} value={subMenu.itemSubMenu}>{subMenu.itemSubMenu}</option>
-										))}
-									</select>
-								</div>
-								
-								<div className={styles.filterField}>
-									<label htmlFor="item-type-filter">{"유형"}</label>
-									<select
-										id="item-type-filter"
-										value={selectedItemType}
-										onChange={(e) => {
-											setSelectedItemType(e.target.value);
-											resetPagingState();
-										}}
-										className={styles.filterSelect}
-										disabled={isItemTypeDisabled}
-									>
-										<option value="">{"전체"}</option>
-										{availableItemTypes.map((itemType) => (
-											<option key={itemType} value={itemType}>{itemType}</option>
-										))}
-									</select>
-								</div>
-								
-								<div className={`${styles.filterField} ${styles.itemRarityFilter} ${styles.filterFieldFullWidth}`}>
-									<span className={styles.rarityLabel}>{"아이템 등급"}</span>
-									<div className={styles.rarityOptions}>
-										{availableRarities.map((rarity) => {
-											const rarityInfo = getItemRarityInfo(rarity);
-											const checked = selectedRarities.includes(rarity);
-											return (
-												<label key={rarity}
-													   className={`${styles.rarityOption} ${checked ? styles.selected : ""}`}>
-													<input
-														type="checkbox"
-														checked={checked}
-														onChange={() => {
-															handleToggleRarity(rarity);
-															resetPagingState();
-														}}
-													/>
-													<span
-														className={styles.rarityBadge}
-														style={{
-															color : rarityInfo.color,
-															borderColor : rarityInfo.color,
-															backgroundColor : rarityInfo.bg
-														}}
-													>
-										{rarityInfo.label}
-									</span>
-												</label>
-											);
-										})}
-									</div>
-								</div>
-							</div>
-						)}
-						
-						{activeTab === "barter" && (
-							<div className={styles.filterGrid}>
-								<div className={styles.filterField}>
-									<label htmlFor="barter-region-filter">{"지역 (대분류)"}</label>
-									<select
-										id="barter-region-filter"
-										value={selectedBarterRegionId}
-										onChange={(e) => {
-											const nextRegionId = e.target.value;
-											setSelectedBarterRegionId(nextRegionId);
-											setSelectedBarterNpcId("");
-											resetPagingState();
-										}}
-										className={styles.filterSelect}
-									>
-										<option value="">{"전체 지역"}</option>
-										{barterRegionOptions.map((region) => (
-											<option key={region.regionId}
-													value={region.regionId}>{region.regionName}</option>
-										))}
-									</select>
-								</div>
-								
-								<div className={styles.filterField}>
-									<label htmlFor="barter-npc-filter">{"NPC (분류)"}</label>
-									<select
-										id="barter-npc-filter"
-										value={selectedBarterNpcId}
-										onChange={(e) => {
-											setSelectedBarterNpcId(e.target.value);
-											resetPagingState();
-										}}
-										className={styles.filterSelect}
-										disabled={!selectedBarterRegionId}
-									>
-										<option value="">{"전체 NPC"}</option>
-										{availableBarterNpcs.map((npc) => (
-											<option key={npc.npcId} value={npc.npcId}>{npc.npcName}</option>
-										))}
-									</select>
-								</div>
-							</div>
-						)}
-						
-						{activeTab === "craft" && (
-							<div className={styles.filterGrid}>
-								<div className={styles.filterField}>
-									<label htmlFor="craft-type-filter">{"가공/제작 (대분류)"}</label>
-									<select
-										id="craft-type-filter"
-										value={selectedCraftType}
-										onChange={(e) => {
-											const nextCraftType = e.target.value;
-											setSelectedCraftType(nextCraftType);
-											setSelectedCraftName("");
-											resetPagingState();
-										}}
-										className={styles.filterSelect}
-									>
-										<option value="">{"전체"}</option>
-										{craftTypeOptions.map((option) => (
-											<option key={option.craftType}
-													value={option.craftType}>{option.craftType}</option>
-										))}
-									</select>
-								</div>
-								
-								<div className={styles.filterField}>
-									<label htmlFor="craft-name-filter">{"세부분류"}</label>
-									<select
-										id="craft-name-filter"
-										value={selectedCraftName}
-										onChange={(e) => {
-											setSelectedCraftName(e.target.value);
-											resetPagingState();
-										}}
-										className={styles.filterSelect}
-										disabled={!selectedCraftType}
-									>
-										<option value="">{"전체"}</option>
-										{availableCraftNames.map((craftName) => (
-											<option key={craftName} value={craftName}>{craftName}</option>
-										))}
-									</select>
-								</div>
-							</div>
-						)}
-					</div>
-				</div>
-				<div className={styles.resultsInfo}>
-					{keyword ? (
-						<p>
-							{"검색 결과: 총 " + totalElements + "개 " + tabTitle + " 중 " + currentDataLength + "개 표시"}</p>
-					) : (
-						<p>{"총 " + totalElements + "개 " + tabTitle + " 중 " + currentDataLength + "개 표시"}</p>
-					)}
-				</div>
-				
-				<div className={styles.itemsGrid}>
-					{activeTab === "items" && items.map((item) => (
-						<GameItemCard
-							key={item.itemId}
-							item={item}
-							onClick={(clickedItem) => {
-								setSelectedItem(clickedItem);
-								navigate(toItemDetailPath(clickedItem.itemName), {
-									state : {openAsModal : true, modalRuntimeId : MODAL_ROUTE_RUNTIME_ID} satisfies GameItemsRouteState
-								});
-							}}
-						/>
-					))}
-					{activeTab === "barter" && barters.map((barter) => (
-						<BarterCard
-							key={`${barter.barterId}-${barter.itemId}-${barter.exchangeId}`}
-							barter={barter}
-							onClick={(clickedBarter) => {
-								if(clickedBarter.gameItem){
-									setSelectedItem(clickedBarter.gameItem);
-									navigate(toItemDetailPath(clickedBarter.gameItem.itemName), {
-										state : {openAsModal : true, modalRuntimeId : MODAL_ROUTE_RUNTIME_ID} satisfies GameItemsRouteState
-									});
-								}
-							}}
-						/>
-					))}
-					{activeTab === "craft" && crafts.map((craft) => (
-						<CraftCard
-							key={`${craft.craftId}-${craft.craftSubId}-${craft.craftIngredientId}`}
-							craft={craft}
-							onClick={(clickedCraft) => {
-								const targetName = clickedCraft.itemName || clickedCraft.gameItem?.itemName;
-								if(targetName){
-									if(clickedCraft.gameItem){
-										setSelectedItem(clickedCraft.gameItem);
-									}
-									navigate(toItemDetailPath(targetName), {
-										state : {openAsModal : true, modalRuntimeId : MODAL_ROUTE_RUNTIME_ID} satisfies GameItemsRouteState
-									});
-								}
-							}}
-						/>
-					))}
-				</div>
-				
-				{loading && (
-					<div className={styles.loadingContainer}>
-						<RefreshCw className={styles.spinning} size={24}/>
-						<span>{"데이터를 불러오는 중..."}</span>
-					</div>
-				)}
-				
-				{!hasMoreData && currentDataLength > 0 && (
-					<div className={styles.noMoreData}>{"더 이상 불러올 데이터가 없습니다."}</div>
-				)}
-				
-				{!loading && currentDataLength === 0 && (
-					<div className={styles.noData}>
-						{keyword ? "검색 결과가 없습니다." : `${tabTitle}이 없습니다.`}
-					</div>
-				)}
-				
+				<h1 className="page-heading">{"게임 데이터"}</h1>
+
+				<GameItemsTabs activeTab={activeTab} onTabChange={handleTabChange}/>
+
+				<GameItemsControls
+					activeTab={activeTab}
+					loading={loading}
+					tabTitle={tabTitle}
+					searchInput={searchInput}
+					showSearchSuggestions={showSearchSuggestions}
+					searchSuggestions={searchSuggestions}
+					searchSuggestionsLoading={searchSuggestionsLoading}
+					onSearchInputChange={(value) => {
+						setSearchInput(value);
+						setShowSearchSuggestions(Boolean(value.trim()));
+					}}
+					onSearchInputFocus={() => {
+						if(searchInput.trim()){
+							setShowSearchSuggestions(true);
+						}
+					}}
+					onSearchInputKeyPress={handleKeyPress}
+					onApplySearchSuggestion={applySearchSuggestion}
+					onSearch={handleSearch}
+					onReset={handleReset}
+					searchBoxRef={searchBoxRef}
+					sortBy={sortBy}
+					sortDir={sortDir}
+					sortOptions={getSortOptions()}
+					onSortChange={handleSortChange}
+					useHierarchicalItemFilters={useHierarchicalItemFilters}
+					availableItemMainMenus={availableItemMainMenus}
+					selectedItemMainMenu={selectedItemMainMenu}
+					onItemMainMenuChange={(value) => {
+						setSelectedItemMainMenu(value);
+						setSelectedItemSubMenu("");
+						setSelectedItemType("");
+						resetPagingState();
+					}}
+					availableItemSubMenus={availableItemSubMenus}
+					selectedItemSubMenu={selectedItemSubMenu}
+					onItemSubMenuChange={(value) => {
+						setSelectedItemSubMenu(value);
+						setSelectedItemType("");
+						resetPagingState();
+					}}
+					availableItemTypes={availableItemTypes}
+					selectedItemType={selectedItemType}
+					onItemTypeChange={(value) => {
+						setSelectedItemType(value);
+						resetPagingState();
+					}}
+					isItemSubMenuDisabled={isItemSubMenuDisabled}
+					isItemTypeDisabled={isItemTypeDisabled}
+					availableRarities={availableRarities}
+					selectedRarities={selectedRarities}
+					onToggleRarity={(rarity) => {
+						handleToggleRarity(rarity);
+						resetPagingState();
+					}}
+					barterRegionOptions={barterRegionOptions}
+					selectedBarterRegionId={selectedBarterRegionId}
+					onBarterRegionChange={(value) => {
+						setSelectedBarterRegionId(value);
+						setSelectedBarterNpcId("");
+						resetPagingState();
+					}}
+					availableBarterNpcs={availableBarterNpcs}
+					selectedBarterNpcId={selectedBarterNpcId}
+					onBarterNpcChange={(value) => {
+						setSelectedBarterNpcId(value);
+						resetPagingState();
+					}}
+					craftTypeOptions={craftTypeOptions}
+					selectedCraftType={selectedCraftType}
+					onCraftTypeChange={(value) => {
+						setSelectedCraftType(value);
+						setSelectedCraftName("");
+						resetPagingState();
+					}}
+					availableCraftNames={availableCraftNames}
+					selectedCraftName={selectedCraftName}
+					onCraftNameChange={(value) => {
+						setSelectedCraftName(value);
+						resetPagingState();
+					}}
+				/>
+
+				<GameItemsResults
+					activeTab={activeTab}
+					keyword={keyword}
+					totalElements={totalElements}
+					currentDataLength={currentDataLength}
+					tabTitle={tabTitle}
+					items={items}
+					barters={barters}
+					crafts={crafts}
+					onItemClick={(clickedItem) => {
+						setSelectedItem(clickedItem);
+						navigate(toItemDetailPath(clickedItem.itemName), {
+							state : {openAsModal : true, modalRuntimeId : MODAL_ROUTE_RUNTIME_ID} satisfies GameItemsRouteState
+						});
+					}}
+					onBarterClick={(clickedBarter) => {
+						if(clickedBarter.gameItem){
+							setSelectedItem(clickedBarter.gameItem);
+							navigate(toItemDetailPath(clickedBarter.gameItem.itemName), {
+								state : {openAsModal : true, modalRuntimeId : MODAL_ROUTE_RUNTIME_ID} satisfies GameItemsRouteState
+							});
+						}
+					}}
+					onCraftClick={(clickedCraft) => {
+						const targetName = clickedCraft.itemName || clickedCraft.gameItem?.itemName;
+						if(targetName){
+							if(clickedCraft.gameItem){
+								setSelectedItem(clickedCraft.gameItem);
+							}
+							navigate(toItemDetailPath(targetName), {
+								state : {openAsModal : true, modalRuntimeId : MODAL_ROUTE_RUNTIME_ID} satisfies GameItemsRouteState
+							});
+						}
+					}}
+					loading={loading}
+					hasMoreData={hasMoreData}
+				/>
+
 				{selectedItem && (
 					<ItemDetailModal
 						item={selectedItem}

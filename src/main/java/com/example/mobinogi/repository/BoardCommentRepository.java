@@ -1,6 +1,6 @@
 package com.example.mobinogi.repository;
 
-import com.example.mobinogi.entity.BoardComment;
+import com.example.mobinogi.entity.board.BoardComment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;

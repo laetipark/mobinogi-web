@@ -15,6 +15,9 @@ export interface ResolvedItemEffectTemplate{
 	hasResolvedValue:boolean;
 }
 
+/**
+ * Constant PLACEHOLDER_PATTERN.
+ */
 const PLACEHOLDER_PATTERN = /\{(\d+)\}/gu;
 const PLACEHOLDER_UNIT_SUFFIXES:Array<{suffix:string; unit:string}> = [
 	{suffix : "_pct", unit : "%"},
@@ -23,12 +26,21 @@ const PLACEHOLDER_UNIT_SUFFIXES:Array<{suffix:string; unit:string}> = [
 	{suffix : "_count", unit : "개"}
 ];
 
+/**
+ * Utility function isRecord.
+ */
 const isRecord = (value:unknown):value is Record<string, unknown> =>
 	typeof value === "object" && value !== null && !Array.isArray(value);
 
+/**
+ * Utility function isPrimitive.
+ */
 const isPrimitive = (value:unknown):value is string | number | boolean | null =>
 	value === null || typeof value === "string" || typeof value === "number" || typeof value === "boolean";
 
+/**
+ * Utility function formatNumber.
+ */
 const formatNumber = (value:number):string => {
 	if(Number.isInteger(value)){
 		return `${value}`;
@@ -36,6 +48,9 @@ const formatNumber = (value:number):string => {
 	return `${value}`.replace(/(\.\d*?[1-9])0+$/u, "$1").replace(/\.0$/u, "");
 };
 
+/**
+ * Utility function formatPlaceholderValue.
+ */
 const formatPlaceholderValue = (key:string, value:string | number | boolean | null):string => {
 	if(value === null){
 		return "-";
@@ -48,11 +63,17 @@ const formatPlaceholderValue = (key:string, value:string | number | boolean | nu
 	return `${value}`;
 };
 
+/**
+ * Utility function parseTranscendenceRaw.
+ */
 const parseTranscendenceRaw = (raw:string | null | undefined):ItemTranscendenceRoot | null => {
 	if(!raw || !raw.trim()){
 		return null;
 	}
 
+	/**
+	 * Utility function tryParse.
+	 */
 	const tryParse = (text:string):unknown => {
 		try{
 			return JSON.parse(text);
@@ -88,6 +109,9 @@ const parseTranscendenceRaw = (raw:string | null | undefined):ItemTranscendenceR
 	return isRecord(parsed) ? parsed : null;
 };
 
+/**
+ * Utility function getPlaceholderValues.
+ */
 const getPlaceholderValues = (raw:string | null | undefined):Array<string | undefined> => {
 	const parsed = parseTranscendenceRaw(raw);
 	if(!parsed){
@@ -109,6 +133,9 @@ const getPlaceholderValues = (raw:string | null | undefined):Array<string | unde
 	});
 };
 
+/**
+ * Utility function resolveItemEffectTemplate.
+ */
 export const resolveItemEffectTemplate = (
 	itemEffectRaw:string | null | undefined,
 	itemTranscendenceRaw:string | null | undefined

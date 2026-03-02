@@ -4,6 +4,9 @@ import lombok.Data;
 
 @Data
 public class GuildDescriptionUpdateRequest{
+	/**
+	 * Field description.
+	 */
 	private String description;
 }
 

@@ -12,10 +12,16 @@ type ItemDetailRouteState = {
 	openReportModal?:boolean;
 };
 
+/**
+ * Utility function normalizeComparableText.
+ */
 const normalizeComparableText = (value:string | null | undefined):string => {
 	return normalizeMultilineText(value).trim();
 };
 
+/**
+ * Utility function formatCraftLevel.
+ */
 const formatCraftLevel = (craftableLevel:number | null | undefined):string => {
 	if(craftableLevel === null || craftableLevel === undefined){
 		return "-";
@@ -23,6 +29,9 @@ const formatCraftLevel = (craftableLevel:number | null | undefined):string => {
 	return `${craftableLevel}`;
 };
 
+/**
+ * Utility function formatProcessingTime.
+ */
 const formatProcessingTime = (processingTime:number | null | undefined):string => {
 	if(processingTime === null || processingTime === undefined){
 		return "-";
@@ -38,6 +47,9 @@ const formatProcessingTime = (processingTime:number | null | undefined):string =
 	return `${minutes}분 ${seconds}초`;
 };
 
+/**
+ * Utility function toSafeBarterCount.
+ */
 const toSafeBarterCount = (value:unknown):number => {
 	const parsed = Number(value);
 	if(!Number.isFinite(parsed) || parsed < 0){
@@ -46,6 +58,9 @@ const toSafeBarterCount = (value:unknown):number => {
 	return Math.trunc(parsed);
 };
 
+/**
+ * Utility function getBarterRewardDisplay.
+ */
 const getBarterRewardDisplay = (barter:LifeBarter) => {
 	const rewardPerTrade = toSafeBarterCount(barter.itemWeight);
 	const maxTrades = toSafeBarterCount(barter.barterQty);
@@ -76,6 +91,9 @@ const ItemDetailPage:React.FC = () => {
 		}
 
 		const decodedName = fromItemSlug(itemName);
+		/**
+		 * Utility function async.
+		 */
 		const fetchData = async() => {
 			setLoading(true);
 			setError(false);
@@ -112,6 +130,9 @@ const ItemDetailPage:React.FC = () => {
 		setShowReportModal(true);
 	}, [itemName, routeState?.openReportModal]);
 
+	/**
+	 * Utility function renderBarterCard.
+	 */
 	const renderBarterCard = (barter:LifeBarter) => {
 		const reward = getBarterRewardDisplay(barter);
 		const hasServerShare = Number(barter.barterServer) > 0;
@@ -147,6 +168,9 @@ const ItemDetailPage:React.FC = () => {
 		);
 	};
 
+	/**
+	 * Utility function renderCraftGroup.
+	 */
 	const renderCraftGroup = (subId:number, crafts:LifeCraft[]) => (
 		<div key={subId} className={styles.craftGroup}>
 			<div className={styles.craftResult}>
@@ -202,7 +226,13 @@ const ItemDetailPage:React.FC = () => {
 	const barterAcquireCount = bartersByItemId.length;
 	const barterMaterialCount = bartersByExchangeId.length;
 	const craftRecipeCount = Object.keys(craftsBySubId).length;
+	/**
+	 * Utility function handleOpenReportModal.
+	 */
 	const handleOpenReportModal = () => setShowReportModal(true);
+	/**
+	 * Utility function handleCloseReportModal.
+	 */
 	const handleCloseReportModal = () => setShowReportModal(false);
 
 	return (

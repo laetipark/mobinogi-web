@@ -24,52 +24,18 @@ import SortableCharacterList from "../../components/user/sortable-character-list
 import EventChecklist from "../../components/todo/event-checklist";
 import {useSeo} from "@/hooks/use-seo";
 import {UNSAFE_NavigationContext, useBeforeUnload} from "react-router-dom";
+import {
+	TODO_AUTO_SAVE_DEBOUNCE_MS,
+	TODO_HOMEWORK_SAVE_DEBOUNCE_MS,
+	TODO_FAVORITE_SEARCH_DEBOUNCE_MS,
+	TODO_SERVERS,
+	TodoAutoSaveStrategy,
+	isServerSharedDailyField,
+	isTodoRankStale,
+	loadTodoFavoriteItems,
+	saveTodoFavoriteItems
+} from "@/features/todo";
 import styles from "./todo.module.scss";
-
-const AUTO_SAVE_DEBOUNCE_MS = 5 * 1000; // 5s
-const HOMEWORK_SAVE_DEBOUNCE_MS = 2 * 1000; // Homework checkbox changes use 2s debounce
-const FAVORITE_STORAGE_KEY = "mobinogi:todoFavoriteItems";
-const FAVORITE_SEARCH_DEBOUNCE_MS = 300;
-type AutoSaveStrategy = "debounce" | "leadingTrailingThrottle";
-
-const loadFavoriteItems = ():FavoriteGameItem[] => {
-	if(typeof window === "undefined"){
-		return [];
-	}
-	try{
-		const raw = window.localStorage.getItem(FAVORITE_STORAGE_KEY);
-		if(!raw){
-			return [];
-		}
-		const parsed = JSON.parse(raw);
-		if(!Array.isArray(parsed)){
-			return [];
-		}
-		return parsed
-			.filter((item):item is FavoriteGameItem =>
-				typeof item?.itemId === "number" && typeof item?.itemName === "string"
-			)
-			.map(item => ({
-				itemId : item.itemId,
-				itemName : item.itemName,
-				itemType : item.itemType,
-				itemRarity : item.itemRarity
-			}));
-	}catch{
-		return [];
-	}
-};
-
-const saveFavoriteItems = (items:FavoriteGameItem[]) => {
-	if(typeof window === "undefined"){
-		return;
-	}
-	try{
-		window.localStorage.setItem(FAVORITE_STORAGE_KEY, JSON.stringify(items));
-	}catch{
-		// Ignore write errors (private mode/quota issues)
-	}
-};
 
 const TodoPage:React.FC = () => {
 	useSeo({
@@ -91,18 +57,7 @@ const TodoPage:React.FC = () => {
 	const [toastMessage, setToastMessage] = useState("");
 	const [saving, setSaving] = useState(false);
 	const [rankLoading, setRankLoading] = useState<Set<number>>(new Set());
-	const RANK_STALE_MS = 10 * 60 * 1000;
-	const isRankStale = (rankUpdatedAt?:string):boolean => {
-		if(!rankUpdatedAt){
-			return true;
-		}
-		const updatedAtMs = new Date(rankUpdatedAt).getTime();
-		if(Number.isNaN(updatedAtMs)){
-			return true;
-		}
-		return Date.now() - updatedAtMs >= RANK_STALE_MS;
-	};
-	const [favoriteItems, setFavoriteItems] = useState<FavoriteGameItem[]>(loadFavoriteItems);
+	const [favoriteItems, setFavoriteItems] = useState<FavoriteGameItem[]>(loadTodoFavoriteItems);
 	const [favoriteSearchInput, setFavoriteSearchInput] = useState("");
 	const [favoriteKeyword, setFavoriteKeyword] = useState("");
 	const [favoriteCandidates, setFavoriteCandidates] = useState<GameItemSummary[]>([]);
@@ -119,6 +74,9 @@ const TodoPage:React.FC = () => {
 	const [classes, setClasses] = useState<GameClassItem[]>([]);
 	const classCodeById = useMemo(() => new Map(classes.map((cls) => [cls.classId, cls.classCode])), [classes]);
 	const classCodeByName = useMemo(() => new Map(classes.map((cls) => [cls.className, cls.classCode])), [classes]);
+	/**
+	 * Utility function resolveClassCode.
+	 */
 	const resolveClassCode = (classId?:number, className?:string | null) => {
 		if(classId && classCodeById.has(classId)){
 			return classCodeById.get(classId);
@@ -128,14 +86,6 @@ const TodoPage:React.FC = () => {
 		}
 		return undefined;
 	};
-	const servers:{id:number; name:string}[] = [
-		{id : 1, name : "Server 1"}, {id : 2, name : "Server 2"}, {id : 3, name : "Server 3"}, {
-			id : 4,
-			name : "Server 4"
-		},
-		{id : 5, name : "Server 5"}, {id : 6, name : "Server 6"}, {id : 7, name : "Server 7"}
-	];
-	
 	// 캐릭터 순서 변경 모달
 	const [showReorder, setShowReorder] = useState(false);
 	const [reorderList, setReorderList] = useState<{
@@ -160,7 +110,7 @@ const TodoPage:React.FC = () => {
 		return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
 	})());
 	const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-	const activeAutoSaveStrategyRef = useRef<AutoSaveStrategy | null>(null);
+	const activeAutoSaveStrategyRef = useRef<TodoAutoSaveStrategy | null>(null);
 	const autoSaveThrottleHasPendingRef = useRef(false);
 	const routeLeaveGuardInFlightRef = useRef(false);
 	const touchStartXRef = useRef<number | null>(null);
@@ -172,7 +122,7 @@ const TodoPage:React.FC = () => {
 	}, [todos]);
 
 	useEffect(() => {
-		saveFavoriteItems(favoriteItems);
+		saveTodoFavoriteItems(favoriteItems);
 	}, [favoriteItems]);
 	
 	useEffect(() => {
@@ -190,6 +140,9 @@ const TodoPage:React.FC = () => {
 	}, []);
 	
 	useEffect(() => {
+		/**
+		 * Utility function updateCountdown.
+		 */
 		const updateCountdown = () => {
 			const now = new Date();
 			const kstOffset = 9 * 60;
@@ -240,12 +193,15 @@ const TodoPage:React.FC = () => {
 	useEffect(() => {
 		const timer = setTimeout(() => {
 			setFavoriteKeyword(favoriteSearchInput.trim());
-		}, FAVORITE_SEARCH_DEBOUNCE_MS);
+		}, TODO_FAVORITE_SEARCH_DEBOUNCE_MS);
 		return () => clearTimeout(timer);
 	}, [favoriteSearchInput]);
 
 	useEffect(() => {
 		let active = true;
+		/**
+		 * Utility function async.
+		 */
 		const searchFavoriteItems = async() => {
 			if(!favoriteKeyword){
 				setFavoriteCandidates([]);
@@ -281,11 +237,14 @@ const TodoPage:React.FC = () => {
 		};
 	}, [favoriteKeyword]);
 	
+	/**
+	 * Utility function fetchRanks.
+	 */
 	const fetchRanks = (todosData:UserTodo[]) => {
 		const targets = todosData.filter(t =>
 			t.serverId != null &&
 			Boolean(t.characterName?.trim()) &&
-			isRankStale(t.rankUpdatedAt)
+			isTodoRankStale(t.rankUpdatedAt)
 		);
 		if(targets.length === 0){
 			return;
@@ -319,6 +278,9 @@ const TodoPage:React.FC = () => {
 		});
 	};
 	
+	/**
+	 * Utility function async.
+	 */
 	const loadData = async() => {
 		try{
 			setLoading(true);
@@ -389,6 +351,9 @@ const TodoPage:React.FC = () => {
 	};
 	
 	const saveAllDirty = useCallback(async(options?:{targetIds?:number[]; silent?:boolean}) => {
+		/**
+		 * Utility function dirtyIds.
+		 */
 		const dirtyIds = (options?.targetIds ?? Array.from(dirtyRef.current))
 			.filter((charId, index, array) => array.indexOf(charId) === index)
 			.filter(charId => dirtyRef.current.has(charId));
@@ -457,8 +422,8 @@ const TodoPage:React.FC = () => {
 		}, intervalMs);
 	}, [saveAllDirty]);
 	
-	const scheduleAutoSave = useCallback((options?:{debounceMs?:number; strategy?:AutoSaveStrategy}) => {
-		const debounceMs = options?.debounceMs ?? AUTO_SAVE_DEBOUNCE_MS;
+	const scheduleAutoSave = useCallback((options?:{debounceMs?:number; strategy?:TodoAutoSaveStrategy}) => {
+		const debounceMs = options?.debounceMs ?? TODO_AUTO_SAVE_DEBOUNCE_MS;
 		const strategy = options?.strategy ?? "debounce";
 		const activeStrategy = activeAutoSaveStrategyRef.current;
 		
@@ -488,6 +453,9 @@ const TodoPage:React.FC = () => {
 		}, debounceMs);
 	}, [clearAutoSaveTimer, saveAllDirty, scheduleThrottleCooldown]);
 	
+	/**
+	 * Utility function handleManualSave.
+	 */
 	const handleManualSave = () => {
 		autoSaveThrottleHasPendingRef.current = false;
 		clearAutoSaveTimer();
@@ -503,13 +471,16 @@ const TodoPage:React.FC = () => {
 			clearAutoSaveTimer();
 			const saved = await saveAllDirty({silent : true});
 			if(!saved){
-				showToast("??μ뿉 ?ㅽ뙣?덉뒿?덈떎");
+				showToast("저장에 실패했습니다.");
 				return;
 			}
 		}
 		setSelectedCharacterId(nextCharacterId);
 	}, [clearAutoSaveTimer, saveAllDirty, selectedCharacterId]);
 	
+	/**
+	 * Utility function showToast.
+	 */
 	const showToast = (msg:string) => {
 		setToastMessage(msg);
 		setTimeout(() => setToastMessage(""), 3000);
@@ -551,7 +522,7 @@ const TodoPage:React.FC = () => {
 				routeBlocker.proceed();
 				return;
 			}
-			showToast("???關肉???쎈솭??됰뮸??덈뼄");
+			showToast("저장에 실패해 페이지 이동이 취소되었습니다.");
 			routeBlocker.reset();
 			routeLeaveGuardInFlightRef.current = false;
 		})();
@@ -581,7 +552,7 @@ const TodoPage:React.FC = () => {
 					tx.retry();
 					return;
 				}
-				showToast("????쒑굢????덉넮???곕????덈펲");
+				showToast("저장에 실패해 페이지를 벗어날 수 없습니다.");
 				routeLeaveGuardInFlightRef.current = false;
 			})();
 		});
@@ -591,20 +562,17 @@ const TodoPage:React.FC = () => {
 		};
 	}, [clearAutoSaveTimer, navigationContext, saveAllDirty]);
 	
-	const SERVER_SHARED_DAILY = ["freeShopPurchase", "gemTreasureChest"] as const;
-	type ServerSharedDailyField = (typeof SERVER_SHARED_DAILY)[number];
-	const isServerSharedDailyField = (field?:string):field is ServerSharedDailyField => {
-		return !!field && (SERVER_SHARED_DAILY as readonly string[]).includes(field);
-	};
-	
+	/**
+	 * Utility function handleTodoChange.
+	 */
 	const handleTodoChange = (
 		characterId:number,
 		todoData:TodoData,
 		changedField?:string,
-		options?:{saveDebounceMs?:number; saveStrategy?:AutoSaveStrategy}
+		options?:{saveDebounceMs?:number; saveStrategy?:TodoAutoSaveStrategy}
 	) => {
 		const currentTodos = todosRef.current;
-		const saveDebounceMs = options?.saveDebounceMs ?? AUTO_SAVE_DEBOUNCE_MS;
+		const saveDebounceMs = options?.saveDebounceMs ?? TODO_AUTO_SAVE_DEBOUNCE_MS;
 		const saveStrategy = options?.saveStrategy ?? "debounce";
 		if(isServerSharedDailyField(changedField)){
 			const serverId = currentTodos.find(t => t.characterId === characterId)?.serverId;
@@ -641,6 +609,9 @@ const TodoPage:React.FC = () => {
 		scheduleAutoSave({debounceMs : saveDebounceMs, strategy : saveStrategy});
 	};
 	
+	/**
+	 * Utility function async.
+	 */
 	const handleAddCharacter = async() => {
 		if(!characterForm.characterName.trim()) return;
 		try{
@@ -657,6 +628,9 @@ const TodoPage:React.FC = () => {
 		}
 	};
 	
+	/**
+	 * Utility function openReorderModal.
+	 */
 	const openReorderModal = () => {
 		setReorderList(todos.map(t => ({
 			characterId : t.characterId,
@@ -666,6 +640,9 @@ const TodoPage:React.FC = () => {
 		setShowReorder(true);
 	};
 	
+	/**
+	 * Utility function async.
+	 */
 	const handleReorderSave = async() => {
 		setReorderSaving(true);
 		try{
@@ -690,6 +667,9 @@ const TodoPage:React.FC = () => {
 		[favoriteCandidates, favoriteItemIdSet]
 	);
 
+	/**
+	 * Utility function handleAddFavoriteItem.
+	 */
 	const handleAddFavoriteItem = (item:GameItemSummary) => {
 		setFavoriteItems(prev => {
 			if(prev.some(favorite => favorite.itemId === item.itemId)){
@@ -710,6 +690,9 @@ const TodoPage:React.FC = () => {
 		setFavoriteCandidates([]);
 	};
 
+	/**
+	 * Utility function handleRemoveFavoriteItem.
+	 */
 	const handleRemoveFavoriteItem = (itemId:number) => {
 		setFavoriteItems(prev => prev.filter(item => item.itemId !== itemId));
 	};
@@ -723,6 +706,9 @@ const TodoPage:React.FC = () => {
 			await handleSelectCharacter(todos[0].characterId);
 			return;
 		}
+		/**
+		 * Utility function nextIndex.
+		 */
 		const nextIndex = (currentIndex + direction + todos.length) % todos.length;
 		await handleSelectCharacter(todos[nextIndex].characterId);
 	}, [todos, selectedCharacterId, handleSelectCharacter]);
@@ -731,6 +717,9 @@ const TodoPage:React.FC = () => {
 		if(todos.length <= 1){
 			return;
 		}
+		/**
+		 * Utility function handleKeyDown.
+		 */
 		const handleKeyDown = (event:KeyboardEvent) => {
 			const target = event.target as HTMLElement | null;
 			if(target){
@@ -751,6 +740,9 @@ const TodoPage:React.FC = () => {
 		return () => window.removeEventListener("keydown", handleKeyDown);
 	}, [todos.length, moveSelectedCharacter]);
 
+	/**
+	 * Utility function handleCharacterSwipeStart.
+	 */
 	const handleCharacterSwipeStart = (event:React.TouchEvent<HTMLDivElement>) => {
 		if(todos.length <= 1){
 			return;
@@ -761,6 +753,9 @@ const TodoPage:React.FC = () => {
 		touchStartTimeRef.current = Date.now();
 	};
 
+	/**
+	 * Utility function handleCharacterSwipeEnd.
+	 */
 	const handleCharacterSwipeEnd = (event:React.TouchEvent<HTMLDivElement>) => {
 		if(todos.length <= 1 || touchStartXRef.current == null || touchStartYRef.current == null){
 			return;
@@ -790,10 +785,7 @@ const TodoPage:React.FC = () => {
 		<div className={styles.todoPage}>
 			<div className={styles.container}>
 			<div className={styles.pageHeader}>
-				<div className="page-heading">
-					<h1 className={styles.pageTitle}>숙제 관리</h1>
-					<p className={styles.pageSubtitle}>캐릭터별 일일/주간 진행도를 체크하고 이벤트 일정을 관리하세요</p>
-				</div>
+				<h1 className={`page-heading ${styles.pageTitle}`}>숙제 관리</h1>
 				<div className={styles.resetTimers}>
 					<div className={styles.resetTimer}>
 						<span>일일 리셋</span>
@@ -892,7 +884,7 @@ const TodoPage:React.FC = () => {
 											}))}
 										>
 											<option value="">선택안함</option>
-											{servers.map(server => (
+											{TODO_SERVERS.map(server => (
 												<option key={server.id} value={server.id}>{server.name}</option>
 											))}
 										</select>
@@ -1035,7 +1027,7 @@ const TodoPage:React.FC = () => {
 											...selectedTodo.todoData,
 											daily
 										}, changedField, {
-											saveDebounceMs : HOMEWORK_SAVE_DEBOUNCE_MS,
+											saveDebounceMs : TODO_HOMEWORK_SAVE_DEBOUNCE_MS,
 											saveStrategy : "leadingTrailingThrottle"
 										})}
 										onSettingsChange={(settings) => handleTodoChange(selectedTodo.characterId, {
@@ -1046,7 +1038,7 @@ const TodoPage:React.FC = () => {
 											...selectedTodo.todoData,
 											dailyMemos : memos
 										}, undefined, {
-											saveDebounceMs : HOMEWORK_SAVE_DEBOUNCE_MS,
+											saveDebounceMs : TODO_HOMEWORK_SAVE_DEBOUNCE_MS,
 											saveStrategy : "leadingTrailingThrottle"
 										})}
 									/>
@@ -1065,7 +1057,7 @@ const TodoPage:React.FC = () => {
 											...selectedTodo.todoData,
 											weekly
 										}, undefined, {
-											saveDebounceMs : HOMEWORK_SAVE_DEBOUNCE_MS,
+											saveDebounceMs : TODO_HOMEWORK_SAVE_DEBOUNCE_MS,
 											saveStrategy : "leadingTrailingThrottle"
 										})}
 										onSettingsChange={(settings) => handleTodoChange(selectedTodo.characterId, {
@@ -1076,7 +1068,7 @@ const TodoPage:React.FC = () => {
 											...selectedTodo.todoData,
 											weeklyMemos : memos
 										}, undefined, {
-											saveDebounceMs : HOMEWORK_SAVE_DEBOUNCE_MS,
+											saveDebounceMs : TODO_HOMEWORK_SAVE_DEBOUNCE_MS,
 											saveStrategy : "leadingTrailingThrottle"
 										})}
 									/>

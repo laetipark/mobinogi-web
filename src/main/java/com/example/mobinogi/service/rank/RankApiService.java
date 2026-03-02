@@ -19,20 +19,42 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * External rank API client service.
+ */
 @Slf4j
 @Service
 public class RankApiService{
 
+	/** Base URL for rank API. */
 	private final String rankApiBase;
+
+	/** HTTP client for rank API requests. */
 	private final RestTemplate restTemplate;
+
+	/** Cooldown period after transport failures. */
 	private final long failureCooldownMs;
+
+	/** Epoch milliseconds until calls are blocked. */
 	private final AtomicLong cooldownUntilEpochMs = new AtomicLong(0);
+
+	/** Guards against concurrent outbound requests. */
 	private final AtomicBoolean requestInFlight = new AtomicBoolean(false);
+
+	/** JSON parser for API response bodies. */
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
+	/**
+	 * Creates a rank API service.
+	 *
+	 * @param rankApiBase rank API base URL
+	 * @param connectTimeoutMs connect timeout in milliseconds
+	 * @param readTimeoutMs read timeout in milliseconds
+	 * @param failureCooldownMs cooldown duration after failures
+	 */
 	public RankApiService(
 		@Value("${rank.api.base:${RANK_API_BASE:}}") String rankApiBase,
 		@Value("${rank.api.connect-timeout-ms:${RANK_API_CONNECT_TIMEOUT_MS:3000}}") int connectTimeoutMs,
@@ -41,52 +63,112 @@ public class RankApiService{
 	){
 		this.rankApiBase = normalizeBaseUrl(rankApiBase);
 		this.failureCooldownMs = Math.max(0, failureCooldownMs);
+
 		SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
 		factory.setConnectTimeout(Math.max(100, connectTimeoutMs));
 		factory.setReadTimeout(Math.max(100, readTimeoutMs));
 		this.restTemplate = new RestTemplate(factory);
 	}
-	
+
+	/**
+	 * Single-character rank stats payload.
+	 */
 	@Getter
 	@Builder
 	public static class RankStats{
+
+		/** Power stat value. */
 		private Integer userPower;
+
+		/** Vitality stat value. */
 		private Integer userVitality;
+
+		/** Attractiveness stat value. */
 		private Integer userAttractiveness;
 	}
 
+	/**
+	 * Batch request target row.
+	 */
 	@Getter
 	@Builder
 	public static class RankBatchTarget{
+
+		/** Character name. */
 		private String characterName;
+
+		/** Server ID. */
 		private Integer serverId;
 	}
 
+	/**
+	 * Batch request result summary.
+	 */
 	@Getter
 	@Builder
 	public static class RankBatchStats{
+
+		/** Requested member count. */
 		private Integer requestedCount;
+
+		/** Accepted count by queue API. */
 		private Integer acceptedCount;
+
+		/** Successful updates count. */
 		private Integer successCount;
+
+		/** Failed updates count. */
 		private Integer failedCount;
+
+		/** Skipped updates count. */
 		private Integer skippedCount;
+
+		/** Whether request was accepted asynchronously. */
 		private Boolean accepted;
 	}
 
+	/**
+	 * Batch queue status payload.
+	 */
 	@Getter
 	@Builder
 	public static class RankBatchQueueStatus{
+
+		/** True when processing queue jobs. */
 		private Boolean processing;
+
+		/** Current queue size. */
 		private Integer queueSize;
+
+		/** True when refresh mode is running. */
 		private Boolean refreshing;
+
+		/** Refresh state text. */
 		private String refreshStatus;
+
+		/** Requested member count. */
 		private Integer requestedCount;
+
+		/** Successful updates count. */
 		private Integer successCount;
+
+		/** Failed updates count. */
 		private Integer failedCount;
+
+		/** Skipped updates count. */
 		private Integer skippedCount;
+
+		/** Last update time text. */
 		private String updatedAt;
 	}
-	
+
+	/**
+	 * Fetches rank stats for one character.
+	 *
+	 * @param characterName character name
+	 * @param serverId server ID
+	 * @return stats or null when unavailable
+	 */
 	public RankStats fetchRankStats(String characterName, Integer serverId){
 		if(rankApiBase.isBlank()){
 			log.warn("Skipping rank fetch because rank.api.base is blank.");
@@ -95,6 +177,7 @@ public class RankApiService{
 		if(characterName == null || characterName.isBlank() || serverId == null){
 			return null;
 		}
+
 		long now = System.currentTimeMillis();
 		long cooldownUntil = cooldownUntilEpochMs.get();
 		if(now < cooldownUntil){
@@ -107,34 +190,35 @@ public class RankApiService{
 		}
 
 		try{
+			// Double-check cooldown after in-flight lock acquisition.
 			long nowInFlight = System.currentTimeMillis();
 			long cooldownUntilInFlight = cooldownUntilEpochMs.get();
 			if(nowInFlight < cooldownUntilInFlight){
 				log.info("Skipping rank API call while cooldown is active. remainingMs={}", cooldownUntilInFlight - nowInFlight);
 				return null;
 			}
+
 			String encodedCharacterName = UriUtils.encodeQueryParam(characterName, StandardCharsets.UTF_8);
 			String url = rankApiBase + "/rank/search"
 				+ "?characterName=" + encodedCharacterName
 				+ "&serverId=" + serverId;
-			
+
 			log.info("Fetching rank from external API: {}", url);
 			String response = restTemplate.getForObject(url, String.class);
 			cooldownUntilEpochMs.set(0);
-			
 			if(response == null || response.isEmpty()){
 				return null;
 			}
-			
+
 			JsonNode root = objectMapper.readTree(response);
 
-			// result 객체에서 먼저 찾기
+			// 1) Try object payload in `result`.
 			JsonNode data = null;
 			if(root.has("result") && !root.get("result").isNull() && root.get("result").isObject()){
 				data = root.get("result");
 			}
 
-			// result가 null이면 results 배열에서 characterName 일치하는 항목 찾기
+			// 2) Fallback to entry lookup in `results` array.
 			if(data == null && root.has("results") && root.get("results").isArray()){
 				for(JsonNode item : root.get("results")){
 					if(item.has("characterName") && characterName.equals(item.get("characterName").asText())){
@@ -148,15 +232,14 @@ public class RankApiService{
 				log.info("Character not found in search results: {}", characterName);
 				return null;
 			}
-			
+
 			Integer power = extractInt(data, "type_1", "userPower", "user_power", "power");
 			Integer vitality = extractInt(data, "type_3", "userVitality", "user_vitality", "vitality");
 			Integer attractiveness = extractInt(data, "type_2", "userAttractiveness", "user_attractiveness", "attractiveness");
-			
 			if(power == null && vitality == null && attractiveness == null){
 				return null;
 			}
-			
+
 			return RankStats.builder()
 				.userPower(power)
 				.userVitality(vitality)
@@ -174,6 +257,13 @@ public class RankApiService{
 		}
 	}
 
+	/**
+	 * Requests batch rank updates.
+	 *
+	 * @param guildId optional guild ID
+	 * @param targets batch targets
+	 * @return batch request result
+	 */
 	public RankBatchStats fetchRankStatsBatch(Long guildId, List<RankBatchTarget> targets){
 		if(targets == null || targets.isEmpty()){
 			return RankBatchStats.builder()
@@ -246,6 +336,7 @@ public class RankApiService{
 					return member;
 				})
 				.toList();
+
 			Map<String, Object> requestBody = new LinkedHashMap<>();
 			if(guildId != null){
 				requestBody.put("guildId", guildId);
@@ -330,19 +421,28 @@ public class RankApiService{
 		}
 	}
 
+	/**
+	 * Fetches rank batch queue status from the API.
+	 *
+	 * @param guildId optional guild ID
+	 * @return queue status or null when unavailable
+	 */
 	public RankBatchQueueStatus fetchRankBatchQueueStatus(Long guildId){
 		if(rankApiBase.isBlank()){
 			return null;
 		}
+
 		try{
 			String url = rankApiBase + "/rank/search/batch/status";
 			if(guildId != null){
 				url += "?guildId=" + guildId;
 			}
+
 			String response = restTemplate.getForObject(url, String.class);
 			if(response == null || response.isBlank()){
 				return null;
 			}
+
 			JsonNode root = objectMapper.readTree(response);
 			boolean processing = extractBoolean(root, "processing", false);
 			int queueSize = extractCount(root, "queueSize", 0);
@@ -353,6 +453,7 @@ public class RankApiService{
 			int failedCount = extractCount(root, "failedCount", 0);
 			int skippedCount = extractCount(root, "skippedCount", 0);
 			String updatedAt = extractText(root, "updatedAt", null);
+
 			return RankBatchQueueStatus.builder()
 				.processing(processing)
 				.queueSize(queueSize)
@@ -370,6 +471,12 @@ public class RankApiService{
 		}
 	}
 
+	/**
+	 * Normalizes base URL by trimming spaces and trailing slash.
+	 *
+	 * @param base raw base URL
+	 * @return normalized base URL
+	 */
 	private static String normalizeBaseUrl(String base){
 		if(base == null){
 			return "";
@@ -381,17 +488,29 @@ public class RankApiService{
 		return trimmed;
 	}
 
+	/**
+	 * Activates failure cooldown window.
+	 *
+	 * @param now current epoch milliseconds
+	 */
 	private void activateCooldown(long now){
 		if(failureCooldownMs <= 0){
 			return;
 		}
 		long nextCooldownUntil = now + failureCooldownMs;
-		long prev = cooldownUntilEpochMs.getAndUpdate(current -> Math.max(current, nextCooldownUntil));
-		if(now >= prev){
+		long previous = cooldownUntilEpochMs.getAndUpdate(current -> Math.max(current, nextCooldownUntil));
+		if(now >= previous){
 			log.warn("Rank API connection issue detected. Enabling cooldown for {} ms.", failureCooldownMs);
 		}
 	}
-	
+
+	/**
+	 * Extracts first integer value from candidate fields.
+	 *
+	 * @param node source JSON node
+	 * @param fieldNames candidate field names
+	 * @return first found integer or null
+	 */
 	private Integer extractInt(JsonNode node, String... fieldNames){
 		for(String name : fieldNames){
 			if(node.has(name) && !node.get(name).isNull()){
@@ -401,6 +520,14 @@ public class RankApiService{
 		return null;
 	}
 
+	/**
+	 * Extracts integer count field with fallback.
+	 *
+	 * @param root JSON node
+	 * @param fieldName field name
+	 * @param fallback fallback value
+	 * @return extracted count
+	 */
 	private int extractCount(JsonNode root, String fieldName, int fallback){
 		if(root != null && root.has(fieldName) && !root.get(fieldName).isNull()){
 			return root.get(fieldName).asInt(fallback);
@@ -408,6 +535,14 @@ public class RankApiService{
 		return fallback;
 	}
 
+	/**
+	 * Extracts boolean field with fallback.
+	 *
+	 * @param root JSON node
+	 * @param fieldName field name
+	 * @param fallback fallback value
+	 * @return extracted boolean
+	 */
 	private boolean extractBoolean(JsonNode root, String fieldName, boolean fallback){
 		if(root != null && root.has(fieldName) && !root.get(fieldName).isNull()){
 			return root.get(fieldName).asBoolean(fallback);
@@ -415,6 +550,14 @@ public class RankApiService{
 		return fallback;
 	}
 
+	/**
+	 * Extracts text field with fallback.
+	 *
+	 * @param root JSON node
+	 * @param fieldName field name
+	 * @param fallback fallback value
+	 * @return extracted text
+	 */
 	private String extractText(JsonNode root, String fieldName, String fallback){
 		if(root != null && root.has(fieldName) && !root.get(fieldName).isNull()){
 			String value = root.get(fieldName).asText();

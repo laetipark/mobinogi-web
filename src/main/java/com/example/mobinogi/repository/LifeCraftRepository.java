@@ -1,6 +1,6 @@
 package com.example.mobinogi.repository;
 
-import com.example.mobinogi.entity.LifeCraft;
+import com.example.mobinogi.entity.life.LifeCraft;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

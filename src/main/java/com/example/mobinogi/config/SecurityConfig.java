@@ -18,9 +18,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class SecurityConfig{
 
 	@Autowired
+	/**
+	 * Field corsConfigurationSource.
+	 */
 	private CorsConfigurationSource corsConfigurationSource;
 
 	@Autowired
+	/**
+	 * Field jwtAuthenticationFilter.
+	 */
 	private JwtAuthenticationFilter jwtAuthenticationFilter;
 
 	@Bean
@@ -35,7 +41,19 @@ public class SecurityConfig{
 				// 에러 페이지 허용
 				.requestMatchers("/error", "/error/**").permitAll()
 				// 게임 관련 API는 모든 접근 허용 (인증 불필요)
-				.requestMatchers("/api/items/**", "/api/barter/**", "/api/craft/**", "/api/guild/**", "/api/monsters/**", "/api/user/**", "/api/board/**", "/api/photo-board/**", "/api/events/**", "/api/notices/**").permitAll()
+				.requestMatchers(
+					"/api/items/**",
+					"/api/barter/**",
+					"/api/craft/**",
+					"/api/guild/management/**",
+					"/api/guild/members/**",
+					"/api/monsters/**",
+					"/api/user/**",
+					"/api/board/**",
+					"/api/photo-board/**",
+					"/api/events/**",
+					"/api/notices/**"
+				).permitAll()
 				// 인증 관련 API는 모든 접근 허용
 				.requestMatchers("/api/auth/**").permitAll()
 				// /rank/** 경로는 로컬에서만 접근 허용

@@ -51,14 +51,38 @@ const EVENT_FEED_TABS:Array<{key:EventFeedTab; label:string}> = [
 	{key : "all", label : "전체"}
 ];
 
+/**
+ * Constant SUMMONING_BARRIER_MAX.
+ */
 const SUMMONING_BARRIER_MAX = 7;
+/**
+ * Constant BLACK_HOLE_TOTAL.
+ */
 const BLACK_HOLE_TOTAL = 14;
+/**
+ * Constant ABYSS_REWARD_DEFAULT_MAX.
+ */
 const ABYSS_REWARD_DEFAULT_MAX = 4;
+/**
+ * Constant VANGUARD_REWARD_MAX.
+ */
 const VANGUARD_REWARD_MAX = 3;
+/**
+ * Constant KST_OFFSET_MINUTES.
+ */
 const KST_OFFSET_MINUTES = 9 * 60;
+/**
+ * Utility function ABYSS_HOLE_CYCLE_MS.
+ */
 const ABYSS_HOLE_CYCLE_MS = ((36 * 60) + 15) * 60 * 1000;
+/**
+ * Constant ABYSS_HOLE_ANCHOR_KST_ISO.
+ */
 const ABYSS_HOLE_ANCHOR_KST_ISO = "2026-02-23T15:39:52+09:00";
 
+/**
+ * Utility function createFallbackWeeklyTasks.
+ */
 const createFallbackWeeklyTasks = () => ({
 	summoningBarrier : 0,
 	blackHole : 0,
@@ -71,6 +95,9 @@ const createFallbackWeeklyTasks = () => ({
 	vanguard : {reward : 0, emergency : 0, quest : false}
 });
 
+/**
+ * Utility function toDateTime.
+ */
 const toDateTime = (value:string | null | undefined):number => {
 	if(!value){
 		return 0;
@@ -79,6 +106,9 @@ const toDateTime = (value:string | null | undefined):number => {
 	return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime();
 };
 
+/**
+ * Utility function formatDate.
+ */
 const formatDate = (value:string | null | undefined):string => {
 	if(!value){
 		return "날짜 미정";
@@ -94,6 +124,9 @@ const formatDate = (value:string | null | undefined):string => {
 	return `${parsed.getFullYear()}.${String(parsed.getMonth() + 1).padStart(2, "0")}.${String(parsed.getDate()).padStart(2, "0")}`;
 };
 
+/**
+ * Utility function getNoticeTypeLabel.
+ */
 const getNoticeTypeLabel = (noticeType:string) => {
 	switch(noticeType){
 		case "maintenanceInProgress":
@@ -109,6 +142,9 @@ const getNoticeTypeLabel = (noticeType:string) => {
 	}
 };
 
+/**
+ * Utility function matchesNoticeTab.
+ */
 const matchesNoticeTab = (noticeType:string, tab:NoticeFeedTab):boolean => {
 	if(tab === "all"){
 		return true;
@@ -119,6 +155,9 @@ const matchesNoticeTab = (noticeType:string, tab:NoticeFeedTab):boolean => {
 	return noticeType === tab;
 };
 
+/**
+ * Utility function getEventDeadlineLabel.
+ */
 const getEventDeadlineLabel = (event:GameEvent):string => {
 	if(event.daysLeft <= 0){
 		return "오늘 마감";
@@ -126,11 +165,17 @@ const getEventDeadlineLabel = (event:GameEvent):string => {
 	return `마감 D-${event.daysLeft}`;
 };
 
+/**
+ * Utility function getKstDate.
+ */
 const getKstDate = (base:Date = new Date()):Date => {
 	const utc = base.getTime() + base.getTimezoneOffset() * 60000;
 	return new Date(utc + KST_OFFSET_MINUTES * 60000);
 };
 
+/**
+ * Utility function getNextKstMinuteMarkInfo.
+ */
 const getNextKstMinuteMarkInfo = (minuteMark:number, base:Date = new Date()) => {
 	const kstNow = getKstDate(base);
 	const next = new Date(kstNow);
@@ -145,6 +190,9 @@ const getNextKstMinuteMarkInfo = (minuteMark:number, base:Date = new Date()) => 
 	};
 };
 
+/**
+ * Utility function getNextRecurringScheduleInfo.
+ */
 const getNextRecurringScheduleInfo = (anchorIso:string, cycleMs:number, base:Date = new Date()) => {
 	const anchor = new Date(anchorIso);
 	const now = base.getTime();
@@ -160,6 +208,9 @@ const getNextRecurringScheduleInfo = (anchorIso:string, cycleMs:number, base:Dat
 	}
 
 	const diff = now - anchorMs;
+	/**
+	 * Utility function normalizedRemainder.
+	 */
 	const normalizedRemainder = ((diff % cycleMs) + cycleMs) % cycleMs;
 	const offset = normalizedRemainder === 0 ? 0 : (cycleMs - normalizedRemainder);
 	const nextUtcDate = new Date(now + offset);
@@ -172,6 +223,9 @@ const getNextRecurringScheduleInfo = (anchorIso:string, cycleMs:number, base:Dat
 	};
 };
 
+/**
+ * Utility function formatRemainingTime.
+ */
 const formatRemainingTime = (remainingMs:number):string => {
 	const totalSeconds = Math.max(0, Math.floor(remainingMs / 1000));
 	const hours = Math.floor(totalSeconds / 3600);
@@ -183,12 +237,21 @@ const formatRemainingTime = (remainingMs:number):string => {
 	return `${String(minutes).padStart(2, "0")}분 ${String(seconds).padStart(2, "0")}초`;
 };
 
+/**
+ * Utility function formatKstClock.
+ */
 const formatKstClock = (hour:number, minute:number):string =>
 	`${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 
+/**
+ * Utility function formatKstMonthDayClock.
+ */
 const formatKstMonthDayClock = (kstDate:Date):string =>
 	`${String(kstDate.getMonth() + 1).padStart(2, "0")}.${String(kstDate.getDate()).padStart(2, "0")} ${formatKstClock(kstDate.getHours(), kstDate.getMinutes())}`;
 
+/**
+ * Utility function getNoticeLink.
+ */
 const getNoticeLink = (noticeType:string, noticeId:string) => {
 	switch(noticeType){
 		case "updateNote":
@@ -200,19 +263,25 @@ const getNoticeLink = (noticeType:string, noticeId:string) => {
 	}
 };
 
+/**
+ * Utility function getBoardFeedCategoryLabel.
+ */
 const getBoardFeedCategoryLabel = (post:BoardPost):string => {
 	if(post.categoryName?.trim()){
 		return post.categoryName.trim();
 	}
-	if(post.sourceType === "DISCORD"){
-		return "디스코드";
-	}
-	return "일반";
+	return "General";
 };
 
+/**
+ * Utility function getGalleryAuthor.
+ */
 const getGalleryAuthor = (post:PhotoBoardPost):string =>
-	post.authorNickname?.trim() || post.externalAuthor?.trim() || "익명";
+	post.authorNickname?.trim() || "Anonymous";
 
+/**
+ * Utility function getGalleryTitle.
+ */
 const getGalleryTitle = (post:PhotoBoardPost):string => {
 	const title = post.title?.trim();
 	if(!title || title.toLowerCase() === "image"){
@@ -221,6 +290,22 @@ const getGalleryTitle = (post:PhotoBoardPost):string => {
 	return title;
 };
 
+/**
+ * Utility function getGalleryImageUrl.
+ */
+const getGalleryImageUrl = (post:PhotoBoardPost):string => {
+	/**
+	 * Utility function normalized.
+	 */
+	const normalized = (post.imageUrls ?? [])
+		.map((url) => (url ?? "").trim())
+		.filter((url) => url.length > 0);
+	return normalized[0] || "";
+};
+
+/**
+ * Utility function formatProgress.
+ */
 const formatProgress = (done:number, total:number):string => {
 	if(total === 0){
 		return "-";
@@ -228,6 +313,9 @@ const formatProgress = (done:number, total:number):string => {
 	return `${done}/${total}`;
 };
 
+/**
+ * Utility function toPercent.
+ */
 const toPercent = (done:number, total:number):number => {
 	if(total <= 0){
 		return 0;
@@ -235,6 +323,9 @@ const toPercent = (done:number, total:number):number => {
 	return Math.min(100, Math.round((done / total) * 100));
 };
 
+/**
+ * Utility function getProgressTone.
+ */
 const getProgressTone = (progress:HomeworkProgress):"complete" | "active" | "idle" => {
 	if(progress.total === 0){
 		return "idle";
@@ -248,6 +339,9 @@ const getProgressTone = (progress:HomeworkProgress):"complete" | "active" | "idl
 	return "idle";
 };
 
+/**
+ * Utility function getProgressLabel.
+ */
 const getProgressLabel = (progress:HomeworkProgress):string => {
 	if(progress.total === 0){
 		return "미설정";
@@ -261,6 +355,9 @@ const getProgressLabel = (progress:HomeworkProgress):string => {
 	return "대기";
 };
 
+/**
+ * Utility function normalizeAbyssCompletedSlots.
+ */
 const normalizeAbyssCompletedSlots = (completed:number[] = [], tracked:number[] = []):number[] => {
 	if(tracked.length === 0 || completed.length === 0){
 		return [];
@@ -285,16 +382,31 @@ const normalizeAbyssCompletedSlots = (completed:number[] = [], tracked:number[] 
 	return slots.sort((a, b) => a - b);
 };
 
+/**
+ * Constant DAILY_TASK_KEYS.
+ */
 const DAILY_TASK_KEYS = ["dayDungeon", "cashShop", "barter"] as const;
+/**
+ * Constant WEEKLY_TASK_KEYS.
+ */
 const WEEKLY_TASK_KEYS = ["summoningBarrier", "blackHole", "fieldBoss", "abyssReward", "raid", "vanguard", "barter"] as const;
 
+/**
+ * Utility function getHiddenTaskSet.
+ */
 const getHiddenTaskSet = (todo:UserTodo):Set<string> => new Set(todo.todoData.settings?.hiddenTasks ?? []);
 
+/**
+ * Utility function getCashShopCompletedCount.
+ */
 const getCashShopCompletedCount = (todo:UserTodo):number => {
 	const daily = todo.todoData.daily ?? {};
 	return Number(Boolean(daily.freeShopPurchase)) + Number(Boolean(daily.gemTreasureChest));
 };
 
+/**
+ * Utility function getDailyChecklistProgress.
+ */
 const getDailyChecklistProgress = (todo:UserTodo):HomeworkProgress => {
 	const daily = todo.todoData.daily ?? {};
 	const dailyMemos = todo.todoData.dailyMemos ?? [];
@@ -333,8 +445,14 @@ const getDailyChecklistProgress = (todo:UserTodo):HomeworkProgress => {
 	return {done, total};
 };
 
+/**
+ * Utility function getWeeklyTasks.
+ */
 const getWeeklyTasks = (todo:UserTodo) => todo.todoData.weekly ?? createFallbackWeeklyTasks();
 
+/**
+ * Utility function getWeeklyChecklistProgress.
+ */
 const getWeeklyChecklistProgress = (todo:UserTodo):HomeworkProgress => {
 	const weekly = getWeeklyTasks(todo);
 	const weeklyMemos = todo.todoData.weeklyMemos ?? [];
@@ -418,6 +536,9 @@ const getWeeklyChecklistProgress = (todo:UserTodo):HomeworkProgress => {
 	return {done, total};
 };
 
+/**
+ * Utility function buildCharacterHomework.
+ */
 const buildCharacterHomework = (todo:UserTodo):CharacterHomeworkSummary => {
 	const daily = todo.todoData.daily ?? {};
 	const weekly = getWeeklyTasks(todo);
@@ -510,6 +631,9 @@ const HomePage:React.FC = () => {
 	}, []);
 
 	useEffect(() => {
+		/**
+		 * Utility function fetchHomeFeeds.
+		 */
 		const fetchHomeFeeds = async() => {
 			setFeedLoading(true);
 			setFeedError(null);
@@ -577,6 +701,9 @@ const HomePage:React.FC = () => {
 
 		let active = true;
 
+		/**
+		 * Utility function fetchHomeworkSummary.
+		 */
 		const fetchHomeworkSummary = async() => {
 			setHomeworkLoading(true);
 			setHomeworkError(null);
@@ -664,6 +791,9 @@ const HomePage:React.FC = () => {
 		return characterHomeworkItems.find((item) => item.characterId === selectedCharacterId) ?? null;
 	}, [characterHomeworkItems, selectedCharacterId]);
 
+	/**
+	 * Utility function handleMoveToTodo.
+	 */
 	const handleMoveToTodo = () => {
 		if(!user){
 			navigate("/login");
@@ -676,19 +806,17 @@ const HomePage:React.FC = () => {
 		navigate("/todo");
 	};
 
+	/**
+	 * Utility function handleOpenBoardPost.
+	 */
 	const handleOpenBoardPost = (post:BoardPost) => {
-		if(post.sourceType !== "USER"){
-			navigate("/board/external", {state : {post}});
-			return;
-		}
 		navigate(createBoardPostPath(post.title), {state : {postId : post.postId}});
 	};
 
-	const handleOpenGalleryPost = (post:PhotoBoardPost) => {
-		if(post.sourceType === "DISCORD" && post.externalUrl){
-			window.open(post.externalUrl, "_blank", "noopener,noreferrer");
-			return;
-		}
+	/**
+	 * Utility function handleOpenGalleryPost.
+	 */
+	const handleOpenGalleryPost = (_post:PhotoBoardPost) => {
 		navigate("/gallery");
 	};
 
@@ -1011,6 +1139,7 @@ const HomePage:React.FC = () => {
 								<div className={styles.galleryPreviewGrid}>
 									{latestGalleryPosts.map((post, index) => {
 										const galleryTitle = getGalleryTitle(post);
+										const galleryImageUrl = getGalleryImageUrl(post);
 										return (
 											<button
 												key={`${post.photoPostId ?? `external-${index}`}-${post.createdAt}`}
@@ -1018,7 +1147,7 @@ const HomePage:React.FC = () => {
 												className={styles.galleryPreviewItem}
 												onClick={() => handleOpenGalleryPost(post)}
 											>
-												<img src={post.imageUrl} alt={galleryTitle}/>
+												<img src={galleryImageUrl} alt={galleryTitle}/>
 												<div className={styles.galleryPreviewCaption}>
 													<strong>{galleryTitle}</strong>
 													<span>{getGalleryAuthor(post)}</span>

@@ -6,19 +6,27 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * File download/serve controller.
+ */
 @RestController
 @RequestMapping("/api/files")
 @RequiredArgsConstructor
 @Slf4j
 public class FileServeController{
 
+	/** File storage service. */
 	private final FileStorageService fileStorageService;
 
+	/** MIME-type mapping by file extension. */
 	private static final Map<String, MediaType> MEDIA_TYPES = Map.of(
 		"jpg", MediaType.IMAGE_JPEG,
 		"jpeg", MediaType.IMAGE_JPEG,
@@ -27,6 +35,13 @@ public class FileServeController{
 		"webp", MediaType.parseMediaType("image/webp")
 	);
 
+	/**
+	 * Serves file bytes by `{subDir}/{filename}` path.
+	 *
+	 * @param subDir file sub-directory
+	 * @param filename file name
+	 * @return file byte response
+	 */
 	@GetMapping("/{subDir}/{filename}")
 	public ResponseEntity<byte[]> serveFile(
 		@PathVariable String subDir,
@@ -43,7 +58,7 @@ public class FileServeController{
 				.cacheControl(CacheControl.maxAge(1, TimeUnit.DAYS))
 				.body(data);
 		}catch(Exception e){
-			log.error("파일 조회 실패: {}/{}", subDir, filename, e);
+			log.error("File read failed: {}/{}", subDir, filename, e);
 			return ResponseEntity.notFound().build();
 		}
 	}

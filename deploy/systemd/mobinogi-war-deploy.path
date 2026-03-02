@@ -1,0 +1,12 @@
+[Unit]
+Description=Watch WAR changes and trigger deploy
+
+[Path]
+# Trigger when target directory content changes
+PathChanged=/home/laeti/mobinogi/target
+# Also trigger immediately if WAR already exists at startup
+PathExistsGlob=/home/laeti/mobinogi/target/*.war
+Unit=mobinogi-war-deploy.service
+
+[Install]
+WantedBy=multi-user.target

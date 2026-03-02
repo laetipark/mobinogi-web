@@ -1,8 +1,11 @@
 import {useState, useEffect} from "react";
 import axios from "axios";
 import {KakaoUser, KakaoLoginRequest, AuthResponse} from "../types/kakao";
-import type {User, PendingKakaoUser} from "../types";
+import type {User, PendingKakaoUser} from "@/types";
 
+/**
+ * Utility function useKakaoLogin.
+ */
 export const useKakaoLogin = () => {
 	const [user, setUser] = useState<User | null>(null);
 	const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -11,6 +14,9 @@ export const useKakaoLogin = () => {
 	const [isNewUser, setIsNewUser] = useState<boolean>(false);
 	const [pendingKakaoUser, setPendingKakaoUser] = useState<PendingKakaoUser | null>(null);
 
+	/**
+	 * Utility function getKakaoLoginErrorMessage.
+	 */
 	const getKakaoLoginErrorMessage = (err:any):string => {
 		const raw = typeof err === "string" ? err : JSON.stringify(err ?? {});
 		const errorCode = err?.error || err?.code || "";
@@ -33,6 +39,9 @@ export const useKakaoLogin = () => {
 	
 	// Initialize Kakao SDK
 	useEffect(() => {
+		/**
+		 * Utility function initKakao.
+		 */
 		const initKakao = () => {
 			if(window.Kakao && !window.Kakao.isInitialized()){
 				const kakaoKey = import.meta.env.VITE_KAKAO_JS_KEY;
@@ -67,6 +76,9 @@ export const useKakaoLogin = () => {
 	}, []);
 	
 	// Check login status
+	/**
+	 * Utility function async.
+	 */
 	const checkLoginStatus = async() => {
 		try{
 			const token = localStorage.getItem("accessToken");
@@ -89,6 +101,9 @@ export const useKakaoLogin = () => {
 	};
 	
 	// Kakao login
+	/**
+	 * Utility function kakaoLogin.
+	 */
 	const kakaoLogin = () => {
 		if(!window.Kakao){
 			setError("Kakao SDK not loaded.");
@@ -136,6 +151,9 @@ export const useKakaoLogin = () => {
 	};
 	
 	// 회원 존재 여부 확인 후 처리
+	/**
+	 * Utility function async.
+	 */
 	const checkAndProcessKakaoUser = async(kakaoUser:KakaoUser) => {
 		try{
 			// 서버에 회원 존재 여부 확인
@@ -163,6 +181,9 @@ export const useKakaoLogin = () => {
 	};
 	
 	// 닉네임 입력 후 회원가입 완료
+	/**
+	 * Utility function async.
+	 */
 	const completeKakaoRegistration = async(nickname:string) => {
 		if(!pendingKakaoUser){
 			throw new Error("대기 중인 카카오 사용자 정보가 없습니다.");
@@ -211,6 +232,9 @@ export const useKakaoLogin = () => {
 	};
 	
 	// Send user info to server (기존 회원용)
+	/**
+	 * Utility function async.
+	 */
 	const sendUserInfoToServer = async(kakaoUser:KakaoUser) => {
 		try{
 			const userInfo:KakaoLoginRequest = {
@@ -253,6 +277,9 @@ export const useKakaoLogin = () => {
 	};
 	
 	// Logout
+	/**
+	 * Utility function logout.
+	 */
 	const logout = () => {
 		if(window.Kakao && window.Kakao.Auth.getAccessToken()){
 			window.Kakao.Auth.logout(() => {
@@ -263,6 +290,9 @@ export const useKakaoLogin = () => {
 		}
 	};
 	
+	/**
+	 * Utility function handleLogoutComplete.
+	 */
 	const handleLogoutComplete = () => {
 		localStorage.removeItem("accessToken");
 		setUser(null);
@@ -273,10 +303,16 @@ export const useKakaoLogin = () => {
 		console.log("Logout completed");
 	};
 	
+	/**
+	 * Utility function clearNewUserFlag.
+	 */
 	const clearNewUserFlag = () => {
 		setIsNewUser(false);
 	};
 	
+	/**
+	 * Utility function clearPendingKakaoUser.
+	 */
 	const clearPendingKakaoUser = () => {
 		setPendingKakaoUser(null);
 	};

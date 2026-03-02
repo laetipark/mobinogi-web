@@ -10,6 +10,12 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BarterFilterNpcDto{
+	/**
+	 * Field npcId.
+	 */
 	private Long npcId;
+	/**
+	 * Field npcName.
+	 */
 	private String npcName;
 }

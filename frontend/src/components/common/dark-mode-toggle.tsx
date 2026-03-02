@@ -15,6 +15,9 @@ const DarkModeToggle:React.FC = () => {
 		document.documentElement.classList.toggle("dark-mode", initialDark);
 	}, []);
 
+	/**
+	 * Utility function toggleDarkMode.
+	 */
 	const toggleDarkMode = () => {
 		const newDarkMode = !isDark;
 		setIsDark(newDarkMode);

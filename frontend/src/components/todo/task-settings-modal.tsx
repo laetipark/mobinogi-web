@@ -68,6 +68,9 @@ const TaskSettingsModal:React.FC<TaskSettingsModalProps> = ({title, taskDefs, or
 		useSensor(TouchSensor, {activationConstraint : {delay : 150, tolerance : 5}})
 	);
 	
+	/**
+	 * Utility function handleDragEnd.
+	 */
 	const handleDragEnd = (event:DragEndEvent) => {
 		const {active, over} = event;
 		if(!over || active.id === over.id) return;
@@ -76,6 +79,9 @@ const TaskSettingsModal:React.FC<TaskSettingsModalProps> = ({title, taskDefs, or
 		setItems(arrayMove(items, oldIndex, newIndex));
 	};
 	
+	/**
+	 * Utility function toggleHidden.
+	 */
 	const toggleHidden = (key:string) => {
 		setHiddenSet(prev => {
 			const next = new Set(prev);

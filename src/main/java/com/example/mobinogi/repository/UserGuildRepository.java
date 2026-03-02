@@ -1,6 +1,6 @@
 package com.example.mobinogi.repository;
 
-import com.example.mobinogi.entity.UserGuildMember;
+import com.example.mobinogi.entity.guild.UserGuildMember;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -43,6 +43,14 @@ public interface UserGuildRepository extends JpaRepository<UserGuildMember, Long
     Optional<UserGuildMember> findByIdAndDeletedAtIsNull(Long id);
 
     List<UserGuildMember> findByGuild_GuildIdAndDeletedAtIsNullOrderByGuildRoleDescMemberNameAsc(Long guildId);
+    
+    List<UserGuildMember> findByGuild_GuildIdInAndGuildRoleAndMemberStatusAndDeletedAtIsNullOrderByGuild_GuildIdAscMemberNameAsc(
+        List<Long> guildIds,
+        Integer guildRole,
+        String memberStatus
+    );
+    
+    List<UserGuildMember> findByGuildNameIgnoreCaseAndDeletedAtIsNullOrderByGuildRoleDescMemberNameAsc(String guildName);
 
     List<UserGuildMember> findByGuild_GuildIdAndMemberStatusAndDeletedAtIsNullOrderByCreatedAtAsc(Long guildId, String memberStatus);
 
@@ -58,3 +66,4 @@ public interface UserGuildRepository extends JpaRepository<UserGuildMember, Long
 
     boolean existsByUser_UserIdAndMemberStatusAndDeletedAtIsNull(Long userId, String memberStatus);
 }
+

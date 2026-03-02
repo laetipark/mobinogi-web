@@ -6,14 +6,26 @@ import {todoService} from "@/services/todo-service.ts";
 import {ArrowRight, Search, RefreshCw, MapPin, User} from "lucide-react";
 import type {BarterSettingsModalProps} from "@/types/ui";
 
+/**
+ * Utility function barterBaseKey.
+ */
 const barterBaseKey = (itemName:string, exchangeItemName:string) =>
 	`${itemName}|${exchangeItemName}`;
 
+/**
+ * Utility function barterNpcKey.
+ */
 const barterNpcKey = (itemName:string, exchangeItemName:string, npcName:string) =>
 	`${itemName}|${exchangeItemName}|${npcName}`;
 
+/**
+ * Utility function isNpcShared.
+ */
 const isNpcShared = (barterNpc?:number) => Boolean(barterNpc);
 
+/**
+ * Utility function toSafeBarterCount.
+ */
 const toSafeBarterCount = (value:unknown):number => {
 	const parsed = Number(value);
 	if(!Number.isFinite(parsed) || parsed < 0){
@@ -22,9 +34,15 @@ const toSafeBarterCount = (value:unknown):number => {
 	return Math.trunc(parsed);
 };
 
+/**
+ * Utility function normalizeItemName.
+ */
 const normalizeItemName = (value:string | undefined):string =>
 	(value || "").replace(/\s+/g, "").replace(/＋/g, "+").trim().toLowerCase();
 
+/**
+ * Utility function isNormalizedItemNameMatch.
+ */
 const isNormalizedItemNameMatch = (candidate:string, target:string):boolean => {
 	if(!candidate || !target){
 		return false;
@@ -34,6 +52,9 @@ const isNormalizedItemNameMatch = (candidate:string, target:string):boolean => {
 		|| target.includes(candidate);
 };
 
+/**
+ * Utility function getBarterIdentityKey.
+ */
 const getBarterIdentityKey = (barter:LifeBarter):string => {
 	if(Number.isFinite(barter.barterId)){
 		return `barter:${barter.barterId}`;
@@ -52,6 +73,9 @@ type BarterSearchSuggestion = {
 	meta:string;
 };
 
+/**
+ * Utility function isMatchingRegisteredBarter.
+ */
 const isMatchingRegisteredBarter = (barter:LifeBarter, currentBarter:UserTodoBarter):boolean => {
 	const itemName = barter.gameItem?.itemName || "";
 	const exchangeItemName = barter.exchangeItem?.itemName || "";
@@ -192,6 +216,9 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({
 		const pinned:LifeBarter[] = [];
 		const seen = new Set<string>();
 		const sourceBarters = hasKeyword ? searchResults : [...recommendations, ...searchResults];
+		/**
+		 * Utility function appendFavorite.
+		 */
 		const appendFavorite = (barter:LifeBarter) => {
 			if(!isFavoriteObtainedName(barter.gameItem?.itemName)){
 				return;
@@ -227,12 +254,24 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({
 
 		const deduped = new Map<string, BarterSearchSuggestion>();
 		for(const barter of searchResults){
+			/**
+			 * Utility function obtainedName.
+			 */
 			const obtainedName = (barter.gameItem?.itemName || "").trim();
 			if(!obtainedName){
 				continue;
 			}
+			/**
+			 * Utility function exchangeName.
+			 */
 			const exchangeName = (barter.exchangeItem?.itemName || "").trim();
+			/**
+			 * Utility function regionName.
+			 */
 			const regionName = (barter.gameRegion?.regionName || "").trim();
+			/**
+			 * Utility function npcName.
+			 */
 			const npcName = (barter.gameNpc?.npcName || "").trim();
 			const dedupeKey = `${obtainedName}|${exchangeName}|${npcName}`;
 			if(deduped.has(dedupeKey)){
@@ -261,6 +300,9 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({
 	}, [searchInput]);
 
 	useEffect(() => {
+		/**
+		 * Utility function handlePointerDown.
+		 */
 		const handlePointerDown = (event:PointerEvent) => {
 			const target = event.target as Node | null;
 			if(!target){
@@ -317,6 +359,9 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({
 
 	useEffect(() => {
 		let active = true;
+		/**
+		 * Utility function async.
+		 */
 		const loadRecommendations = async() => {
 			if(favoriteItemNames.length === 0){
 				setRecommendations([]);
@@ -395,23 +440,35 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({
 		return () => el.removeEventListener("scroll", handleScroll);
 	}, [handleScroll]);
 	
+	/**
+	 * Utility function handleSearch.
+	 */
 	const handleSearch = () => {
 		setKeyword(searchInput);
 		setShowSearchSuggestions(false);
 	};
 	
+	/**
+	 * Utility function handleReset.
+	 */
 	const handleReset = () => {
 		setSearchInput("");
 		setKeyword("");
 		setShowSearchSuggestions(false);
 	};
 	
+	/**
+	 * Utility function handleKeyPress.
+	 */
 	const handleKeyPress = (e:React.KeyboardEvent) => {
 		if(e.key === "Enter"){
 			handleSearch();
 		}
 	};
 
+	/**
+	 * Utility function applySearchSuggestion.
+	 */
 	const applySearchSuggestion = (nextKeyword:string) => {
 		const trimmed = nextKeyword.trim();
 		if(!trimmed){
@@ -422,6 +479,9 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({
 		setShowSearchSuggestions(false);
 	};
 	
+	/**
+	 * Utility function async.
+	 */
 	const handleAdd = async(barter:LifeBarter) => {
 		const iName = barter.gameItem?.itemName || "";
 		const eName = barter.exchangeItem?.itemName || "";
@@ -449,6 +509,9 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({
 		}
 	};
 	
+	/**
+	 * Utility function async.
+	 */
 	const handleRemove = async(barter:LifeBarter) => {
 		const existing = findRegisteredBarter(barter);
 		if(!existing) return;
@@ -460,6 +523,9 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({
 		}
 	};
 
+	/**
+	 * Utility function async.
+	 */
 	const handleRemoveAddedBarter = async(barterId:number) => {
 		try{
 			await todoService.removeBarterItem(characterId, barterId);
@@ -469,6 +535,9 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({
 		}
 	};
 
+	/**
+	 * Utility function renderAddedBarterCard.
+	 */
 	const renderAddedBarterCard = (barter:UserTodoBarter, keyPrefix:string) => (
 		<div key={`${keyPrefix}-${barter.id}`} className={styles.abyssPreviewCard}>
 			<div className={styles.abyssPreviewInfo}>
@@ -486,6 +555,9 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({
 		</div>
 	);
 
+	/**
+	 * Utility function renderRegisteredBarterCard.
+	 */
 	const renderRegisteredBarterCard = (barter:UserTodoBarter, keyPrefix:string) => {
 		const maxTrades = toSafeBarterCount(barter.barterQty);
 		const hasServerShare = Number(barter.barterServer) > 0;
@@ -534,6 +606,9 @@ const BarterSettingsModal:React.FC<BarterSettingsModalProps> = ({
 		);
 	};
 
+	/**
+	 * Utility function renderBarterCard.
+	 */
 	const renderBarterCard = (barter:LifeBarter, keyPrefix:string) => {
 		const iName = barter.gameItem?.itemName || "";
 		const eName = barter.exchangeItem?.itemName || "";

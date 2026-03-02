@@ -15,13 +15,21 @@ import java.io.IOException;
 import java.util.List;
 import java.util.regex.Pattern;
 
+/**
+ * Custom CORS filter applied before security filters.
+ */
 @Component
 @Order(1)
 @Slf4j
 public class CorsFilter implements Filter{
 
+	/** Allow localhost/127.0.0.1 origins with optional port. */
 	private static final Pattern LOCALHOST_PATTERN = Pattern.compile("^https?://(localhost|127\\.0\\.0\\.1)(:\\d+)?$");
+
+	/** Allow internal mobile tethering/dev subnet origins. */
 	private static final Pattern INTERNAL_PATTERN = Pattern.compile("^https?://172\\.30\\.1\\.\\d+(?::\\d+)?$");
+
+	/** Allow fixed production origins. */
 	private static final List<String> ALLOWED_FIXED_ORIGINS = List.of(
 		"http://laetipark.me",
 		"https://laetipark.me",
@@ -29,6 +37,12 @@ public class CorsFilter implements Filter{
 		"https://www.laetipark.me"
 	);
 
+	/**
+	 * Validates whether request origin is allowed.
+	 *
+	 * @param origin request origin header value
+	 * @return `true` when origin is whitelisted
+	 */
 	private boolean isAllowedOrigin(String origin){
 		if(origin == null || origin.isBlank()){
 			return false;
@@ -41,6 +55,13 @@ public class CorsFilter implements Filter{
 		return LOCALHOST_PATTERN.matcher(origin).matches() || INTERNAL_PATTERN.matcher(origin).matches();
 	}
 
+	/**
+	 * Applies CORS headers and handles preflight requests.
+	 *
+	 * @param request servlet request
+	 * @param response servlet response
+	 * @param chain filter chain
+	 */
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 		throws IOException, ServletException{

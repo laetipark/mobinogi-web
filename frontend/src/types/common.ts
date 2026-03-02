@@ -15,9 +15,10 @@ export interface PageResponse<T>{
 	numberOfElements:number;
 }
 
-export interface ApiResponse{
+export interface ApiResponse<T = unknown>{
 	success:boolean;
 	message?:string;
+	data?:T;
 }
 
 export interface ListSearchParams{

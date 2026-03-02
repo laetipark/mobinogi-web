@@ -8,9 +8,6 @@ export interface User{
 	kakaoId?:string;
 	profileImage?:string;
 	nickname?:string;
-	discordId?:string;
-	discordUsername?:string;
-	discordAvatar?:string;
 	isAdmin?:boolean;
 }
 

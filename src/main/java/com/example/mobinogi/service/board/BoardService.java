@@ -1,15 +1,17 @@
 package com.example.mobinogi.service.board;
 
-import com.example.mobinogi.dto.board.*;
-import com.example.mobinogi.entity.BoardPost;
-import com.example.mobinogi.entity.BoardPostHistory;
+import com.example.mobinogi.dto.board.BoardCategoryDto;
+import com.example.mobinogi.dto.board.BoardPostCreateRequest;
+import com.example.mobinogi.dto.board.BoardPostDto;
+import com.example.mobinogi.dto.board.BoardPostHistoryDto;
+import com.example.mobinogi.dto.board.BoardPostUpdateRequest;
+import com.example.mobinogi.entity.board.BoardPost;
+import com.example.mobinogi.entity.board.BoardPostHistory;
 import com.example.mobinogi.repository.BoardCategoryRepository;
 import com.example.mobinogi.repository.BoardCommentRepository;
 import com.example.mobinogi.repository.BoardPostHistoryRepository;
 import com.example.mobinogi.repository.BoardPostRepository;
-import com.example.mobinogi.service.discord.DiscordWebhookService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,18 +22,31 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Board post service.
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-@Slf4j
 public class BoardService{
 
+	/** Board post repository. */
 	private final BoardPostRepository postRepository;
-	private final BoardCategoryRepository categoryRepository;
-	private final BoardCommentRepository commentRepository;
-	private final BoardPostHistoryRepository postHistoryRepository;
-	private final DiscordWebhookService discordWebhookService;
 
+	/** Board category repository. */
+	private final BoardCategoryRepository categoryRepository;
+
+	/** Board comment repository. */
+	private final BoardCommentRepository commentRepository;
+
+	/** Board post history repository. */
+	private final BoardPostHistoryRepository postHistoryRepository;
+
+	/**
+	 * Returns all active categories ordered by display order.
+	 *
+	 * @return category DTO list
+	 */
 	public List<BoardCategoryDto> getAllCategories(){
 		return categoryRepository.findByDeletedAtIsNullOrderByCategoryOrderAsc()
 			.stream()
@@ -39,17 +54,20 @@ public class BoardService{
 			.collect(Collectors.toList());
 	}
 
-	public Page<BoardPostDto> getPosts(Long categoryId, String sourceType, int page, int size){
+	/**
+	 * Returns paged posts with optional category filter.
+	 *
+	 * @param categoryId optional category ID
+	 * @param page page index
+	 * @param size page size
+	 * @return post DTO page
+	 */
+	public Page<BoardPostDto> getPosts(Long categoryId, int page, int size){
 		Pageable pageable = PageRequest.of(page, size);
 		Page<BoardPost> posts;
 
-		if(categoryId != null && sourceType != null){
-			posts = postRepository.findByCategoryIdAndSourceTypeAndDeletedAtIsNullOrderByCreatedAtDesc(
-				categoryId, sourceType, pageable);
-		}else if(categoryId != null){
+		if(categoryId != null){
 			posts = postRepository.findByCategoryIdAndDeletedAtIsNullOrderByCreatedAtDesc(categoryId, pageable);
-		}else if(sourceType != null){
-			posts = postRepository.findBySourceTypeAndDeletedAtIsNullOrderByCreatedAtDesc(sourceType, pageable);
 		}else{
 			posts = postRepository.findByDeletedAtIsNullOrderByCreatedAtDesc(pageable);
 		}
@@ -60,6 +78,14 @@ public class BoardService{
 		});
 	}
 
+	/**
+	 * Searches posts by keyword.
+	 *
+	 * @param keyword search keyword
+	 * @param page page index
+	 * @param size page size
+	 * @return post DTO page
+	 */
 	public Page<BoardPostDto> searchPosts(String keyword, int page, int size){
 		Pageable pageable = PageRequest.of(page, size);
 		Page<BoardPost> posts = postRepository.searchPosts(keyword, pageable);
@@ -69,6 +95,12 @@ public class BoardService{
 		});
 	}
 
+	/**
+	 * Returns a post by ID and increments view count.
+	 *
+	 * @param postId post ID
+	 * @return post DTO
+	 */
 	@Transactional
 	public BoardPostDto getPost(Long postId){
 		BoardPost post = postRepository.findByPostIdAndDeletedAtIsNull(postId)
@@ -81,6 +113,12 @@ public class BoardService{
 		return BoardPostDto.fromEntity(post, commentCount);
 	}
 
+	/**
+	 * Returns latest post matching exact title and increments view count.
+	 *
+	 * @param title exact post title
+	 * @return post DTO
+	 */
 	@Transactional
 	public BoardPostDto getPostByTitle(String title){
 		if(title == null || title.trim().isEmpty()){
@@ -97,6 +135,12 @@ public class BoardService{
 		return BoardPostDto.fromEntity(post, commentCount);
 	}
 
+	/**
+	 * Returns a post by title slug and increments view count.
+	 *
+	 * @param slug title slug
+	 * @return post DTO
+	 */
 	@Transactional
 	public BoardPostDto getPostBySlug(String slug){
 		BoardPost post = findPostEntityBySlug(slug);
@@ -108,12 +152,23 @@ public class BoardService{
 		return BoardPostDto.fromEntity(post, commentCount);
 	}
 
+	/**
+	 * Returns a post by title slug without incrementing view count.
+	 *
+	 * @param slug title slug
+	 * @return post DTO
+	 */
 	public BoardPostDto previewPostBySlug(String slug){
 		BoardPost post = findPostEntityBySlug(slug);
 		long commentCount = commentRepository.countByPostIdAndDeletedAtIsNull(post.getPostId());
 		return BoardPostDto.fromEntity(post, commentCount);
 	}
 
+	/**
+	 * Returns latest active post without incrementing view count.
+	 *
+	 * @return post DTO
+	 */
 	public BoardPostDto previewLatestPost(){
 		BoardPost post = postRepository.findAllByDeletedAtIsNullOrderByCreatedAtDesc()
 			.stream()
@@ -123,6 +178,12 @@ public class BoardService{
 		return BoardPostDto.fromEntity(post, commentCount);
 	}
 
+	/**
+	 * Finds post entity by slug generated from title.
+	 *
+	 * @param slug title slug
+	 * @return board post entity
+	 */
 	private BoardPost findPostEntityBySlug(String slug){
 		if(slug == null || slug.trim().isEmpty()){
 			throw new RuntimeException("Post slug is required.");
@@ -135,6 +196,12 @@ public class BoardService{
 			.orElseThrow(() -> new RuntimeException("Post not found."));
 	}
 
+	/**
+	 * Converts raw text to URL-safe slug.
+	 *
+	 * @param value raw text
+	 * @return normalized slug text
+	 */
 	private String toSlug(String value){
 		if(value == null){
 			return "";
@@ -145,6 +212,13 @@ public class BoardService{
 			.replaceAll("^-|-$", "");
 	}
 
+	/**
+	 * Creates board post.
+	 *
+	 * @param userId author user ID
+	 * @param request create request payload
+	 * @return created post DTO
+	 */
 	@Transactional
 	public BoardPostDto createPost(Long userId, BoardPostCreateRequest request){
 		BoardPost post = BoardPost.builder()
@@ -152,24 +226,24 @@ public class BoardService{
 			.userId(userId)
 			.title(request.getTitle())
 			.content(request.getContent())
-			.sourceType("USER")
 			.viewCount(0)
 			.isWiki(request.getIsWiki())
 			.build();
 
 		post = postRepository.save(post);
 
-		// Send Discord webhook notification asynchronously.
-		try{
-			discordWebhookService.sendNewPostNotification(post);
-		}catch(Exception e){
-			log.error("Failed to send Discord notification: {}", e.getMessage());
-		}
-
 		long commentCount = commentRepository.countByPostIdAndDeletedAtIsNull(post.getPostId());
 		return BoardPostDto.fromEntity(post, commentCount);
 	}
 
+	/**
+	 * Updates board post and writes edit history.
+	 *
+	 * @param postId post ID
+	 * @param userId requesting user ID
+	 * @param request update request payload
+	 * @return updated post DTO
+	 */
 	@Transactional
 	public BoardPostDto updatePost(Long postId, Long userId, BoardPostUpdateRequest request){
 		BoardPost post = postRepository.findByPostIdAndDeletedAtIsNull(postId)
@@ -179,11 +253,7 @@ public class BoardService{
 			throw new RuntimeException("No permission to edit this post.");
 		}
 
-		if(!"USER".equals(post.getSourceType())){
-			throw new RuntimeException("External posts cannot be edited.");
-		}
-
-		// Save previous content to history before update.
+		// Save previous snapshot before mutating post content.
 		BoardPostHistory history = BoardPostHistory.builder()
 			.postId(post.getPostId())
 			.userId(userId)
@@ -205,6 +275,12 @@ public class BoardService{
 		return BoardPostDto.fromEntity(post, commentCount);
 	}
 
+	/**
+	 * Returns edit history list for a post.
+	 *
+	 * @param postId post ID
+	 * @return history DTO list
+	 */
 	public List<BoardPostHistoryDto> getPostHistory(Long postId){
 		return postHistoryRepository.findByPostIdOrderByCreatedAtDesc(postId)
 			.stream()
@@ -212,6 +288,12 @@ public class BoardService{
 			.collect(Collectors.toList());
 	}
 
+	/**
+	 * Soft-deletes a post.
+	 *
+	 * @param postId post ID
+	 * @param userId requesting user ID
+	 */
 	@Transactional
 	public void deletePost(Long postId, Long userId){
 		BoardPost post = postRepository.findByPostIdAndDeletedAtIsNull(postId)

@@ -128,5 +128,8 @@ class ApiService{
 }
 
 // API 서비스 인스턴스 생성 및 내보내기
+/**
+ * Constant apiService.
+ */
 export const apiService = new ApiService();
 export default apiService;

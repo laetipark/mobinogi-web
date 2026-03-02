@@ -1,3 +1,6 @@
+/**
+ * Utility function toBoardSlug.
+ */
 export const toBoardSlug = (value:string):string => {
 	return value
 		.trim()
@@ -6,6 +9,9 @@ export const toBoardSlug = (value:string):string => {
 		.replace(/^-|-$/g, "");
 };
 
+/**
+ * Utility function createBoardPostPath.
+ */
 export const createBoardPostPath = (title:string):string => {
 	const slug = toBoardSlug(title);
 	if(!slug){

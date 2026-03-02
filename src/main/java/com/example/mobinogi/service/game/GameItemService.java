@@ -2,9 +2,9 @@ package com.example.mobinogi.service.game;
 
 import com.example.mobinogi.dto.game.GameItemDataDto;
 import com.example.mobinogi.dto.game.GameItemFilterOptionsDto;
-import com.example.mobinogi.entity.GameItem;
-import com.example.mobinogi.entity.LifeBarter;
-import com.example.mobinogi.entity.LifeCraft;
+import com.example.mobinogi.entity.game.GameItem;
+import com.example.mobinogi.entity.life.LifeBarter;
+import com.example.mobinogi.entity.life.LifeCraft;
 import com.example.mobinogi.repository.GameItemRepository;
 import com.example.mobinogi.repository.LifeBarterRepository;
 import com.example.mobinogi.repository.LifeCraftRepository;
@@ -40,10 +40,21 @@ import com.example.mobinogi.dto.game.GameItemSummaryDto;
 @RequiredArgsConstructor
 @Slf4j
 public class GameItemService{
+	/** Game item repository. */
 	private final GameItemRepository gameItemRepository;
+
+	/** Barter repository for item relation lookup. */
 	private final LifeBarterRepository lifeBarterRepository;
+
+	/** Craft repository for item relation lookup. */
 	private final LifeCraftRepository lifeCraftRepository;
-	
+
+	/**
+	 * Returns a detailed item payload with barter and craft relations.
+	 *
+	 * @param name item name
+	 * @return aggregated item detail payload
+	 */
 	public GameItemDataDto getAllRelatedDataByItemName(String name){
 		String normalizedName = name == null ? "" : name.trim();
 		List<GameItem> exactMatchItems = gameItemRepository.findAllByItemNameOrderByItemIdAsc(normalizedName);
@@ -88,7 +99,12 @@ public class GameItemService{
 		dto.setCraftsBySubId(craftsGroupedBySubId);
 		return dto;
 	}
-	
+
+	/**
+	 * Deletes an item row and dependent records by row index.
+	 *
+	 * @param rowIndex target row index
+	 */
 	public void deleteGameItemSafely(Long rowIndex){
 		// 1. Delete related life_barter rows first.
 		lifeBarterRepository.deleteAllByItemId(rowIndex);
@@ -101,7 +117,20 @@ public class GameItemService{
 		gameItemRepository.deleteByItemIdGreaterThanEqual(rowIndex);
 	}
 
-	// Paginated game item query with barter/craft summary data.
+	/**
+	 * Returns paged items with barter/craft summary metadata.
+	 *
+	 * @param page page index
+	 * @param size page size
+	 * @param sortBy sort field
+	 * @param sortDir sort direction
+	 * @param keyword keyword filter
+	 * @param itemMainMenu main menu filter
+	 * @param itemSubMenu sub menu filter
+	 * @param itemType item type filter
+	 * @param itemRarities rarity filters
+	 * @return paged item summaries
+	 */
 	public Page<GameItemSummaryDto> getGameItemsWithSummary(
 		int page,
 		int size,
@@ -225,6 +254,11 @@ public class GameItemService{
 		return summaryPage;
 	}
 
+	/**
+	 * Returns distinct filter options and category tree for item search UI.
+	 *
+	 * @return item filter options
+	 */
 	public GameItemFilterOptionsDto getGameItemFilterOptions(){
 		GameItemFilterOptionsDto dto = new GameItemFilterOptionsDto();
 		dto.setItemMainMenus(sortMainMenus(new ArrayList<>(gameItemRepository.findDistinctItemMainMenus())));
@@ -235,6 +269,11 @@ public class GameItemService{
 		return dto;
 	}
 
+	/**
+	 * Builds a nested category tree (main menu > sub menu > item type).
+	 *
+	 * @return category tree list
+	 */
 	private List<GameItemFilterOptionsDto.ItemMainMenuOptionDto> buildItemCategoryTree(){
 		Map<String, Map<String, LinkedHashSet<String>>> tree = new LinkedHashMap<>();
 
@@ -275,12 +314,30 @@ public class GameItemService{
 		return result;
 	}
 
+	/**
+	 * Field MOUNT_PET_MAIN_MENU.
+	 */
 	private static final String MOUNT_PET_MAIN_MENU = "탈것/펫";
+	/**
+	 * Field PET_MOUNT_MAIN_MENU.
+	 */
 	private static final String PET_MOUNT_MAIN_MENU = "펫/탈것";
+	/**
+	 * Field COMPANION_PET_SUB_MENU.
+	 */
 	private static final String COMPANION_PET_SUB_MENU = "동행 펫";
 
+	/**
+	 * Field EQUIPMENT_MAIN_MENU.
+	 */
 	private static final String EQUIPMENT_MAIN_MENU = "장비";
+	/**
+	 * Field WEAPON_SUB_MENU.
+	 */
 	private static final String WEAPON_SUB_MENU = "무기";
+	/**
+	 * Field WEAPON_RUNE_SUB_MENU.
+	 */
 	private static final String WEAPON_RUNE_SUB_MENU = "무기 룬";
 
 	private static final List<String> WEAPON_ITEM_TYPE_PREFIX_ORDER = List.of(
@@ -372,6 +429,11 @@ public class GameItemService{
 	private static final Map<String, Integer> ITEM_SUB_MENU_GLOBAL_RANK = buildItemSubMenuGlobalRank();
 	private static final Map<String, Integer> ITEM_RARITY_RANK = buildItemRarityRank();
 
+	/**
+	 * Builds alias expansion lookup for rarity filter groups.
+	 *
+	 * @return rarity alias expansion map
+	 */
 	private static Map<String, List<String>> buildItemRarityExpansionByAlias(){
 		Map<String, List<String>> expansions = new LinkedHashMap<>();
 		for(List<String> aliases : ITEM_RARITY_FILTER_ALIAS_GROUPS){
@@ -383,6 +445,11 @@ public class GameItemService{
 		return Map.copyOf(expansions);
 	}
 
+	/**
+	 * Builds main-menu ranking map for deterministic ordering.
+	 *
+	 * @return main-menu rank map
+	 */
 	private static Map<String, Integer> buildItemMainMenuRank(){
 		Map<String, Integer> ranks = new LinkedHashMap<>();
 		for(int index = 0 ; index < ITEM_MAIN_MENU_ORDER.size() ; index++){
@@ -395,6 +462,11 @@ public class GameItemService{
 		return Map.copyOf(ranks);
 	}
 
+	/**
+	 * Builds global sub-menu rank map.
+	 *
+	 * @return sub-menu rank map
+	 */
 	private static Map<String, Integer> buildItemSubMenuGlobalRank(){
 		Map<String, Integer> ranks = new LinkedHashMap<>();
 		int rank = 0;
@@ -408,6 +480,11 @@ public class GameItemService{
 		return Map.copyOf(ranks);
 	}
 
+	/**
+	 * Builds rarity rank map from alias groups.
+	 *
+	 * @return rarity rank map
+	 */
 	private static Map<String, Integer> buildItemRarityRank(){
 		Map<String, Integer> ranks = new LinkedHashMap<>();
 		for(int rank = 0 ; rank < ITEM_RARITY_ORDER_ASC_ALIASES.size() ; rank++){
@@ -418,26 +495,58 @@ public class GameItemService{
 		return Map.copyOf(ranks);
 	}
 
+	/**
+	 * Sorts main menus using configured rank order.
+	 *
+	 * @param itemMainMenus main menus
+	 * @return sorted main menus
+	 */
 	private List<String> sortMainMenus(List<String> itemMainMenus){
 		itemMainMenus.sort(this::compareMainMenus);
 		return itemMainMenus;
 	}
 
+	/**
+	 * Sorts sub menus by global rank.
+	 *
+	 * @param itemSubMenus sub menus
+	 * @return sorted sub menus
+	 */
 	private List<String> sortItemSubMenus(List<String> itemSubMenus){
 		itemSubMenus.sort(this::compareSubMenusGlobally);
 		return itemSubMenus;
 	}
 
+	/**
+	 * Sorts sub menus for one main menu category.
+	 *
+	 * @param mainMenu main menu
+	 * @param itemSubMenus sub menus
+	 * @return sorted sub menus
+	 */
 	private List<String> sortSubMenusForMainMenu(String mainMenu, List<String> itemSubMenus){
 		itemSubMenus.sort((left, right) -> compareSubMenusForMainMenu(mainMenu, left, right));
 		return itemSubMenus;
 	}
 
+	/**
+	 * Sorts rarity labels by configured rank.
+	 *
+	 * @param itemRarities rarity list
+	 * @return sorted rarities
+	 */
 	private List<String> sortItemRarities(List<String> itemRarities){
 		itemRarities.sort(this::compareRarities);
 		return itemRarities;
 	}
 
+	/**
+	 * Compares main-menu strings by rank and text.
+	 *
+	 * @param left left value
+	 * @param right right value
+	 * @return compare result
+	 */
 	private int compareMainMenus(String left, String right){
 		int leftRank = getMainMenuRank(left);
 		int rightRank = getMainMenuRank(right);
@@ -447,6 +556,13 @@ public class GameItemService{
 		return compareNullableText(left, right);
 	}
 
+	/**
+	 * Compares sub-menu strings by global rank and text.
+	 *
+	 * @param left left value
+	 * @param right right value
+	 * @return compare result
+	 */
 	private int compareSubMenusGlobally(String left, String right){
 		int leftRank = getSubMenuGlobalRank(left);
 		int rightRank = getSubMenuGlobalRank(right);
@@ -456,6 +572,14 @@ public class GameItemService{
 		return compareNullableText(left, right);
 	}
 
+	/**
+	 * Compares sub-menu strings under one main menu.
+	 *
+	 * @param mainMenu main menu
+	 * @param left left value
+	 * @param right right value
+	 * @return compare result
+	 */
 	private int compareSubMenusForMainMenu(String mainMenu, String left, String right){
 		int leftRank = getSubMenuRank(mainMenu, left);
 		int rightRank = getSubMenuRank(mainMenu, right);
@@ -465,6 +589,13 @@ public class GameItemService{
 		return compareNullableText(left, right);
 	}
 
+	/**
+	 * Compares rarity labels by rank and text.
+	 *
+	 * @param left left value
+	 * @param right right value
+	 * @return compare result
+	 */
 	private int compareRarities(String left, String right){
 		int leftRank = getRarityRank(left);
 		int rightRank = getRarityRank(right);
@@ -474,6 +605,12 @@ public class GameItemService{
 		return compareNullableText(left, right);
 	}
 
+	/**
+	 * Returns rank for main menu.
+	 *
+	 * @param mainMenu main menu
+	 * @return rank value
+	 */
 	private int getMainMenuRank(String mainMenu){
 		if(!StringUtils.hasText(mainMenu)){
 			return Integer.MAX_VALUE;
@@ -481,6 +618,12 @@ public class GameItemService{
 		return ITEM_MAIN_MENU_RANK.getOrDefault(normalizeMainMenu(mainMenu), Integer.MAX_VALUE - 1);
 	}
 
+	/**
+	 * Returns global rank for sub menu.
+	 *
+	 * @param subMenu sub menu
+	 * @return rank value
+	 */
 	private int getSubMenuGlobalRank(String subMenu){
 		if(!StringUtils.hasText(subMenu)){
 			return Integer.MAX_VALUE;
@@ -488,6 +631,13 @@ public class GameItemService{
 		return ITEM_SUB_MENU_GLOBAL_RANK.getOrDefault(subMenu.trim(), Integer.MAX_VALUE - 1);
 	}
 
+	/**
+	 * Returns rank for sub menu in one main-menu context.
+	 *
+	 * @param mainMenu main menu
+	 * @param subMenu sub menu
+	 * @return rank value
+	 */
 	private int getSubMenuRank(String mainMenu, String subMenu){
 		if(!StringUtils.hasText(subMenu)){
 			return Integer.MAX_VALUE;
@@ -504,6 +654,12 @@ public class GameItemService{
 		return Integer.MAX_VALUE - 1;
 	}
 
+	/**
+	 * Returns rank for rarity text.
+	 *
+	 * @param rarity rarity label
+	 * @return rank value
+	 */
 	private int getRarityRank(String rarity){
 		if(!StringUtils.hasText(rarity)){
 			return Integer.MAX_VALUE;
@@ -511,6 +667,12 @@ public class GameItemService{
 		return ITEM_RARITY_RANK.getOrDefault(rarity.trim().toLowerCase(), Integer.MAX_VALUE - 1);
 	}
 
+	/**
+	 * Normalizes main-menu alias values.
+	 *
+	 * @param mainMenu raw main-menu value
+	 * @return normalized value
+	 */
 	private String normalizeMainMenu(String mainMenu){
 		if(!StringUtils.hasText(mainMenu)){
 			return "";
@@ -519,31 +681,78 @@ public class GameItemService{
 		return PET_MOUNT_MAIN_MENU.equals(trimmed) ? MOUNT_PET_MAIN_MENU : trimmed;
 	}
 
+	/**
+	 * Compares nullable text values after normalization.
+	 *
+	 * @param left left text
+	 * @param right right text
+	 * @return compare result
+	 */
 	private int compareNullableText(String left, String right){
 		return Comparator.nullsLast(String::compareTo).compare(normalizeComparableText(left), normalizeComparableText(right));
 	}
 
+	/**
+	 * Normalizes text for comparison.
+	 *
+	 * @param value raw text
+	 * @return normalized text or null
+	 */
 	private String normalizeComparableText(String value){
 		return StringUtils.hasText(value) ? value.trim() : null;
 	}
 
+	/**
+	 * Builds a simple Spring sort.
+	 *
+	 * @param sortBy sort field
+	 * @param direction sort direction
+	 * @return sort object
+	 */
 	private Sort buildSimpleSort(String sortBy, Sort.Direction direction){
 		return Sort.by(direction, sortBy);
 	}
 
+	/**
+	 * Returns whether sort key requires custom menu-aware ordering.
+	 *
+	 * @param sortBy sort field
+	 * @return true when custom menu-aware sort is required
+	 */
 	private boolean isMenuAwareSort(String sortBy){
 		return "itemMainMenu".equals(sortBy) || "itemSubMenu".equals(sortBy) || "itemType".equals(sortBy);
 	}
 
+	/**
+	 * Returns whether sort key requires custom rarity ordering.
+	 *
+	 * @param sortBy sort field
+	 * @return true when rarity-aware sort is required
+	 */
 	private boolean isRarityAwareSort(String sortBy){
 		return "itemRarity".equals(sortBy);
 	}
 
+	/**
+	 * Returns whether criteria query is a count query.
+	 *
+	 * @param query criteria query
+	 * @return true when count query
+	 */
 	private boolean isCountQuery(CriteriaQuery<?> query){
 		Class<?> resultType = query.getResultType();
 		return resultType == Long.class || resultType == long.class;
 	}
 
+	/**
+	 * Applies custom ordering for menu-aware sort fields.
+	 *
+	 * @param query criteria query
+	 * @param root query root
+	 * @param cb criteria builder
+	 * @param sortBy requested sort field
+	 * @param direction sort direction
+	 */
 	private void applyMenuAwareOrder(CriteriaQuery<?> query, Root<GameItem> root, CriteriaBuilder cb, String sortBy, Sort.Direction direction){
 		List<Order> orders = new ArrayList<>();
 		orders.add(toOrder(cb, buildItemMainMenuOrderExpression(root, cb), direction));
@@ -560,6 +769,14 @@ public class GameItemService{
 		query.orderBy(orders);
 	}
 
+	/**
+	 * Applies custom ordering for rarity sort.
+	 *
+	 * @param query criteria query
+	 * @param root query root
+	 * @param cb criteria builder
+	 * @param direction sort direction
+	 */
 	private void applyRarityAwareOrder(CriteriaQuery<?> query, Root<GameItem> root, CriteriaBuilder cb, Sort.Direction direction){
 		List<Order> orders = new ArrayList<>();
 		orders.add(toOrder(cb, buildItemRarityOrderExpression(root, cb, direction), direction));
@@ -575,6 +792,14 @@ public class GameItemService{
 		query.orderBy(orders);
 	}
 
+	/**
+	 * Builds rarity order CASE expression.
+	 *
+	 * @param root query root
+	 * @param cb criteria builder
+	 * @param direction sort direction
+	 * @return rarity rank expression
+	 */
 	private Expression<Integer> buildItemRarityOrderExpression(Root<GameItem> root, CriteriaBuilder cb, Sort.Direction direction){
 		Expression<String> itemRarity = cb.lower(root.get("itemRarity"));
 		CriteriaBuilder.Case<Integer> caseExpression = cb.selectCase();
@@ -587,10 +812,25 @@ public class GameItemService{
 		return caseExpression.otherwise(unknownRank);
 	}
 
+	/**
+	 * Converts direction and expression to Criteria order.
+	 *
+	 * @param cb criteria builder
+	 * @param expression target expression
+	 * @param direction sort direction
+	 * @return criteria order
+	 */
 	private Order toOrder(CriteriaBuilder cb, Expression<?> expression, Sort.Direction direction){
 		return direction == Sort.Direction.DESC ? cb.desc(expression) : cb.asc(expression);
 	}
 
+	/**
+	 * Builds main-menu order CASE expression.
+	 *
+	 * @param root query root
+	 * @param cb criteria builder
+	 * @return main-menu rank expression
+	 */
 	private Expression<Integer> buildItemMainMenuOrderExpression(Root<GameItem> root, CriteriaBuilder cb){
 		Expression<String> itemMainMenu = root.get("itemMainMenu");
 		CriteriaBuilder.Case<Integer> caseExpression = cb.selectCase();
@@ -613,6 +853,13 @@ public class GameItemService{
 		return caseExpression.otherwise(999);
 	}
 
+	/**
+	 * Builds sub-menu order CASE expression.
+	 *
+	 * @param root query root
+	 * @param cb criteria builder
+	 * @return sub-menu rank expression
+	 */
 	private Expression<Integer> buildItemSubMenuOrderExpression(Root<GameItem> root, CriteriaBuilder cb){
 		Expression<String> itemMainMenu = root.get("itemMainMenu");
 		Expression<String> itemSubMenu = root.get("itemSubMenu");
@@ -637,6 +884,14 @@ public class GameItemService{
 		return caseExpression.otherwise(9999);
 	}
 
+	/**
+	 * Builds predicate to match one main-menu value including alias.
+	 *
+	 * @param itemMainMenu main-menu expression
+	 * @param cb criteria builder
+	 * @param mainMenu target main-menu
+	 * @return predicate
+	 */
 	private Predicate buildMainMenuMatchPredicate(Expression<String> itemMainMenu, CriteriaBuilder cb, String mainMenu){
 		if(isMountPetMainMenu(mainMenu)){
 			return cb.or(
@@ -647,10 +902,23 @@ public class GameItemService{
 		return cb.equal(itemMainMenu, mainMenu);
 	}
 
+	/**
+	 * Returns whether menu is mount/pet menu alias.
+	 *
+	 * @param mainMenu main-menu value
+	 * @return true when mount/pet menu
+	 */
 	private boolean isMountPetMainMenu(String mainMenu){
 		return MOUNT_PET_MAIN_MENU.equals(normalizeMainMenu(mainMenu));
 	}
 
+	/**
+	 * Builds conditional item-type prefix rank expression.
+	 *
+	 * @param root query root
+	 * @param cb criteria builder
+	 * @return item-type rank expression
+	 */
 	private Expression<Integer> buildConditionalItemTypeOrderExpression(Root<GameItem> root, CriteriaBuilder cb){
 		Expression<String> itemMainMenu = root.get("itemMainMenu");
 		Expression<String> itemSubMenu = root.get("itemSubMenu");
@@ -676,6 +944,14 @@ public class GameItemService{
 		return caseExpression.otherwise(9999);
 	}
 
+	/**
+	 * Builds predicate for item type prefix matching.
+	 *
+	 * @param itemType item-type expression
+	 * @param cb criteria builder
+	 * @param prefix prefix text
+	 * @return predicate
+	 */
 	private Predicate buildItemTypePrefixMatchPredicate(Expression<String> itemType, CriteriaBuilder cb, String prefix){
 		return cb.or(
 			cb.equal(itemType, prefix),
@@ -683,11 +959,28 @@ public class GameItemService{
 		);
 	}
 
+	/**
+	 * Sorts item types by category-specific prefix rules.
+	 *
+	 * @param mainMenu main menu
+	 * @param subMenu sub menu
+	 * @param itemTypes item type list
+	 * @return sorted item types
+	 */
 	private List<String> sortItemTypesForCategory(String mainMenu, String subMenu, List<String> itemTypes){
 		itemTypes.sort((left, right) -> compareItemTypesForCategory(mainMenu, subMenu, left, right));
 		return itemTypes;
 	}
 
+	/**
+	 * Compares item types using conditional prefix rank.
+	 *
+	 * @param mainMenu main menu
+	 * @param subMenu sub menu
+	 * @param left left type
+	 * @param right right type
+	 * @return compare result
+	 */
 	private int compareItemTypesForCategory(String mainMenu, String subMenu, String left, String right){
 		int leftRank = getConditionalItemTypePrefixRank(mainMenu, subMenu, left);
 		int rightRank = getConditionalItemTypePrefixRank(mainMenu, subMenu, right);
@@ -697,6 +990,14 @@ public class GameItemService{
 		return Comparator.nullsLast(String::compareTo).compare(left, right);
 	}
 
+	/**
+	 * Returns prefix rank for item type in category.
+	 *
+	 * @param mainMenu main menu
+	 * @param subMenu sub menu
+	 * @param itemType item type
+	 * @return rank value
+	 */
 	private int getConditionalItemTypePrefixRank(String mainMenu, String subMenu, String itemType){
 		if(!StringUtils.hasText(itemType)){
 			return Integer.MAX_VALUE;
@@ -717,6 +1018,13 @@ public class GameItemService{
 		return Integer.MAX_VALUE - 1;
 	}
 
+	/**
+	 * Resolves prefix-order rule for one category.
+	 *
+	 * @param mainMenu main menu
+	 * @param subMenu sub menu
+	 * @return matching rule or null
+	 */
 	private ItemTypePrefixOrderRule findItemTypePrefixOrderRule(String mainMenu, String subMenu){
 		if(!StringUtils.hasText(mainMenu) || !StringUtils.hasText(subMenu)){
 			return null;
@@ -733,10 +1041,23 @@ public class GameItemService{
 		return null;
 	}
 
+	/**
+	 * Returns whether item type equals or starts with target prefix.
+	 *
+	 * @param itemType item type text
+	 * @param prefix prefix text
+	 * @return true when matched
+	 */
 	private boolean matchesItemTypePrefix(String itemType, String prefix){
 		return itemType.equals(prefix) || itemType.startsWith(prefix);
 	}
 
+	/**
+	 * Expands selected rarity aliases to full matching groups.
+	 *
+	 * @param rarities selected rarity filters
+	 * @return expanded rarity filter list
+	 */
 	private List<String> expandRarityFilters(List<String> rarities){
 		if(rarities == null || rarities.isEmpty()){
 			return List.of();

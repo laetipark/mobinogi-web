@@ -11,11 +11,12 @@ Read in this order.
 1. `project/README.md`
 2. `project/architecture-overview.md`
 3. `project/text-encoding-policy.md`
-4. `project/performance-policy.md`
-5. `project/backend-development-guide.md`
-6. `project/frontend-development-guide.md`
-7. Module rule files under `project/modules/*.md` that match the task scope.
-8. Pattern guides:
+4. `project/quality-guardrails.md`
+5. `project/performance-policy.md`
+6. `project/backend-development-guide.md`
+7. `project/frontend-development-guide.md`
+8. Module rule files under `project/modules/*.md` that match the task scope.
+9. Pattern guides:
    - `project/backend-patterns.md` when changing backend code
    - `project/frontend-patterns.md` when changing frontend code
 

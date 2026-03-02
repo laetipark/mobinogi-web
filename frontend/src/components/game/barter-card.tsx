@@ -3,6 +3,9 @@ import styles from "@/pages/game/game-items.module.scss";
 import {ArrowLeftRight, ArrowRight, Info} from "lucide-react";
 import type {BarterCardProps} from "@/types/ui";
 
+/**
+ * Utility function toSafeBarterCount.
+ */
 const toSafeBarterCount = (value:unknown):number => {
 	const parsed = Number(value);
 	if(!Number.isFinite(parsed) || parsed < 0){

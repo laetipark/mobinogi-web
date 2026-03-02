@@ -8,5 +8,8 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class BoardCommentUpdateRequest{
+	/**
+	 * Field content.
+	 */
 	private String content;
 }

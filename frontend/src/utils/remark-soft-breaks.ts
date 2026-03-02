@@ -4,10 +4,16 @@ type MarkdownNode = {
 	children?:MarkdownNode[];
 };
 
+/**
+ * Utility function shouldSkipChildren.
+ */
 const shouldSkipChildren = (nodeType?:string):boolean => {
 	return nodeType === "code" || nodeType === "inlineCode";
 };
 
+/**
+ * Utility function splitTextWithBreaks.
+ */
 const splitTextWithBreaks = (value:string):MarkdownNode[] => {
 	const parts = value.split("\n");
 	if(parts.length <= 1){
@@ -32,6 +38,9 @@ const splitTextWithBreaks = (value:string):MarkdownNode[] => {
 	return output;
 };
 
+/**
+ * Utility function transformNode.
+ */
 const transformNode = (node:MarkdownNode) => {
 	if(!Array.isArray(node.children) || shouldSkipChildren(node.type)){
 		return;
@@ -52,6 +61,9 @@ const transformNode = (node:MarkdownNode) => {
 	}
 };
 
+/**
+ * Utility function remarkSoftBreaks.
+ */
 export const remarkSoftBreaks = () => {
 	return (tree:MarkdownNode) => {
 		transformNode(tree);

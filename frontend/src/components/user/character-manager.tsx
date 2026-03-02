@@ -35,6 +35,9 @@ const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = fa
 		});
 	}, []);
 	
+	/**
+	 * Utility function async.
+	 */
 	const loadCharacters = async() => {
 		try{
 			setLoading(true);
@@ -48,25 +51,40 @@ const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = fa
 		}
 	};
 	
+	/**
+	 * Utility function handleNameChange.
+	 */
 	const handleNameChange = (e:React.ChangeEvent<HTMLInputElement>) => {
 		const {value} = e.target;
 		setFormData(prev => ({...prev, characterName : value}));
 	};
 	
+	/**
+	 * Utility function handleServerChange.
+	 */
 	const handleServerChange = (e:React.ChangeEvent<HTMLSelectElement>) => {
 		const {value} = e.target;
 		setFormData(prev => ({...prev, serverId : value ? Number(value) : undefined}));
 	};
 	
+	/**
+	 * Utility function handleClassChange.
+	 */
 	const handleClassChange = (e:React.ChangeEvent<HTMLSelectElement>) => {
 		const {value} = e.target;
 		setFormData(prev => ({...prev, classId : value ? Number(value) : undefined}));
 	};
 	
+	/**
+	 * Utility function resetForm.
+	 */
 	const resetForm = () => {
 		setFormData(DEFAULT_FORM);
 	};
 	
+	/**
+	 * Utility function async.
+	 */
 	const handleSubmit = async(e:React.FormEvent) => {
 		e.preventDefault();
 		if(!formData.characterName.trim()){
@@ -91,6 +109,9 @@ const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = fa
 		}
 	};
 	
+	/**
+	 * Utility function handleEdit.
+	 */
 	const handleEdit = (character:UserCharacter) => {
 		setEditingId(character.characterId);
 		setFormData({
@@ -101,6 +122,9 @@ const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = fa
 		setIsAdding(true);
 	};
 	
+	/**
+	 * Utility function async.
+	 */
 	const handleDelete = async(characterId:number) => {
 		if(!window.confirm("정말 삭제하시겠습니까?")){
 			return;
@@ -115,6 +139,9 @@ const CharacterManager:React.FC<CharacterManagerProps> = ({onClose, isModal = fa
 		}
 	};
 	
+	/**
+	 * Utility function handleCancel.
+	 */
 	const handleCancel = () => {
 		setIsAdding(false);
 		setEditingId(null);

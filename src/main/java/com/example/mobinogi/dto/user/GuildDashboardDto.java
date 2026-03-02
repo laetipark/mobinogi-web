@@ -14,9 +14,21 @@ import java.util.List;
 @Builder
 public class GuildDashboardDto{
 
+	/**
+	 * Field isAdmin.
+	 */
 	private boolean isAdmin;
+	/**
+	 * Field myApprovedGuild.
+	 */
 	private UserGuildDto myApprovedGuild;
+	/**
+	 * Field myMembership.
+	 */
 	private UserGuildMemberDto myMembership;
+	/**
+	 * Field canManageMembers.
+	 */
 	private boolean canManageMembers;
 	@Builder.Default
 	private List<UserGuildMemberDto> guildMembers = new ArrayList<>();

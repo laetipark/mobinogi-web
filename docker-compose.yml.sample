@@ -1,4 +1,4 @@
-﻿services:
+services:
     # Spring Boot App Image (reverse-proxied by host nginx)
     app:
         image: ${APP_IMAGE:-mobinogi-web:latest}

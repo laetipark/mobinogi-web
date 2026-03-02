@@ -17,8 +17,14 @@ const TYPE_BY_LANGUAGE:Record<string, BoardReferenceTokenType> = {
 	"mbg-craft" : "craft"
 };
 
+/**
+ * Utility function toSingleLine.
+ */
 const toSingleLine = (value:string):string => value.replace(/\r?\n+/g, " ").trim();
 
+/**
+ * Utility function serializeBoardReferenceToken.
+ */
 export const serializeBoardReferenceToken = (
 	type:BoardReferenceTokenType,
 	fields:Record<string, string | null | undefined>
@@ -33,6 +39,9 @@ export const serializeBoardReferenceToken = (
 	return `\`\`\`${language}\n${body}\n\`\`\``;
 };
 
+/**
+ * Utility function parseBoardReferenceToken.
+ */
 export const parseBoardReferenceToken = (
 	className:string | undefined,
 	rawValue:string

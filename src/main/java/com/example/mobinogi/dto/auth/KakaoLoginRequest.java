@@ -9,8 +9,16 @@ import lombok.*;
 @Builder
 public class KakaoLoginRequest{
 
+	/**
+	 * Field kakaoId.
+	 */
 	private Long kakaoId;
+	/**
+	 * Field nickname.
+	 */
 	private String nickname;
-	private String email;
+	/**
+	 * Field profileImage.
+	 */
 	private String profileImage;
 }

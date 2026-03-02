@@ -4,6 +4,9 @@ import {
 } from "@/types";
 import apiService from "./api";
 
+/**
+ * Utility function normalizeGameItemSummary.
+ */
 const normalizeGameItemSummary = (item:any) => ({
 	...item,
 	itemMainMenu : item?.itemMainMenu ?? item?.item_main_menu ?? null,
@@ -12,6 +15,9 @@ const normalizeGameItemSummary = (item:any) => ({
 	itemSource : item?.itemSource ?? item?.item_source ?? null
 });
 
+/**
+ * Utility function normalizeGameItemData.
+ */
 const normalizeGameItemData = (data:any) => ({
 	...data,
 	itemMainMenu : data?.itemMainMenu ?? data?.item_main_menu ?? null,

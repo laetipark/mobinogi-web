@@ -8,6 +8,12 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class ProfileUpdateRequest{
+	/**
+	 * Field nickname.
+	 */
 	private String nickname;
+	/**
+	 * Field profileImage.
+	 */
 	private String profileImage;
 }

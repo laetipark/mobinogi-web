@@ -4,6 +4,9 @@ import GameItemService from "@/services/game-item-service";
 import {Search, RefreshCw, Package, ArrowRightLeft, Hammer, ChevronDown, ChevronUp} from "lucide-react";
 import styles from "./item-search.module.scss";
 
+/**
+ * Utility function formatCraftLevel.
+ */
 const formatCraftLevel = (craftableLevel:number | null | undefined):string => {
 	if(craftableLevel === null || craftableLevel === undefined){
 		return "-";
@@ -11,6 +14,9 @@ const formatCraftLevel = (craftableLevel:number | null | undefined):string => {
 	return `${craftableLevel}`;
 };
 
+/**
+ * Utility function formatProcessingTime.
+ */
 const formatProcessingTime = (processingTime:number | null | undefined):string => {
 	if(processingTime === null || processingTime === undefined){
 		return "-";
@@ -91,18 +97,27 @@ const ItemSearchPage:React.FC = () => {
 		}
 	}, []);
 
+	/**
+	 * Utility function handleSuggestionClick.
+	 */
 	const handleSuggestionClick = (item:GameItemSummary) => {
 		setSearchInput(item.itemName);
 		setShowSuggestions(false);
 		handleSearch(item.itemName);
 	};
 
+	/**
+	 * Utility function handleKeyPress.
+	 */
 	const handleKeyPress = (e:React.KeyboardEvent) => {
 		if(e.key === "Enter"){
 			handleSearch(searchInput);
 		}
 	};
 
+	/**
+	 * Utility function handleReset.
+	 */
 	const handleReset = () => {
 		setSearchInput("");
 		setItemData(null);
@@ -111,6 +126,9 @@ const ItemSearchPage:React.FC = () => {
 		setShowSuggestions(false);
 	};
 
+	/**
+	 * Utility function toggleSection.
+	 */
 	const toggleSection = (section:keyof typeof expandedSections) => {
 		setExpandedSections(prev => ({
 			...prev,
@@ -118,6 +136,9 @@ const ItemSearchPage:React.FC = () => {
 		}));
 	};
 
+	/**
+	 * Utility function renderBarterTable.
+	 */
 	const renderBarterTable = (barters:LifeBarter[], title:string, sectionKey:keyof typeof expandedSections) => {
 		if(!barters || barters.length === 0){
 			return null;
@@ -141,11 +162,11 @@ const ItemSearchPage:React.FC = () => {
 								<tr>
 									<th>지역</th>
 									<th>NPC</th>
-									<th>제공 아이템</th>
-										<th>1회 획득 수량</th>
-										<th>교환 아이템</th>
-										<th>교환 비용</th>
-										<th>교환 가능 횟수</th>
+									<th>획득 아이템</th>
+									<th>1회 획득 수량</th>
+									<th>교환 아이템</th>
+									<th>교환 비용</th>
+									<th>교환 가능 횟수</th>
 									<th>비고</th>
 								</tr>
 							</thead>
@@ -191,6 +212,9 @@ const ItemSearchPage:React.FC = () => {
 		);
 	};
 
+	/**
+	 * Utility function renderCraftTable.
+	 */
 	const renderCraftTable = (craftsBySubId:Record<number, LifeCraft[]>) => {
 		if(!craftsBySubId || Object.keys(craftsBySubId).length === 0){
 			return null;
@@ -270,10 +294,7 @@ const ItemSearchPage:React.FC = () => {
 	return (
 		<div className={styles.itemSearchPage}>
 			<div className={styles.container}>
-				<div className="page-heading">
-					<h1>아이템 검색</h1>
-					<p className="page-heading-subtitle">아이템을 검색하여 물물교환, 제작 정보를 확인하세요</p>
-				</div>
+				<h1 className="page-heading">아이템 검색</h1>
 
 				<div className={styles.searchSection}>
 					<div className={styles.searchContainer}>

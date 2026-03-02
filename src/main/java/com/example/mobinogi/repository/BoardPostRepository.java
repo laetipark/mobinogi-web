@@ -1,6 +1,6 @@
 package com.example.mobinogi.repository;
 
-import com.example.mobinogi.entity.BoardPost;
+import com.example.mobinogi.entity.board.BoardPost;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,16 +17,13 @@ public interface BoardPostRepository extends JpaRepository<BoardPost, Long>{
 
 	Page<BoardPost> findByCategoryIdAndDeletedAtIsNullOrderByCreatedAtDesc(Long categoryId, Pageable pageable);
 
-	Page<BoardPost> findBySourceTypeAndDeletedAtIsNullOrderByCreatedAtDesc(String sourceType, Pageable pageable);
-
-	Page<BoardPost> findByCategoryIdAndSourceTypeAndDeletedAtIsNullOrderByCreatedAtDesc(
-		Long categoryId, String sourceType, Pageable pageable);
-
 	Optional<BoardPost> findByPostIdAndDeletedAtIsNull(Long postId);
 
 	List<BoardPost> findAllByDeletedAtIsNullOrderByCreatedAtDesc();
 
 	Optional<BoardPost> findFirstByTitleAndDeletedAtIsNullOrderByCreatedAtDesc(String title);
+
+	boolean existsByTitle(String title);
 
 	@Query("SELECT p FROM BoardPost p WHERE p.deletedAt IS NULL AND " +
 		"(LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
@@ -34,5 +31,5 @@ public interface BoardPostRepository extends JpaRepository<BoardPost, Long>{
 		"ORDER BY p.createdAt DESC")
 	Page<BoardPost> searchPosts(@Param("keyword") String keyword, Pageable pageable);
 
-	Optional<BoardPost> findByExternalIdAndSourceTypeAndDeletedAtIsNull(String externalId, String sourceType);
 }
+

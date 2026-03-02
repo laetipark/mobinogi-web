@@ -1,6 +1,9 @@
 import apiService from "./api";
 import type {ApiResponse, UserCharacter, UserCharacterRequest} from "../types";
 
+/**
+ * Constant characterService.
+ */
 export const characterService = {
 	getMyCharacters : async():Promise<UserCharacter[]> => {
 		const response = await apiService.get<ApiResponse & {characters:UserCharacter[]}>("/user/characters");

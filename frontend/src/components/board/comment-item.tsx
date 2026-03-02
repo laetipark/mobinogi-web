@@ -8,14 +8,23 @@ const CommentItem:React.FC<CommentItemProps> = ({comment, onReply, onEdit, onDel
 	const [isEditing, setIsEditing] = useState(false);
 	const [editContent, setEditContent] = useState(comment.content);
 
+	/**
+	 * Utility function isAuthor.
+	 */
 	const isAuthor = (user?.userId ?? user?.id) === comment.userId;
 
+	/**
+	 * Utility function handleSaveEdit.
+	 */
 	const handleSaveEdit = () => {
 		if(!editContent.trim()) return;
 		onEdit(comment.commentId, editContent.trim());
 		setIsEditing(false);
 	};
 
+	/**
+	 * Utility function formatDate.
+	 */
 	const formatDate = (dateString:string) => {
 		const date = new Date(dateString);
 		const now = new Date();

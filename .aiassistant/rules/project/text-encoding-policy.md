@@ -18,6 +18,16 @@ apply: always
 - Prefer minimal patch-based edits on existing files to reduce accidental re-encoding risk.
 - If terminal output shows broken text, do not paste that broken text back into source files.
 
+## Prompt Editing Workflow (Required)
+- Before prompt-driven coding in PowerShell sessions, force UTF-8 I/O:
+  - `chcp 65001`
+  - `[Console]::InputEncoding  = [System.Text.UTF8Encoding]::new($false)`
+  - `[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)`
+  - `$OutputEncoding = [Console]::OutputEncoding`
+- For existing tracked files, use patch-based edits only (`apply_patch` preferred).
+- Use `Set-Content -Encoding utf8` only when creating new files or repairing a file that is already invalid UTF-8.
+- After any forced rewrite, immediately run encoding checks from this checklist.
+
 ## Literal Rules
 - Default to ASCII for identifiers/comments whenever possible.
 - Do not write user-facing or domain literals as Unicode escapes (`\\uXXXX`) in Java/TypeScript/JavaScript.
@@ -30,5 +40,20 @@ apply: always
 
 ## Validation Checklist
 - Search for escaped literals: `rg -n "\\\\u[0-9a-fA-F]{4}" src frontend`
-- Search for broken characters: `rg -n "�" src frontend`
+- Search for broken characters: `rg -n "占\\?" src frontend`
+- Verify modified file is UTF-8 readable: `Get-Content -Path <file> -Encoding utf8`
 - If a match is intentional, add a short inline comment explaining why the escape is required.
+
+## Repository Guard Script
+- Enable repository hook once:
+  - `git config core.hooksPath .githooks`
+- Run guard check before commit:
+  - `python scripts/encoding_guard.py`
+- Auto-fix safe issues (UTF-8 BOM only), then re-check:
+  - `python scripts/encoding_guard.py --fix`
+  - `python scripts/encoding_guard.py`
+- The guard reports:
+  - invalid UTF-8
+  - replacement characters (`U+FFFD`)
+  - hidden control characters (`Cc`, `Cf`)
+  - suspicious mojibake signatures

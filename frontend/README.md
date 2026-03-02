@@ -1,190 +1,72 @@
-# MobiNogi Controllers Project
+# Sexynogi Frontend
 
-Modern React application for managing and monitoring gaming controllers built with Vite.
+## 프로그램 소개
 
-## 🎮 Features
+`Sexynogi` 프론트엔드는 React + Vite 기반 SPA입니다.  
+커뮤니티 게시판/갤러리, 길드 관리, 게임 데이터 조회, 사용자 캐릭터/TODO 기능을 제공합니다.
 
-### Authentication System
+## :hammer_and_wrench: 활용 기술 스택
 
-- **User Registration**: Secure account creation with email validation
-- **User Login**: Session management with localStorage persistence
-- **Password Security**: Real-time password strength indicator
-- **Protected Routes**: Automatic redirection based on authentication state
+<img src="https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=111">&nbsp;
+<img src="https://img.shields.io/badge/Vite-5-646CFF?style=for-the-badge&logo=vite&logoColor=white">&nbsp;
+<img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white">&nbsp;
+<img src="https://img.shields.io/badge/React_Router-CA4245?style=for-the-badge&logo=reactrouter&logoColor=white">&nbsp;
+<img src="https://img.shields.io/badge/SCSS-CC6699?style=for-the-badge&logo=sass&logoColor=white">&nbsp;
+<img src="https://img.shields.io/badge/Axios-5A29E4?style=for-the-badge&logo=axios&logoColor=white">
 
-### Controller Dashboard
+## :file_folder: 주요 디렉터리
 
-- **Real-time Monitoring**: Live controller status and battery levels
-- **Detailed Information**: Comprehensive controller specs and statistics
-- **Interactive Interface**: Click to view detailed controller information
-- **Multi-controller Support**: Manage multiple gaming controllers
+- `src/pages/`: 라우트 단위 페이지
+- `src/components/`: 공통 UI 컴포넌트
+- `src/services/`: 백엔드 API 호출 모듈
+- `src/types/`: 도메인 타입 정의
+- `src/hooks/`: 재사용 훅
+- `src/contexts/`: 인증/전역 상태 컨텍스트
 
-### Modern UI/UX
+## :gear: 환경 설정 및 실행
 
-- **Dark Theme**: Professional dark mode interface
-- **Responsive Design**: Mobile-first approach with adaptive layouts
-- **Smooth Animations**: Micro-interactions and transitions
-- **Accessibility**: Keyboard navigation and screen reader support
+```bash
+npm install
+npm run dev
+```
 
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js (v16 or higher)
-- npm or yarn package manager
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd mobinogi-controllers-project
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Start development server**
-   ```bash
-   npm run dev
-   ```
-
-4. **Open in browser**
-   Navigate to `http://localhost:3000`
-
-### Build for Production
+## :rocket: 빌드 및 점검
 
 ```bash
 npm run build
+```
+
+```bash
 npm run preview
 ```
 
-## 📁 Project Structure
-
-```
-src/
-├── components/          # Reusable UI components
-│   ├── Header.jsx
-│   ├── LoadingScreen.jsx
-│   ├── ControllerCard.jsx
-│   └── ControllerDetailsPanel.jsx
-├── pages/              # Page components
-│   ├── HomePage.jsx
-│   ├── LoginPage.jsx
-│   ├── RegisterPage.jsx
-│   └── ControllersPage.jsx
-├── contexts/           # React Context providers
-│   └── AuthContext.jsx
-├── hooks/              # Custom React hooks
-│   └── useAuth.js
-├── utils/              # Utility functions
-│   └── helpers.js
-├── styles/             # CSS styles
-│   └── index.css
-├── App.jsx             # Main app component
-└── main.jsx           # Entry point
+```bash
+npm run lint
 ```
 
-## 🛠 Technology Stack
+## :world_map: 주요 라우트
 
-- **Frontend Framework**: React 18
-- **Build Tool**: Vite
-- **Routing**: React Router DOM v6
-- **Icons**: Lucide React
-- **Styling**: CSS3 with Custom Properties
-- **State Management**: React Context + useState
-- **Storage**: localStorage for session persistence
+| 경로 | 설명 |
+| --- | --- |
+| `/` | 홈 대시보드 |
+| `/board`, `/board/:postSlug` | 커뮤니티 게시판 목록/상세 |
+| `/gallery`, `/gallery/:postTitle` | 커뮤니티 갤러리 목록/상세 |
+| `/guild/gallery`, `/guild/gallery/:galleryTitle` | 기본 길드 갤러리 목록/상세 |
+| `/guild/:guildName/gallery`, `/guild/:guildName/gallery/:galleryTitle` | 특정 길드 갤러리 목록/상세 |
+| `/guild/board`, `/guild/:guildName/board` | 길드 게시판 목록 |
+| `/items`, `/barter`, `/craft` | 아이템/교역/제작 조회 |
+| `/items/:itemName/detail` | 아이템 상세 |
+| `/characters` | 캐릭터 관리 |
+| `/todo` | TODO 관리 |
+| `/profile` | 사용자 프로필 |
 
-## 🎨 Design System
+## :link: URL 규칙
 
-### Color Palette
+- 갤러리 상세 페이지는 slug를 경로로 사용합니다.
+- 제목 공백은 `-`로 치환하여 URL에 반영합니다.
+- 모달이 열려 있는 상태에서 새로고침해도 상세 전체 페이지로 진입할 수 있습니다.
 
-- **Primary**: `#6366F1` (Indigo)
-- **Background**: `#0F0F23` (Dark Blue)
-- **Surface**: `#1A1A2E` (Dark Surface)
-- **Success**: `#10B981` (Green)
-- **Warning**: `#F59E0B` (Yellow)
-- **Error**: `#EF4444` (Red)
+## :memo: API 문서
 
-### Typography
-
-- **Font Family**: Inter (Google Fonts)
-- **Font Weights**: 400, 500, 600, 700, 800
-
-## 📱 Responsive Breakpoints
-
-- **Mobile**: 480px and below
-- **Tablet**: 768px and below
-- **Desktop**: 1200px and above
-
-## ⚡ Performance Optimizations
-
-- **Code Splitting**: Automatic chunking via Vite
-- **Tree Shaking**: Dead code elimination
-- **CSS Optimization**: Minimal runtime styles
-- **Image Optimization**: Efficient asset loading
-
-## 🔧 Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-
-## 🧪 Testing
-
-The project includes:
-
-- Component isolation testing
-- User authentication flow testing
-- Responsive design validation
-
-## 📦 Dependencies
-
-### Production Dependencies
-
-- `react`: UI library
-- `react-dom`: DOM bindings for React
-- `react-router-dom`: Client-side routing
-- `lucide-react`: Icon library
-
-### Development Dependencies
-
-- `@vitejs/plugin-react`: Vite React plugin
-- `vite`: Build tool
-- `eslint`: Code linting
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Commit changes: `git commit -m 'Add feature'`
-4. Push to branch: `git push origin feature-name`
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
-## 🔮 Future Enhancements
-
-- Real-time WebSocket connections for live updates
-- Controller firmware update management
-- Advanced analytics and usage reports
-- Multi-language support (i18n)
-- Dark/Light theme toggle
-- Controller customization profiles
-- Cloud synchronization
-- Mobile app companion
-
-## 📞 Support
-
-For support and questions:
-
-- Create an issue in the repository
-- Contact the development team
-
----
-
-Built with ❤️ for the gaming community
+- 프론트 API 호출 맵: [src/README.md](./src/README.md)
+- 백엔드 REST API 문서: [../src/README.md](../src/README.md)

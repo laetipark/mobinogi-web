@@ -7,9 +7,18 @@ import {normalizeMultilineText, toItemDetailPath} from "@/utils";
 import type {GuildInfo, ItemEditSuggestion} from "@/types";
 import styles from "./admin-guild-floating.module.scss";
 
+/**
+ * Constant POLL_MS.
+ */
 const POLL_MS = 60000;
+/**
+ * Constant MAX_RENDER_COUNT.
+ */
 const MAX_RENDER_COUNT = 6;
 
+/**
+ * Utility function formatDateTime.
+ */
 const formatDateTime = (value?:string | null):string => {
 	if(!value){
 		return "-";
@@ -90,11 +99,20 @@ const AdminGuildFloating:React.FC = () => {
 
 	const totalPending = useMemo(() => pendingGuilds.length + pendingReports.length, [pendingGuilds.length, pendingReports.length]);
 	const visible = useMemo(() => totalPending > 0, [totalPending]);
+	const isGuildPage = useMemo(() => {
+		return location.pathname === "/guild" || location.pathname.startsWith("/guild/");
+	}, [location.pathname]);
 
+	/**
+	 * Utility function getAdminSuggestedEditValue.
+	 */
 	const getAdminSuggestedEditValue = (report:ItemEditSuggestion):string => {
 		return pendingReportSuggestedEdits[report.suggestionId] ?? normalizeMultilineText(report.suggestedValue || "");
 	};
 
+	/**
+	 * Utility function handleAdminSuggestedEditChange.
+	 */
 	const handleAdminSuggestedEditChange = (reportId:number, nextValue:string) => {
 		setPendingReportSuggestedEdits((prev) => ({
 			...prev,
@@ -102,6 +120,9 @@ const AdminGuildFloating:React.FC = () => {
 		}));
 	};
 
+	/**
+	 * Utility function async.
+	 */
 	const handleApproveGuild = async(guildId:number) => {
 		setActionGuildId(guildId);
 		try{
@@ -115,6 +136,9 @@ const AdminGuildFloating:React.FC = () => {
 		}
 	};
 
+	/**
+	 * Utility function async.
+	 */
 	const handleRejectGuild = async(guildId:number) => {
 		setActionGuildId(guildId);
 		try{
@@ -128,6 +152,9 @@ const AdminGuildFloating:React.FC = () => {
 		}
 	};
 
+	/**
+	 * Utility function async.
+	 */
 	const handleAdminReview = async(report:ItemEditSuggestion, action:"approve" | "reject") => {
 		setActionReportId(report.suggestionId);
 		try{
@@ -152,7 +179,7 @@ const AdminGuildFloating:React.FC = () => {
 		}
 	};
 
-	if(!user?.isAdmin || !visible){
+	if(!user?.isAdmin || !visible || isGuildPage){
 		return null;
 	}
 

@@ -13,13 +13,9 @@ export interface BoardPost{
 	userId:number | null;
 	authorNickname:string | null;
 	authorProfileImage:string | null;
-	authorDiscordId?:string | null;
 	title:string;
 	content:string;
 	viewCount:number;
-	sourceType:"USER" | "DISCORD" | string;
-	externalUrl:string | null;
-	externalAuthor:string | null;
 	images?:string[];
 	isWiki?:boolean;
 	commentCount:number;

@@ -1,0 +1,123 @@
+package com.example.mobinogi.entity.game;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "game_monster")
+@Getter
+@Setter
+@NoArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+public class GameMonster{
+
+	@Id
+	@Column(name = "monster_id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
+	/**
+	 * Field monsterId.
+	 */
+	private Long monsterId;
+
+	@Column(name = "region_id", columnDefinition = "BIGINT UNSIGNED")
+	/**
+	 * Field regionId.
+	 */
+	private Long regionId;
+
+	@Column(name = "monster_type", length = 20)
+	/**
+	 * Field monsterType.
+	 */
+	private String monsterType;
+
+	@Column(name = "monster_difficulty", length = 20)
+	/**
+	 * Field monsterDifficulty.
+	 */
+	private String monsterDifficulty;
+
+	@Column(name = "monster_name", length = 100)
+	/**
+	 * Field monsterName.
+	 */
+	private String monsterName;
+
+	@Column(name = "required_level")
+	/**
+	 * Field requiredLevel.
+	 */
+	private Integer requiredLevel;
+
+	@Column(name = "power_required")
+	/**
+	 * Field powerRequired.
+	 */
+	private Integer powerRequired;
+
+	@Column(name = "power_recommended")
+	/**
+	 * Field powerRecommended.
+	 */
+	private Integer powerRecommended;
+
+	@Column(name = "power_overwhelming")
+	/**
+	 * Field powerOverwhelming.
+	 */
+	private Integer powerOverwhelming;
+
+	@Column(name = "party_revives")
+	/**
+	 * Field partyRevives.
+	 */
+	private Integer partyRevives;
+
+	@Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+	/**
+	 * Field createdAt.
+	 */
+	private LocalDateTime createdAt;
+
+	@Column(name = "updated_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+	/**
+	 * Field updatedAt.
+	 */
+	private LocalDateTime updatedAt;
+
+	@Column(name = "deleted_at", columnDefinition = "TIMESTAMP")
+	/**
+	 * Field deletedAt.
+	 */
+	private LocalDateTime deletedAt;
+
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "region_id", insertable = false, updatable = false,
+		foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+	/**
+	 * Field gameRegion.
+	 */
+	private GameRegion gameRegion;
+
+	/**
+	 * Initializes timestamps before insert.
+	 */
+	@PrePersist
+	public void prePersist(){
+		this.createdAt = LocalDateTime.now();
+		this.updatedAt = LocalDateTime.now();
+	}
+
+	/**
+	 * Updates timestamp before update.
+	 */
+	@PreUpdate
+	public void preUpdate(){
+		this.updatedAt = LocalDateTime.now();
+	}
+}
+

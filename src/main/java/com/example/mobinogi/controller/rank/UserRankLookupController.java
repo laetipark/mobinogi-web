@@ -1,7 +1,7 @@
 package com.example.mobinogi.controller.rank;
 
 import com.example.mobinogi.dto.rank.UserRankLookupDto;
-import com.example.mobinogi.entity.UserRank;
+import com.example.mobinogi.entity.user.UserRank;
 import com.example.mobinogi.repository.UserRankRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -10,16 +10,30 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * User rank lookup controller.
+ */
 @RestController
 @RequestMapping("/api/rank")
 @RequiredArgsConstructor
 public class UserRankLookupController{
 
+	/** User-rank repository. */
 	private final UserRankRepository userRankRepository;
 
+	/**
+	 * Finds rank rows by nickname and returns suggestions when not found.
+	 *
+	 * @param nickname nickname query
+	 * @return rank lookup response
+	 */
 	@GetMapping("/user")
 	public ResponseEntity<?> getUserRankByNickname(@RequestParam String nickname){
 		try{

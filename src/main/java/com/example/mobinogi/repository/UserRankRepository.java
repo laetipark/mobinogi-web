@@ -1,6 +1,6 @@
 package com.example.mobinogi.repository;
 
-import com.example.mobinogi.entity.UserRank;
+import com.example.mobinogi.entity.user.UserRank;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -45,12 +45,38 @@ public interface UserRankRepository extends JpaRepository<UserRank, Integer>{
 		FROM UserRank u
 		WHERE u.serverId = :serverId
 			AND u.deletedAt IS NULL
+			AND LOWER(TRIM(u.userName)) IN :normalizedUserNames
+		ORDER BY CASE WHEN u.classId = 0 THEN 0 ELSE 1 END, u.updatedAt DESC
+		""")
+	List<UserRank> findByServerIdAndNormalizedUserNameIn(
+		@Param("serverId") Integer serverId,
+		@Param("normalizedUserNames") List<String> normalizedUserNames
+	);
+
+	@Query("""
+		SELECT u
+		FROM UserRank u
+		WHERE u.serverId = :serverId
+			AND u.deletedAt IS NULL
 			AND LOWER(REPLACE(TRIM(u.userName), ' ', '')) = LOWER(REPLACE(TRIM(:userName), ' ', ''))
 		ORDER BY CASE WHEN u.classId = 0 THEN 0 ELSE 1 END, u.updatedAt DESC
 		""")
 	List<UserRank> findCompactByServerIdAndUserName(
 		@Param("serverId") Integer serverId,
 		@Param("userName") String userName
+	);
+
+	@Query("""
+		SELECT u
+		FROM UserRank u
+		WHERE u.serverId = :serverId
+			AND u.deletedAt IS NULL
+			AND LOWER(REPLACE(TRIM(u.userName), ' ', '')) IN :compactUserNames
+		ORDER BY CASE WHEN u.classId = 0 THEN 0 ELSE 1 END, u.updatedAt DESC
+		""")
+	List<UserRank> findByServerIdAndCompactUserNameIn(
+		@Param("serverId") Integer serverId,
+		@Param("compactUserNames") List<String> compactUserNames
 	);
 
 	default Optional<UserRank> findLatestActiveByServerIdAndUserNameRobust(Integer serverId, String userName){
@@ -77,3 +103,4 @@ public interface UserRankRepository extends JpaRepository<UserRank, Integer>{
 
 	List<UserRank> findTop5ByUserNameContainingIgnoreCaseAndDeletedAtIsNullOrderByUpdatedAtDesc(String userName);
 }
+

@@ -1,6 +1,6 @@
 package com.example.mobinogi.repository;
 
-import com.example.mobinogi.entity.User;
+import com.example.mobinogi.entity.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -15,7 +15,6 @@ public interface UserRepository extends JpaRepository<User, Long>{
 
 	Optional<User> findByUserIdAndDeletedAtIsNull(Long userId);
 
-	Optional<User> findByDiscordIdAndDeletedAtIsNull(String discordId);
-
 	boolean existsByKakaoId(Long kakaoId);
 }
+

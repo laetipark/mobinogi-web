@@ -49,5 +49,8 @@ class ItemEditReportService{
 	}
 }
 
+/**
+ * Constant itemEditReportService.
+ */
 const itemEditReportService = new ItemEditReportService();
 export default itemEditReportService;

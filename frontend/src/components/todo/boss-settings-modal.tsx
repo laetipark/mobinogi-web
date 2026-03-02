@@ -10,8 +10,14 @@ type MonsterGroup = {
 	regionText:string;
 };
 
+/**
+ * Utility function normalizeDifficultyKey.
+ */
 const normalizeDifficultyKey = (value:string):string => value.toLowerCase().replace(/\s+/g, "");
 
+/**
+ * Utility function getDifficultyToneClassName.
+ */
 const getDifficultyToneClassName = (difficultyLabel:string):string => {
 	const normalized = normalizeDifficultyKey(difficultyLabel);
 	if(normalized.includes("veryhard") || normalized.includes("hell") || normalized.includes("매우어려움") || normalized.includes("지옥")){
@@ -26,11 +32,17 @@ const getDifficultyToneClassName = (difficultyLabel:string):string => {
 	return styles.bossDifficultyDefault;
 };
 
+/**
+ * Utility function getDifficultyOrder.
+ */
 const getDifficultyOrder = (monster:GameMonster):number => {
 	const parsed = Number(monster.monsterDifficulty);
 	return Number.isFinite(parsed) ? parsed : Number.MAX_SAFE_INTEGER;
 };
 
+/**
+ * Utility function buildMonsterGroups.
+ */
 const buildMonsterGroups = (monsters:GameMonster[]):MonsterGroup[] => {
 	const groupMap = new Map<string, GameMonster[]>();
 	const nameOrder:string[] = [];
@@ -81,7 +93,13 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({
 	const groupedMonsters = useMemo(() => buildMonsterGroups(monsters), [monsters]);
 	const atLimit = maxSelections !== undefined && selected.length >= maxSelections;
 
+	/**
+	 * Utility function getGroupMonsterIds.
+	 */
 	const getGroupMonsterIds = (group:MonsterGroup):number[] => group.monsters.map((monster) => monster.monsterId);
+	/**
+	 * Utility function resolveFocusedIndex.
+	 */
 	const resolveFocusedIndex = (group:MonsterGroup):number => {
 		const focusedIndex = focusedDifficultyByName[group.name];
 		if(focusedIndex !== undefined && focusedIndex >= 0 && focusedIndex < group.monsters.length){
@@ -90,14 +108,23 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({
 		const selectedIndex = group.monsters.findIndex((monster) => selected.includes(monster.monsterId));
 		return selectedIndex >= 0 ? selectedIndex : 0;
 	};
+	/**
+	 * Utility function getFocusedMonster.
+	 */
 	const getFocusedMonster = (group:MonsterGroup):GameMonster | undefined => {
 		return group.monsters[resolveFocusedIndex(group)];
 	};
+	/**
+	 * Utility function isGroupSelected.
+	 */
 	const isGroupSelected = (group:MonsterGroup):boolean => {
 		const groupMonsterIds = getGroupMonsterIds(group);
 		return selected.some((monsterId) => groupMonsterIds.includes(monsterId));
 	};
 
+	/**
+	 * Utility function handleToggle.
+	 */
 	const handleToggle = (monsterId:number) => {
 		setSelected((prev) => {
 			if(prev.includes(monsterId)){
@@ -110,6 +137,9 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({
 		});
 	};
 
+	/**
+	 * Utility function handleGroupToggleSelection.
+	 */
 	const handleGroupToggleSelection = (group:MonsterGroup) => {
 		const focusedMonster = getFocusedMonster(group);
 		if(!focusedMonster){
@@ -128,11 +158,17 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({
 		});
 	};
 
+	/**
+	 * Utility function handleGroupDifficultyShift.
+	 */
 	const handleGroupDifficultyShift = (group:MonsterGroup, delta:number) => {
 		if(group.monsters.length <= 1){
 			return;
 		}
 		const currentIndex = resolveFocusedIndex(group);
+		/**
+		 * Utility function nextIndex.
+		 */
 		const nextIndex = (currentIndex + delta + group.monsters.length) % group.monsters.length;
 		const nextMonster = group.monsters[nextIndex];
 		if(!nextMonster){
@@ -152,6 +188,9 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({
 		});
 	};
 
+	/**
+	 * Utility function handleSelectAll.
+	 */
 	const handleSelectAll = () => {
 		if(exclusiveByName || groupByName){
 			const next:number[] = [];
@@ -178,10 +217,16 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({
 		setSelected(monsters.map((monster) => monster.monsterId));
 	};
 
+	/**
+	 * Utility function handleDeselectAll.
+	 */
 	const handleDeselectAll = () => {
 		setSelected([]);
 	};
 
+	/**
+	 * Utility function handleAddOne.
+	 */
 	const handleAddOne = (monsterId:number) => {
 		setSelected((prev) => {
 			if(rewardMax !== undefined && prev.length >= localRewardMax){
@@ -191,6 +236,9 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({
 		});
 	};
 
+	/**
+	 * Utility function handleRemoveOne.
+	 */
 	const handleRemoveOne = (monsterId:number) => {
 		setSelected((prev) => {
 			const removeIndex = prev.lastIndexOf(monsterId);
@@ -201,11 +249,17 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({
 		});
 	};
 
+	/**
+	 * Utility function handleRewardMaxChange.
+	 */
 	const handleRewardMaxChange = (newMax:number) => {
 		setLocalRewardMax(newMax);
 		setSelected((prev) => (prev.length > newMax ? prev.slice(0, newMax) : prev));
 	};
 
+	/**
+	 * Utility function handleSave.
+	 */
 	const handleSave = () => {
 		if(onRewardMaxChange){
 			onRewardMaxChange(localRewardMax);
@@ -213,6 +267,9 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({
 		onSave(selected);
 	};
 
+	/**
+	 * Utility function buildPreviewMap.
+	 */
 	const buildPreviewMap = () => {
 		const previewMap = new Map<number, number>();
 		for(const monsterId of selected){
@@ -221,6 +278,9 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({
 		return previewMap;
 	};
 
+	/**
+	 * Utility function renderDifficultyAdjust.
+	 */
 	const renderDifficultyAdjust = (group:MonsterGroup) => {
 		const focusedMonster = getFocusedMonster(group);
 		if(!focusedMonster){
@@ -256,6 +316,9 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({
 		);
 	};
 
+	/**
+	 * Utility function renderAllowMultiple.
+	 */
 	const renderAllowMultiple = () => {
 		const full = rewardMax !== undefined && selected.length >= localRewardMax;
 		return groupedMonsters.map((group) => {
@@ -285,6 +348,9 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({
 		});
 	};
 
+	/**
+	 * Utility function renderGroupedDifficultySelector.
+	 */
 	const renderGroupedDifficultySelector = () => {
 		return groupedMonsters.map((group) => {
 			const selectedInGroup = isGroupSelected(group);
@@ -311,6 +377,9 @@ const BossSettingsModal:React.FC<BossSettingsModalProps> = ({
 		});
 	};
 
+	/**
+	 * Utility function renderFlat.
+	 */
 	const renderFlat = () => {
 		return monsters.map((monster) => {
 			const isSelected = selected.includes(monster.monsterId);

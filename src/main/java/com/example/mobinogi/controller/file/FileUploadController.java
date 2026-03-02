@@ -6,24 +6,45 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * File upload/delete API controller.
+ */
 @RestController
 @RequestMapping("/api/upload")
 @RequiredArgsConstructor
 @Slf4j
 public class FileUploadController{
 
+	/** File storage service. */
 	private final FileStorageService fileStorageService;
+
+	/** JWT utility for upload authorization. */
 	private final JwtUtil jwtUtil;
 
+	/** Supported upload type values. */
 	private static final Set<String> ALLOWED_TYPES = Set.of("profile", "board");
 
+	/**
+	 * Uploads an image file to final or temporary path.
+	 *
+	 * @param authHeader authorization header
+	 * @param file multipart image file
+	 * @param type upload type
+	 * @param temporary temporary-upload flag
+	 * @return upload result response
+	 */
 	@PostMapping("/image")
 	public ResponseEntity<Map<String, Object>> uploadImage(
 		@RequestHeader(value = "Authorization", required = false) String authHeader,
@@ -61,6 +82,7 @@ public class FileUploadController{
 			String url = temporary
 				? fileStorageService.storeTempFile(file, normalizedType, userId)
 				: fileStorageService.storeFile(file, normalizedType);
+
 			log.info(
 				"Image upload success - userId: {}, type: {}, temporary: {}, url: {}",
 				userId,
@@ -89,6 +111,13 @@ public class FileUploadController{
 		}
 	}
 
+	/**
+	 * Deletes uploaded image by URL.
+	 *
+	 * @param authHeader authorization header
+	 * @param fileUrl file URL to delete
+	 * @return delete result response
+	 */
 	@DeleteMapping("/image")
 	public ResponseEntity<Map<String, Object>> deleteImage(
 		@RequestHeader(value = "Authorization", required = false) String authHeader,
@@ -114,6 +143,12 @@ public class FileUploadController{
 		}
 	}
 
+	/**
+	 * Extracts user ID from bearer token.
+	 *
+	 * @param authHeader authorization header
+	 * @return user ID
+	 */
 	private Long getUserIdFromToken(String authHeader){
 		if(authHeader == null || !authHeader.startsWith("Bearer ")){
 			throw new SecurityException("Authorization token is required.");
@@ -127,6 +162,12 @@ public class FileUploadController{
 		return jwtUtil.getUserIdFromToken(token);
 	}
 
+	/**
+	 * Normalizes upload type text.
+	 *
+	 * @param type raw type string
+	 * @return normalized type
+	 */
 	private String normalizeType(String type){
 		if(type == null){
 			return "board";

@@ -12,6 +12,12 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CraftFilterTypeDto{
+	/**
+	 * Field craftType.
+	 */
 	private String craftType;
+	/**
+	 * Field craftNames.
+	 */
 	private List<String> craftNames;
 }

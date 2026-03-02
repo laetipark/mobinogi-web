@@ -23,10 +23,16 @@ type BossCardProps = {
 	onSetCompletedCount:(nextCompletedCount:number) => void;
 };
 
+/**
+ * Utility function normalizeDifficultyKey.
+ */
 const normalizeDifficultyKey = (value:string):string => {
 	return value.toLowerCase().replace(/\s+/g, "");
 };
 
+/**
+ * Utility function getDifficultyToneClassName.
+ */
 const getDifficultyToneClassName = (difficultyLabel:string):string => {
 	const normalized = normalizeDifficultyKey(difficultyLabel);
 	if(normalized.includes("veryhard") || normalized.includes("hell") || normalized.includes("매우어려움") || normalized.includes("지옥")){
@@ -51,8 +57,14 @@ const BossChecklist:React.FC<BossChecklistProps> = ({
 	allowDuplicates,
 	trackedIds
 }) => {
+	/**
+	 * Utility function getRegionText.
+	 */
 	const getRegionText = (monster:GameMonster):string => monster.regionName || "N/A";
 
+	/**
+	 * Utility function handleToggle.
+	 */
 	const handleToggle = (monsterId:number) => {
 		const monster = monsters.find(m => m.monsterId === monsterId);
 		if(completedIds.includes(monsterId)){
@@ -117,6 +129,9 @@ const BossChecklist:React.FC<BossChecklistProps> = ({
 		}));
 	}, [allowDuplicates, trackedIds, monsterById]);
 
+	/**
+	 * Utility function handleDuplicateGroupToggle.
+	 */
 	const handleDuplicateGroupToggle = (slotIndices:number[], nextCompletedCount:number, totalTracked:number) => {
 		const normalizedSlots = [...slotIndices].sort((a, b) => a - b);
 		const completedSet = new Set(completedIds.filter((idx) => idx >= 0 && idx < totalTracked));
@@ -142,6 +157,9 @@ const BossChecklist:React.FC<BossChecklistProps> = ({
 		onChange(Array.from(completedSet).sort((a, b) => a - b));
 	};
 
+	/**
+	 * Utility function renderQtyButtons.
+	 */
 	const renderQtyButtons = (
 		keyValue:string,
 		monsterName:string,
@@ -174,6 +192,9 @@ const BossChecklist:React.FC<BossChecklistProps> = ({
 		);
 	};
 
+	/**
+	 * Utility function renderBossCard.
+	 */
 	const renderBossCard = ({
 		keyValue,
 		monsterName,

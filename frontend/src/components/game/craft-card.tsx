@@ -3,6 +3,9 @@ import styles from "@/pages/game/game-items.module.scss";
 import {Hammer, Info} from "lucide-react";
 import type {CraftCardProps} from "@/types/ui";
 
+/**
+ * Utility function formatProcessingTime.
+ */
 const formatProcessingTime = (processingTime:number | null | undefined):string => {
 	if(processingTime === null || processingTime === undefined){
 		return "-";

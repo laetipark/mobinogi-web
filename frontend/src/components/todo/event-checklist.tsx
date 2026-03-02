@@ -4,9 +4,18 @@ import type {GameEvent} from "@/types";
 import {Eye, EyeOff} from "lucide-react";
 import styles from "./todo.module.scss";
 
+/**
+ * Constant STORAGE_KEY.
+ */
 const STORAGE_KEY = "mobinogi:eventChecklist";
+/**
+ * Constant HIDDEN_STORAGE_KEY.
+ */
 const HIDDEN_STORAGE_KEY = "mobinogi:hiddenEvents";
 
+/**
+ * Utility function loadChecked.
+ */
 const loadChecked = ():Set<string> => {
 	try{
 		const raw = localStorage.getItem(STORAGE_KEY);
@@ -19,10 +28,16 @@ const loadChecked = ():Set<string> => {
 	return new Set();
 };
 
+/**
+ * Utility function saveChecked.
+ */
 const saveChecked = (checked:Set<string>) => {
 	localStorage.setItem(STORAGE_KEY, JSON.stringify([...checked]));
 };
 
+/**
+ * Utility function loadHidden.
+ */
 const loadHidden = ():Set<string> => {
 	try{
 		const raw = localStorage.getItem(HIDDEN_STORAGE_KEY);
@@ -35,10 +50,16 @@ const loadHidden = ():Set<string> => {
 	return new Set();
 };
 
+/**
+ * Utility function saveHidden.
+ */
 const saveHidden = (hidden:Set<string>) => {
 	localStorage.setItem(HIDDEN_STORAGE_KEY, JSON.stringify([...hidden]));
 };
 
+/**
+ * Utility function formatTimeLeft.
+ */
 const formatTimeLeft = (endDate:string, permanent?:boolean):string => {
 	if(permanent) return "상시";
 	const diff = new Date(endDate).getTime() - Date.now();
@@ -104,6 +125,9 @@ const EventChecklist:React.FC = () => {
 	const completedCount = visibleEvents.filter(e => checked.has(e.eventId)).length;
 	const progress = visibleEvents.length > 0 ? Math.round((completedCount / visibleEvents.length) * 100) : 0;
 	
+	/**
+	 * Utility function formatDate.
+	 */
 	const formatDate = (dateStr:string):string => {
 		const date = new Date(dateStr);
 		return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;

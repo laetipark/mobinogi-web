@@ -8,6 +8,12 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class BoardCommentCreateRequest{
+	/**
+	 * Field parentCommentId.
+	 */
 	private Long parentCommentId;
+	/**
+	 * Field content.
+	 */
 	private String content;
 }
