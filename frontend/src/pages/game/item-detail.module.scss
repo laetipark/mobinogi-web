@@ -14,7 +14,7 @@
 	gap:6px;
 	padding:9px 14px;
 	border:1px solid color-mix(in srgb, var(--border) 72%, #64748b 28%);
-	border-radius:10px;
+	border-radius:7px;
 	background:color-mix(in srgb, var(--surface) 88%, #ffffff 12%);
 	color:var(--text);
 	font-size:0.9rem;
@@ -32,7 +32,7 @@
 
 .content{
 	background:var(--surface);
-	border-radius:20px;
+	border-radius:12px;
 	overflow:hidden;
 	border:1px solid var(--border);
 	box-shadow:var(--shadow-lg);
@@ -53,7 +53,7 @@
 .reportDialog{
 	width:min(960px, 100%);
 	max-height:min(88vh, 980px);
-	border-radius:16px;
+	border-radius:10px;
 	border:1px solid var(--border);
 	background:var(--surface);
 	box-shadow:var(--overlay-card-shadow-strong);
@@ -87,7 +87,7 @@
 	justify-content:center;
 	width:34px;
 	height:34px;
-	border-radius:10px;
+	border-radius:7px;
 	border:1px solid var(--border);
 	background:var(--surface);
 	color:var(--text-muted);
@@ -283,7 +283,7 @@
 
 .overviewCard{
 	border:1px solid var(--border);
-	border-radius:14px;
+	border-radius:9px;
 	background:var(--surface-hover);
 	padding:14px;
 	display:flex;
@@ -399,7 +399,7 @@
 	align-items:flex-start;
 	gap:4px;
 	padding:12px;
-	border-radius:12px;
+	border-radius:8px;
 	border:1px solid var(--border);
 	background:var(--surface);
 	min-width:0;
@@ -474,7 +474,7 @@
 	display:inline-block;
 	padding:0 4px;
 	margin:0 1px;
-	border-radius:6px;
+	border-radius:4px;
 	color:var(--primary-dark);
 	font-weight:700;
 	background:color-mix(in srgb, var(--primary-light) 36%, transparent);
@@ -508,7 +508,7 @@
 	align-items:flex-start;
 	padding:8px 10px;
 	border:1px solid var(--border);
-	border-radius:12px;
+	border-radius:8px;
 	background:var(--surface);
 }
 
@@ -555,7 +555,7 @@
 .transcendenceRaw{
 	margin:0;
 	padding:10px 12px;
-	border-radius:12px;
+	border-radius:8px;
 	border:1px dashed var(--border);
 	background:var(--surface);
 	color:var(--text-muted);
@@ -615,7 +615,7 @@
 		color:var(--primary-dark);
 		border-bottom-color:var(--primary);
 		background:var(--surface);
-		border-radius:10px 10px 0 0;
+		border-radius:7px 7px 0 0;
 		box-shadow:none;
 	}
 
@@ -669,7 +669,7 @@
 .craftGroup{
 	background:var(--surface-hover);
 	border:1px solid color-mix(in srgb, var(--border) 78%, #64748b 22%);
-	border-radius:12px;
+	border-radius:8px;
 	padding:14px;
 	transition:all $transition-fast;
 
@@ -711,7 +711,7 @@
 	gap:3px;
 	background:color-mix(in srgb, var(--surface) 92%, #ffffff 8%);
 	padding:10px 12px;
-	border-radius:10px;
+	border-radius:7px;
 	border:1px solid color-mix(in srgb, var(--border) 80%, #64748b 20%);
 
 	.itemName{
@@ -790,7 +790,7 @@
 	gap:6px;
 	background:var(--surface);
 	padding:8px 12px;
-	border-radius:10px;
+	border-radius:7px;
 	border:1px solid var(--border);
 
 	.ingredientName{

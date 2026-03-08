@@ -286,7 +286,7 @@
 .metaValueBlock{
 	white-space:pre-line;
 	padding:8px 10px;
-	border-radius:10px;
+	border-radius:7px;
 	border:1px dashed var(--border);
 	background:var(--surface-hover);
 }
@@ -306,7 +306,7 @@
 	display:inline-block;
 	padding:0 4px;
 	margin:0 1px;
-	border-radius:6px;
+	border-radius:4px;
 	color:var(--primary-dark);
 	font-weight:700;
 	background:color-mix(in srgb, var(--primary-light) 36%, transparent);
@@ -340,7 +340,7 @@
 	align-items:flex-start;
 	padding:8px 10px;
 	border:1px solid var(--border);
-	border-radius:12px;
+	border-radius:8px;
 	background:var(--surface);
 }
 
@@ -387,7 +387,7 @@
 .transcendenceRaw{
 	margin:0;
 	padding:10px 12px;
-	border-radius:12px;
+	border-radius:8px;
 	border:1px dashed var(--border);
 	background:var(--surface);
 	color:var(--text-muted);
@@ -447,7 +447,7 @@
 		color:var(--text-muted);
 		font-size:0.75rem;
 		padding:2px 8px;
-		border-radius:10px;
+		border-radius:7px;
 		font-weight:600;
 	}
 
@@ -684,7 +684,7 @@
 	.modalContent{
 		max-width:640px;
 		max-height:calc(100vh - 24px);
-		border-radius:12px;
+		border-radius:8px;
 	}
 
 	.modalHeader{

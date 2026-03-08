@@ -28,7 +28,7 @@
 
 .searchSection{
 	background:var(--surface);
-	border-radius:12px;
+	border-radius:8px;
 	padding:16px;
 	border:1px solid var(--border);
 	box-shadow:var(--shadow-sm);
@@ -51,7 +51,7 @@
 	gap:8px;
 	padding:9px 12px;
 	border:1px solid var(--border);
-	border-radius:10px;
+	border-radius:7px;
 	background:var(--background);
 
 	.searchIcon{
@@ -87,7 +87,7 @@
 		right:0;
 		background:var(--surface);
 		border:1px solid var(--border);
-		border-radius:12px;
+		border-radius:8px;
 		box-shadow:var(--shadow-md);
 		z-index:1000;
 		max-height:300px;
@@ -127,7 +127,7 @@
 	background:var(--gradient);
 	color:var(--text-on-primary);
 	padding:9px 16px;
-	border-radius:10px;
+	border-radius:7px;
 	font-size:0.9rem;
 	font-weight:600;
 	cursor:pointer;
@@ -147,7 +147,7 @@
 	background:var(--surface-hover);
 	color:var(--text);
 	padding:9px 16px;
-	border-radius:10px;
+	border-radius:7px;
 	font-size:0.9rem;
 	font-weight:600;
 	cursor:pointer;
@@ -168,7 +168,7 @@
 	border:1px solid var(--home-state-danger-border);
 	color:var(--home-state-danger-text);
 	padding:12px 16px;
-	border-radius:10px;
+	border-radius:7px;
 	margin-bottom:20px;
 	text-align:center;
 	font-size:0.9rem;
@@ -187,7 +187,7 @@
 	background:var(--gradient);
 	color:var(--text-on-primary);
 	padding:16px 18px;
-	border-radius:14px;
+	border-radius:9px;
 
 	h2{
 		margin:0;
@@ -198,7 +198,7 @@
 
 .dataSection{
 	background:var(--surface);
-	border-radius:14px;
+	border-radius:9px;
 	border:1px solid var(--border);
 	overflow:hidden;
 
@@ -302,7 +302,7 @@
 
 .craftGroup{
 	border:1px solid var(--border);
-	border-radius:12px;
+	border-radius:8px;
 	overflow:hidden;
 
 	.craftGroupHeader{
@@ -347,7 +347,7 @@
 
 .noRelatedData{
 	background:var(--surface);
-	border-radius:14px;
+	border-radius:9px;
 	padding:32px 20px;
 	text-align:center;
 	color:var(--text-muted);
@@ -357,7 +357,7 @@
 
 .initialGuide{
 	background:var(--surface);
-	border-radius:14px;
+	border-radius:9px;
 	padding:50px 20px;
 	text-align:center;
 	color:var(--text-muted);

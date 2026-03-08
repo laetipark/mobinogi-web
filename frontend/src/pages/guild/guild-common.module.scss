@@ -11,7 +11,7 @@
 
 .error{
 	padding:12px 14px;
-	border-radius:12px;
+	border-radius:8px;
 	border:1px solid var(--danger-color);
 	background:var(--danger-bg);
 	color:var(--danger-color);
@@ -20,7 +20,7 @@
 
 .section{
 	border:1px solid var(--border);
-	border-radius:18px;
+	border-radius:11px;
 	background:var(--surface);
 	box-shadow:var(--shadow-sm);
 	display:flex;
@@ -61,7 +61,7 @@
 
 .errorInline{
 	padding:10px 12px;
-	border-radius:10px;
+	border-radius:7px;
 	border:1px solid var(--danger-color);
 	background:var(--danger-bg);
 	color:var(--danger-color);
@@ -101,7 +101,7 @@
 .textarea{
 	width:100%;
 	border:1px solid var(--border);
-	border-radius:11px;
+	border-radius:7px;
 	padding:10px 12px;
 	background:color-mix(in srgb, var(--surface) 90%, #fff 10%);
 	color:var(--text);
@@ -137,7 +137,7 @@
 	min-height:36px;
 	padding:8px 13px;
 	border:1px solid transparent;
-	border-radius:11px;
+	border-radius:7px;
 	font-size:0.84rem;
 	font-weight:800;
 	line-height:1;
@@ -241,7 +241,7 @@
 	overflow-y:hidden;
 	-webkit-overflow-scrolling:touch;
 	border:1px solid var(--border-light);
-	border-radius:14px;
+	border-radius:9px;
 	background:var(--surface);
 }
 
@@ -297,7 +297,7 @@
 .sortButton:focus-visible{
 	outline:2px solid var(--primary);
 	outline-offset:2px;
-	border-radius:4px;
+	border-radius:3px;
 }
 
 .sortIndicator{
@@ -417,7 +417,7 @@
 
 	.section{
 		padding:14px;
-		border-radius:14px;
+		border-radius:9px;
 	}
 
 	.formGrid{

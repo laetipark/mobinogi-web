@@ -48,7 +48,7 @@
 		color:white;
 		font-size:12px;
 		padding:2px 8px;
-		border-radius:12px;
+		border-radius:8px;
 	}
 }
 
@@ -364,7 +364,7 @@
 	color:var(--text-muted);
 	background:var(--surface);
 	padding:4px 10px;
-	border-radius:12px;
+	border-radius:8px;
 }
 
 .classBadge{
@@ -382,7 +382,7 @@
 .statPower, .statVitality, .statAttractiveness{
 	font-size:12px;
 	padding:2px 8px;
-	border-radius:10px;
+	border-radius:7px;
 }
 
 .statPower{
@@ -403,7 +403,7 @@
 .statLoading{
 	font-size:12px;
 	padding:2px 8px;
-	border-radius:10px;
+	border-radius:7px;
 	background:rgba(156, 163, 175, 0.1);
 	color:#9ca3af;
 }

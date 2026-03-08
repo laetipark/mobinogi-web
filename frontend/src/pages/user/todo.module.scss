@@ -88,7 +88,7 @@ html{
 	padding:20px;
 	background:var(--danger-bg, #ffebee);
 	color:var(--danger-color, #c62828);
-	border-radius:8px;
+	border-radius:6px;
 	text-align:center;
 }
 
@@ -131,7 +131,7 @@ html{
 	align-items:center;
 	gap:2px;
 	padding:10px 18px;
-	border-radius:8px;
+	border-radius:6px;
 	border:1px solid var(--border-color, #e0e0e0);
 	background:var(--card-bg, #fff);
 	cursor:pointer;
@@ -176,7 +176,7 @@ html{
 
 .saveBtn{
 	padding:10px 24px;
-	border-radius:8px;
+	border-radius:6px;
 	border:none;
 	background:var(--primary-color, #4CAF50);
 	color:var(--text-on-primary);
@@ -213,7 +213,7 @@ html{
 // Character View
 .characterView{
 	background:var(--card-bg, #fff);
-	border-radius:12px;
+	border-radius:8px;
 	border:1px solid var(--border-color, #e0e0e0);
 	overflow:hidden;
 	box-shadow:var(--shadow-sm);
@@ -254,7 +254,7 @@ html{
 	font-size:12px;
 	font-weight:600;
 	padding:2px 8px;
-	border-radius:10px;
+	border-radius:7px;
 	background:var(--badge-bg, #e8eaf6);
 	color:var(--badge-color, #3f51b5);
 	border:1px solid var(--badge-border, transparent);
@@ -264,7 +264,7 @@ html{
 	font-size:12px;
 	font-weight:600;
 	padding:2px 8px;
-	border-radius:10px;
+	border-radius:7px;
 	background:var(--badge-bg2, #e8f5e9);
 	color:var(--badge-color2, #2e7d32);
 	border:1px solid var(--badge-border2, transparent);
@@ -279,7 +279,7 @@ html{
 .statPower, .statVitality, .statAttractiveness{
 	font-size:11px;
 	padding:2px 8px;
-	border-radius:10px;
+	border-radius:7px;
 }
 
 .statPower{
@@ -300,7 +300,7 @@ html{
 .statLoading{
 	font-size:11px;
 	padding:2px 8px;
-	border-radius:10px;
+	border-radius:7px;
 	background:var(--todo-stat-loading-bg);
 	color:var(--todo-stat-loading-text);
 }
@@ -333,7 +333,7 @@ html{
 .favoriteSection{
 	margin-top:18px;
 	padding:16px 20px;
-	border-radius:12px;
+	border-radius:8px;
 	border:1px solid var(--border-color, #e0e0e0);
 	background:var(--card-bg, #fff);
 	box-shadow:var(--shadow-sm);
@@ -345,7 +345,7 @@ html{
 :global(.dark-mode) .resetTimer{
 	background:var(--card-bg);
 	border:1px solid var(--border-color);
-	border-radius:8px;
+	border-radius:6px;
 	padding:8px 12px;
 }
 
@@ -414,7 +414,7 @@ html{
 	font-size:12px;
 	font-weight:600;
 	padding:2px 8px;
-	border-radius:10px;
+	border-radius:7px;
 	background:var(--badge-bg, rgba(168, 213, 229, 0.2));
 	color:var(--badge-color, var(--primary-dark));
 	border:1px solid var(--badge-border, rgba(139, 196, 214, 0.35));
@@ -428,7 +428,7 @@ html{
 	input{
 		flex:1;
 		padding:10px 12px;
-		border-radius:8px;
+		border-radius:6px;
 		border:1px solid var(--border-color, #ccc);
 		background:var(--input-bg, #fff);
 		color:var(--text-primary, #333);
@@ -462,7 +462,7 @@ html{
 	justify-content:space-between;
 	gap:8px;
 	padding:8px 10px;
-	border-radius:8px;
+	border-radius:6px;
 	border:1px solid var(--border-color, #e0e0e0);
 	background:var(--input-bg, #fff);
 	color:var(--text-primary, #333);
@@ -513,7 +513,7 @@ html{
 	align-items:center;
 	gap:8px;
 	padding:8px 10px;
-	border-radius:8px;
+	border-radius:6px;
 	border:1px solid var(--border-color, #e0e0e0);
 	background:var(--card-bg, #fff);
 	max-width:100%;
@@ -550,7 +550,7 @@ html{
 .favoriteRemoveBtn{
 	width:26px;
 	height:26px;
-	border-radius:6px;
+	border-radius:4px;
 	border:1px solid var(--border-color, #ddd);
 	background:var(--card-bg, #fff);
 	color:var(--text-secondary, #888);
@@ -589,7 +589,7 @@ html{
 	justify-content:center;
 	width:40px;
 	height:40px;
-	border-radius:8px;
+	border-radius:6px;
 	border:1px dashed var(--border-color, #ccc);
 	background:transparent;
 	color:var(--text-secondary, #888);
@@ -610,7 +610,7 @@ html{
 	align-items:center;
 	gap:6px;
 	padding:10px 20px;
-	border-radius:8px;
+	border-radius:6px;
 	border:none;
 	background:var(--primary-color, #4CAF50);
 	color:var(--text-on-primary);
@@ -640,7 +640,7 @@ html{
 
 .addCharacterPopup{
 	background:var(--card-bg, #fff);
-	border-radius:12px;
+	border-radius:8px;
 	padding:24px;
 	width:90%;
 	max-width:440px;
@@ -674,7 +674,7 @@ html{
 
 	input, select{
 		padding:8px 12px;
-		border-radius:8px;
+		border-radius:6px;
 		border:1px solid var(--border-color, #ccc);
 		background:var(--input-bg, #fff);
 		color:var(--text-primary, #333);
@@ -711,7 +711,7 @@ html{
 	align-items:center;
 	gap:4px;
 	padding:8px 16px;
-	border-radius:6px;
+	border-radius:4px;
 	border:1px solid var(--border-color, #ddd);
 	background:var(--card-bg, #fff);
 	color:var(--text-primary, #333);
@@ -728,7 +728,7 @@ html{
 	align-items:center;
 	gap:4px;
 	padding:8px 16px;
-	border-radius:6px;
+	border-radius:4px;
 	border:none;
 	background:var(--primary-color, #4CAF50);
 	color:var(--text-on-primary);
@@ -804,7 +804,7 @@ html{
 		justify-content:center;
 		gap:4px;
 		padding:8px 10px;
-		border-radius:8px;
+		border-radius:6px;
 		border:1px solid var(--border-color, #e0e0e0);
 		background:var(--card-bg, #fff);
 		font-size:12px;
@@ -855,7 +855,7 @@ html{
 	}
 
 	.characterView{
-		border-radius:10px;
+		border-radius:7px;
 	}
 
 	.characterHeader{

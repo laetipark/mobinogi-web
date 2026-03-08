@@ -7,13 +7,13 @@
 .guildGalleryUploadCard{
 	padding:12px;
 	border:1px solid var(--border);
-	border-radius:16px;
+	border-radius:10px;
 	background:color-mix(in srgb, var(--surface) 86%, var(--primary-light) 14%);
 }
 
 .guildGalleryHeroCard{
 	border:1px solid var(--border);
-	border-radius:16px;
+	border-radius:10px;
 	padding:10px;
 	background:color-mix(in srgb, var(--surface) 88%, var(--primary-light) 12%);
 	box-shadow:var(--shadow-sm);
@@ -44,7 +44,7 @@
 	background:var(--surface);
 	color:var(--text);
 	padding:9px 12px;
-	border-radius:10px;
+	border-radius:7px;
 	cursor:pointer;
 	font-size:0.86rem;
 	font-weight:700;
@@ -78,7 +78,7 @@
 	gap:12px;
 	padding:16px;
 	border:1px dashed color-mix(in srgb, var(--primary) 45%, var(--border) 55%);
-	border-radius:14px;
+	border-radius:9px;
 	background:var(--surface);
 	color:var(--text);
 	cursor:pointer;
@@ -140,7 +140,7 @@
 	max-height:min(90vh, 860px);
 	overflow:auto;
 	border:1px solid var(--border);
-	border-radius:18px;
+	border-radius:11px;
 	background:var(--surface);
 	box-shadow:var(--shadow-md);
 	padding:18px;
@@ -188,7 +188,7 @@
 .editImageItem{
 	position:relative;
 	border:1px solid var(--border-light);
-	border-radius:10px;
+	border-radius:7px;
 	overflow:hidden;
 	background:var(--surface);
 
@@ -220,7 +220,7 @@
 
 .createPreview{
 	border:1px solid var(--border-light);
-	border-radius:14px;
+	border-radius:9px;
 	padding:10px;
 	background:color-mix(in srgb, var(--surface-hover) 82%, var(--primary-light) 18%);
 	display:grid;
@@ -230,7 +230,7 @@
 .createPreviewViewport{
 	position:relative;
 	border:1px solid var(--border-light);
-	border-radius:10px;
+	border-radius:7px;
 	overflow:hidden;
 	background:var(--surface);
 	aspect-ratio:16 / 10;
@@ -292,14 +292,14 @@
 	flex-wrap:wrap;
 	padding:10px;
 	border:1px solid var(--border);
-	border-radius:14px;
+	border-radius:9px;
 	background:color-mix(in srgb, var(--surface) 88%, var(--primary-light) 12%);
 }
 
 .guildGalleryViewSwitch{
 	display:flex;
 	padding:4px;
-	border-radius:12px;
+	border-radius:8px;
 	background:var(--surface);
 	border:1px solid var(--border);
 	box-shadow:var(--shadow-sm);
@@ -309,7 +309,7 @@
 		background:transparent;
 		color:var(--text-muted);
 		padding:8px 14px;
-		border-radius:10px;
+		border-radius:7px;
 		display:flex;
 		align-items:center;
 		gap:6px;
@@ -329,7 +329,7 @@
 	align-items:center;
 	gap:8px;
 	padding:9px 12px;
-	border-radius:12px;
+	border-radius:8px;
 	border:1px solid var(--border);
 	background:var(--surface);
 	min-width:280px;
@@ -403,7 +403,7 @@
 
 .guildGalleryBoardView{
 	border:1px solid var(--border);
-	border-radius:16px;
+	border-radius:10px;
 	overflow:hidden;
 	background:var(--surface);
 }
@@ -437,7 +437,7 @@
 		width:120px;
 		height:80px;
 		object-fit:cover;
-		border-radius:10px;
+		border-radius:7px;
 		border:1px solid var(--border);
 	}
 
@@ -500,7 +500,7 @@
 	flex-direction:column;
 	background:var(--surface);
 	border:1px solid var(--border);
-	border-radius:18px;
+	border-radius:11px;
 	overflow:hidden;
 	box-shadow:var(--shadow-sm);
 	transition:transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
@@ -667,7 +667,7 @@
 	max-height:min(92vh, 900px);
 	overflow:auto;
 	border:1px solid var(--border);
-	border-radius:18px;
+	border-radius:11px;
 	background:var(--surface);
 	box-shadow:var(--shadow-md);
 	padding:14px;
@@ -705,7 +705,7 @@
 .galleryViewerImageWrap{
 	position:relative;
 	border:1px solid var(--border);
-	border-radius:14px;
+	border-radius:9px;
 	overflow:hidden;
 	background:color-mix(in srgb, var(--surface-hover) 78%, var(--primary-light) 22%);
 }
@@ -757,7 +757,7 @@
 	max-width:100%;
 	max-height:min(90vh, 980px);
 	object-fit:contain;
-	border-radius:12px;
+	border-radius:8px;
 	border:1px solid color-mix(in srgb, var(--border) 70%, #fff 30%);
 	background:#0b0f16;
 }
@@ -784,7 +784,7 @@
 	gap:10px;
 	padding:10px;
 	border:1px solid var(--border);
-	border-radius:14px;
+	border-radius:9px;
 	background:var(--surface-hover);
 }
 
@@ -947,7 +947,7 @@
 
 	.modalContent{
 		padding:14px;
-		border-radius:14px;
+		border-radius:9px;
 	}
 
 	.modalHeader{
@@ -960,7 +960,7 @@
 
 	.galleryViewerDialog{
 		padding:12px;
-		border-radius:14px;
+		border-radius:9px;
 	}
 
 	.galleryViewerImage{

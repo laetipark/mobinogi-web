@@ -19,14 +19,14 @@
 .todayStatusCard,
 .feedPanel{
 	border:1px solid var(--home-panel-border);
-	border-radius:16px;
-	background:var(--home-panel-bg);
+	border-radius:10px;
+	background:var(--home-container-bg);
 	box-shadow:var(--shadow-sm);
 }
 
 .homeworkAlert{
 	padding:9px 10px;
-	border-radius:10px;
+	border-radius:7px;
 	border:1px solid var(--home-state-danger-border);
 	background:var(--home-state-danger-bg);
 	color:var(--home-state-danger-text);
@@ -38,7 +38,7 @@
 	align-items:center;
 	justify-content:center;
 	gap:6px;
-	border-radius:11px;
+	border-radius:7px;
 	font-weight:700;
 	font-size:0.84rem;
 	padding:9px 14px;
@@ -57,7 +57,7 @@
 	padding:7px 11px;
 	font-size:0.76rem;
 	gap:4px;
-	border-radius:10px;
+	border-radius:7px;
 }
 
 .primaryAction:hover{
@@ -71,10 +71,7 @@
 	flex-direction:column;
 	gap:12px;
 	min-height:100%;
-	background:
-		radial-gradient(circle at 86% 16%, var(--home-hero-glow-a), transparent 52%),
-		radial-gradient(circle at 8% 20%, var(--home-hero-glow-b), transparent 46%),
-		var(--home-panel-bg);
+	background:var(--home-container-bg);
 }
 
 .todayStatusHeader{
@@ -116,11 +113,9 @@
 	flex-direction:column;
 	gap:10px;
 	border:1px solid var(--home-panel-border);
-	border-radius:16px;
+	border-radius:10px;
 	padding:12px;
-	background:
-		radial-gradient(circle at 88% 14%, rgba(157, 200, 216, 0.14), transparent 42%),
-		var(--home-panel-bg);
+	background:var(--home-container-bg);
 }
 
 .groupHeader{
@@ -246,8 +241,8 @@
 
 .summaryPanel{
 	border:1px solid var(--home-panel-border);
-	border-radius:12px;
-	background:var(--home-panel-muted);
+	border-radius:8px;
+	background:var(--home-container-bg-soft);
 	padding:10px;
 	display:flex;
 	flex-direction:column;
@@ -321,8 +316,8 @@
 
 .summaryItem{
 	border:1px solid var(--home-panel-border);
-	border-radius:10px;
-	background:var(--home-panel-bg);
+	border-radius:7px;
+	background:var(--home-container-bg);
 	padding:8px;
 	display:flex;
 	flex-direction:column;
@@ -407,7 +402,7 @@
 	gap:10px;
 	position:relative;
 	overflow:hidden;
-	background:var(--home-panel-bg);
+	background:var(--home-container-bg);
 }
 
 .gameFeedRightColumn .feedPanel{
@@ -460,7 +455,7 @@
 		border:1px solid var(--home-panel-border);
 		background:var(--home-panel-muted);
 		color:var(--text);
-		border-radius:10px;
+		border-radius:7px;
 		padding:5px 9px;
 		font-size:0.75rem;
 		font-weight:700;
@@ -519,8 +514,8 @@
 
 .spawnTimerCard{
 	border:1px solid var(--home-panel-border);
-	border-radius:12px;
-	background:var(--home-panel-muted);
+	border-radius:8px;
+	background:var(--home-container-bg-soft);
 	padding:10px;
 	display:flex;
 	flex-direction:column;
@@ -574,8 +569,8 @@
 	gap:6px;
 	flex:1;
 	border:1px dashed var(--home-panel-border);
-	border-radius:10px;
-	background:var(--home-panel-muted);
+	border-radius:7px;
+	background:var(--home-container-bg-soft);
 	color:var(--text-muted);
 	font-size:0.82rem;
 	padding:14px;
@@ -621,8 +616,8 @@
 	flex-direction:column;
 	gap:6px;
 	border:1px solid var(--home-panel-border);
-	border-radius:10px;
-	background:var(--home-panel-muted);
+	border-radius:7px;
+	background:var(--home-container-bg-soft);
 	padding:10px;
 	text-decoration:none;
 	color:inherit;
@@ -694,9 +689,9 @@
 	position:relative;
 	aspect-ratio:16 / 9;
 	border-bottom:1px solid var(--home-panel-border);
-	border-radius:10px 10px 0 0;
+	border-radius:7px 7px 0 0;
 	overflow:hidden;
-	background:var(--home-panel-muted);
+	background:var(--home-container-bg-soft);
 }
 
 .eventFeedThumb{
@@ -717,7 +712,7 @@
 	justify-content:center;
 	width:100%;
 	height:100%;
-	background:var(--home-panel-muted);
+	background:var(--home-container-bg-soft);
 	color:var(--text-muted);
 	font-size:0.72rem;
 	font-weight:800;
@@ -831,7 +826,7 @@
 	padding:10px 12px;
 	border:1px solid var(--home-state-danger-border);
 	background:var(--home-state-danger-bg);
-	border-radius:10px;
+	border-radius:7px;
 	color:var(--home-state-danger-text);
 	font-size:0.82rem;
 }
@@ -862,8 +857,8 @@
 
 .galleryPreviewItem{
 	border:1px solid var(--home-panel-border);
-	border-radius:10px;
-	background:var(--home-panel-muted);
+	border-radius:7px;
+	background:var(--home-container-bg-soft);
 	display:flex;
 	flex-direction:column;
 	height:100%;

@@ -37,14 +37,14 @@
 	gap:10px;
 	background:var(--surface);
 	border:1px solid var(--border);
-	border-radius:12px;
+	border-radius:8px;
 	padding:14px;
 	margin-bottom:14px;
 
 	input, textarea{
 		background:var(--background);
 		border:1px solid var(--border);
-		border-radius:10px;
+		border-radius:7px;
 		padding:9px 11px;
 		color:var(--text);
 		font-size:0.9rem;
@@ -62,7 +62,7 @@
 		background:var(--gradient);
 		color:#fff;
 		padding:8px 14px;
-		border-radius:10px;
+		border-radius:7px;
 		cursor:pointer;
 
 		&:disabled{
@@ -85,7 +85,7 @@
 	gap:10px;
 	padding:12px;
 	border:1px dashed var(--border);
-	border-radius:12px;
+	border-radius:8px;
 	background:var(--surface-hover);
 	color:var(--text-muted);
 	cursor:pointer;
@@ -132,7 +132,7 @@
 	background:var(--surface-hover);
 	color:var(--text);
 	padding:9px 12px;
-	border-radius:10px;
+	border-radius:7px;
 	cursor:pointer;
 	white-space:nowrap;
 
@@ -170,7 +170,7 @@
 	flex-wrap:wrap;
 	padding:10px;
 	border:1px solid var(--border);
-	border-radius:16px;
+	border-radius:10px;
 	background:color-mix(in srgb, var(--surface) 88%, var(--primary-light) 12%);
 	box-shadow:var(--shadow-sm);
 }
@@ -178,7 +178,7 @@
 .viewSwitch{
 	display:flex;
 	padding:4px;
-	border-radius:12px;
+	border-radius:8px;
 	background:var(--surface);
 	border:1px solid var(--border);
 	box-shadow:var(--shadow-sm);
@@ -188,7 +188,7 @@
 		background:transparent;
 		color:var(--text-muted);
 		padding:8px 14px;
-		border-radius:10px;
+		border-radius:7px;
 		display:flex;
 		align-items:center;
 		gap:6px;
@@ -208,7 +208,7 @@
 	align-items:center;
 	gap:8px;
 	padding:9px 12px;
-	border-radius:12px;
+	border-radius:8px;
 	border:1px solid var(--border);
 	background:var(--surface);
 	min-width:280px;
@@ -267,7 +267,7 @@
 
 .boardView{
 	border:1px solid var(--border);
-	border-radius:16px;
+	border-radius:10px;
 	overflow:hidden;
 	background:var(--surface);
 }
@@ -301,7 +301,7 @@
 		width:120px;
 		height:80px;
 		object-fit:cover;
-		border-radius:10px;
+		border-radius:7px;
 		border:1px solid var(--border);
 	}
 
@@ -417,7 +417,7 @@
 	flex-direction:column;
 	background:var(--surface);
 	border:1px solid var(--border);
-	border-radius:18px;
+	border-radius:11px;
 	overflow:hidden;
 	box-shadow:var(--shadow-sm);
 	transition:transform $transition-fast, box-shadow $transition-fast, border-color $transition-fast;
@@ -471,7 +471,7 @@
 	gap:10px;
 	padding:14px 18px;
 	border:1px dashed rgba(255, 255, 255, 0.72);
-	border-radius:12px;
+	border-radius:8px;
 	background:rgba(255, 255, 255, 0.1);
 	color:#fff;
 	font-size:0.95rem;
@@ -484,7 +484,7 @@
 	overflow:auto;
 	background:var(--surface);
 	border:1px solid var(--border);
-	border-radius:16px;
+	border-radius:10px;
 	box-shadow:var(--shadow-lg);
 }
 
@@ -511,7 +511,7 @@
 	align-items:center;
 	justify-content:center;
 	padding:4px;
-	border-radius:8px;
+	border-radius:6px;
 
 	&:hover{
 		background:var(--surface-hover);
@@ -538,7 +538,7 @@
 	width:100%;
 	max-height:420px;
 	object-fit:contain;
-	border-radius:12px;
+	border-radius:8px;
 	border:1px solid var(--border);
 	background:#0f1115;
 }
@@ -589,7 +589,7 @@
 	input, textarea{
 		background:var(--background);
 		border:1px solid var(--border);
-		border-radius:10px;
+		border-radius:7px;
 		padding:9px 11px;
 		color:var(--text);
 		font-size:0.9rem;
@@ -604,7 +604,7 @@
 
 .createPreview{
 	border:1px solid var(--border);
-	border-radius:12px;
+	border-radius:8px;
 	padding:10px;
 	background:#0f1115;
 	display:grid;
@@ -614,7 +614,7 @@
 .createPreviewViewport{
 	position:relative;
 	border:1px solid var(--border);
-	border-radius:10px;
+	border-radius:7px;
 	overflow:hidden;
 	background:#07090d;
 
@@ -640,7 +640,7 @@
 .editImageItem{
 	position:relative;
 	border:1px solid var(--border);
-	border-radius:10px;
+	border-radius:7px;
 	overflow:hidden;
 	background:var(--surface-hover);
 
@@ -724,7 +724,7 @@
 	max-width:100%;
 	max-height:min(90vh, 980px);
 	object-fit:contain;
-	border-radius:12px;
+	border-radius:8px;
 	border:1px solid color-mix(in srgb, var(--border) 72%, #fff 28%);
 	background:#0b0f16;
 }
@@ -775,7 +775,7 @@
 	align-items:center;
 	gap:6px;
 	border:none;
-	border-radius:10px;
+	border-radius:7px;
 	padding:8px 12px;
 	cursor:pointer;
 	font-size:0.86rem;
@@ -976,7 +976,7 @@
 
 .heroCard{
 	border:1px solid var(--border);
-	border-radius:18px;
+	border-radius:11px;
 	padding:14px;
 	background:color-mix(in srgb, var(--surface) 84%, var(--primary-light) 16%);
 	box-shadow:var(--shadow-sm);
@@ -996,7 +996,7 @@
 	text-align:left;
 	width:100%;
 	padding:14px;
-	border-radius:14px;
+	border-radius:9px;
 	min-height:72px;
 
 	&:disabled{
@@ -1024,7 +1024,7 @@
 	align-items:center;
 	justify-content:center;
 	gap:6px;
-	border-radius:12px;
+	border-radius:8px;
 	padding:10px 12px;
 	font-size:0.86rem;
 	font-weight:700;
@@ -1059,7 +1059,7 @@
 .guestHint{
 	margin:0;
 	padding:10px 12px;
-	border-radius:12px;
+	border-radius:8px;
 	border:1px dashed var(--border);
 	background:var(--surface);
 	color:var(--text-muted);
@@ -1085,7 +1085,7 @@
 	color:var(--text-muted);
 	background:var(--surface);
 	border:1px solid var(--border);
-	border-radius:14px;
+	border-radius:9px;
 }
 
 .pagination{
@@ -1100,7 +1100,7 @@
 		background:var(--surface);
 		color:var(--text);
 		padding:6px 12px;
-		border-radius:8px;
+		border-radius:6px;
 		cursor:pointer;
 		transition:all $transition-fast;
 

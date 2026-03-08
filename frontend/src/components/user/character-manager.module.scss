@@ -1,7 +1,7 @@
 .container{
 	padding:1.5rem;
 	background:var(--bg-color, #fff);
-	border-radius:8px;
+	border-radius:6px;
 	max-width:600px;
 	margin:0 auto;
 	
@@ -43,7 +43,7 @@
 	background:#fee;
 	color:#c00;
 	padding:0.75rem 1rem;
-	border-radius:4px;
+	border-radius:3px;
 	margin-bottom:1rem;
 	font-size:0.875rem;
 }
@@ -54,7 +54,7 @@
 	background:var(--primary-color, #4a90d9);
 	color:#fff;
 	border:none;
-	border-radius:4px;
+	border-radius:3px;
 	font-size:1rem;
 	cursor:pointer;
 	margin-bottom:1rem;
@@ -67,7 +67,7 @@
 .form{
 	background:var(--bg-secondary, #f9f9f9);
 	padding:1rem;
-	border-radius:4px;
+	border-radius:3px;
 	margin-bottom:1rem;
 }
 
@@ -86,7 +86,7 @@
 		width:100%;
 		padding:0.5rem 0.75rem;
 		border:1px solid var(--border-color, #ddd);
-		border-radius:4px;
+		border-radius:3px;
 		font-size:1rem;
 		background:var(--bg-color, #fff);
 		color:var(--text-color, #333);
@@ -118,7 +118,7 @@
 	background:var(--primary-color, #4a90d9);
 	color:#fff;
 	border:none;
-	border-radius:4px;
+	border-radius:3px;
 	cursor:pointer;
 	
 	&:hover{
@@ -132,7 +132,7 @@
 	background:var(--bg-color, #fff);
 	color:var(--text-muted, #666);
 	border:1px solid var(--border-color, #ddd);
-	border-radius:4px;
+	border-radius:3px;
 	cursor:pointer;
 	
 	&:hover{
@@ -159,7 +159,7 @@
 	align-items:center;
 	padding:0.75rem;
 	border:1px solid var(--border-color, #eee);
-	border-radius:4px;
+	border-radius:3px;
 	margin-bottom:0.5rem;
 	background:var(--bg-color, #fff);
 	
@@ -186,7 +186,7 @@
 	color:var(--text-muted, #666);
 	padding:0.125rem 0.5rem;
 	background:var(--bg-secondary, #f5f5f5);
-	border-radius:4px;
+	border-radius:3px;
 }
 
 .characterActions{
@@ -198,7 +198,7 @@
 .deleteBtn{
 	padding:0.25rem 0.5rem;
 	border:none;
-	border-radius:4px;
+	border-radius:3px;
 	cursor:pointer;
 	font-size:0.875rem;
 }

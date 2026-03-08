@@ -48,7 +48,7 @@
 	margin-bottom:14px;
 	background:var(--surface);
 	border:1px solid var(--border);
-	border-radius:12px;
+	border-radius:8px;
 	padding:4px;
 	box-shadow:var(--shadow-sm);
 }
@@ -59,7 +59,7 @@
 	gap:6px;
 	padding:8px 14px;
 	border:none;
-	border-radius:10px;
+	border-radius:7px;
 	background:transparent;
 	color:var(--text-muted);
 	font-size:0.9rem;
@@ -79,7 +79,7 @@
 .controlsSection{
 	background:var(--surface);
 	border:1px solid var(--border);
-	border-radius:14px;
+	border-radius:9px;
 	padding:16px;
 	box-shadow:var(--shadow-sm);
 	margin-bottom:16px;
@@ -114,7 +114,7 @@
 	gap:8px;
 	padding:10px 12px;
 	border:1px solid var(--border);
-	border-radius:12px;
+	border-radius:8px;
 	background:var(--background);
 	box-shadow:inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
@@ -149,7 +149,7 @@
 	max-height:300px;
 	padding:8px;
 	border:1px solid var(--border);
-	border-radius:12px;
+	border-radius:8px;
 	background:var(--surface);
 	box-shadow:var(--shadow-md);
 	overflow-y:auto;
@@ -163,7 +163,7 @@
 	width:100%;
 	padding:8px 10px;
 	border:1px solid transparent;
-	border-radius:10px;
+	border-radius:7px;
 	background:transparent;
 	color:var(--text);
 	text-align:left;
@@ -205,7 +205,7 @@
 	background:var(--gradient);
 	color:var(--text-on-primary);
 	padding:10px 16px;
-	border-radius:10px;
+	border-radius:7px;
 	font-size:0.9rem;
 	font-weight:600;
 	cursor:pointer;
@@ -225,7 +225,7 @@
 	background:var(--surface-hover);
 	color:var(--text);
 	padding:10px 16px;
-	border-radius:10px;
+	border-radius:7px;
 	font-size:0.9rem;
 	font-weight:600;
 	cursor:pointer;
@@ -249,7 +249,7 @@
 	min-width:220px;
 	padding:10px 12px;
 	border:1px dashed var(--border);
-	border-radius:12px;
+	border-radius:8px;
 	background:var(--surface-hover);
 
 	label{
@@ -300,7 +300,7 @@
 	width:100%;
 	padding:9px 12px;
 	border:1px solid var(--border);
-	border-radius:10px;
+	border-radius:7px;
 	background:var(--surface);
 	color:var(--text);
 	font-size:0.88rem;
@@ -371,7 +371,7 @@
 	width:100%;
 	padding:9px 12px;
 	border:1px solid var(--border);
-	border-radius:10px;
+	border-radius:7px;
 	background:var(--surface);
 	color:var(--text);
 	font-size:0.88rem;
@@ -401,7 +401,7 @@
 	height:100%;
 	background:var(--surface);
 	border:1px solid var(--border);
-	border-radius:16px;
+	border-radius:10px;
 	padding:16px;
 	transition:transform $transition-fast, box-shadow $transition-fast, border-color $transition-fast;
 
@@ -496,7 +496,7 @@
 	margin-bottom:14px;
 	padding:12px;
 	background:var(--surface-hover);
-	border-radius:12px;
+	border-radius:8px;
 	border:1px solid var(--border);
 }
 
@@ -572,7 +572,7 @@
 	font-weight:600;
 	background:var(--surface-hover);
 	padding:4px 8px;
-	border-radius:6px;
+	border-radius:4px;
 }
 
 .craftIcon{
@@ -698,7 +698,7 @@
 
 .noData{
 	background:var(--surface);
-	border-radius:14px;
+	border-radius:9px;
 	border:1px dashed var(--border);
 }
 

@@ -63,20 +63,10 @@
 @mixin page-shell(
 	$padding: 28px 20px 40px,
 	$mobile-padding: 18px 10px 28px,
-	$min-height: calc(100vh - 80px),
-	$with-glow: true
+	$min-height: calc(100vh - 80px)
 ){
 	min-height:$min-height;
 	padding:$padding;
-
-	@if $with-glow{
-		background:
-			radial-gradient(circle at 12% 8%, var(--page-glow-a), transparent 40%),
-			radial-gradient(circle at 85% 15%, var(--page-glow-b), transparent 35%),
-			var(--background);
-	} @else{
-		background:var(--background);
-	}
 
 	@media (max-width:$mobile){
 		padding:$mobile-padding;

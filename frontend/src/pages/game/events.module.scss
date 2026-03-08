@@ -15,7 +15,7 @@
 	font-size:15px;
 	background:var(--surface);
 	border:1px solid var(--border);
-	border-radius:14px;
+	border-radius:9px;
 }
 
 .layout{
@@ -34,7 +34,7 @@
 }
 
 .skeletonBlock{
-	border-radius:8px;
+	border-radius:6px;
 	background:var(--surface-hover);
 	animation:skeleton-pulse 1.5s ease-in-out infinite;
 }
@@ -50,7 +50,7 @@
 
 .skeletonEventItem{
 	border:1px solid var(--border);
-	border-radius:10px;
+	border-radius:7px;
 	background:var(--surface);
 	padding:8px;
 	display:flex;
@@ -61,7 +61,7 @@
 .skeletonThumb{
 	width:100%;
 	aspect-ratio:770 / 280;
-	border-radius:8px;
+	border-radius:6px;
 }
 
 .skeletonLineLg{
@@ -136,7 +136,7 @@
 .eventList{
 	background:var(--surface);
 	border:1px solid var(--border);
-	border-radius:14px;
+	border-radius:9px;
 	box-shadow:var(--shadow-sm);
 	overflow:hidden;
 	position:sticky;
@@ -174,7 +174,7 @@
 	width:100%;
 	text-align:left;
 	border:1px solid var(--border);
-	border-radius:10px;
+	border-radius:7px;
 	background:var(--surface);
 	padding:8px;
 	cursor:pointer;
@@ -197,7 +197,7 @@
 	width:100%;
 	aspect-ratio:770 / 280;
 	object-fit:cover;
-	border-radius:8px;
+	border-radius:6px;
 	border:1px solid var(--border);
 	margin-bottom:8px;
 	background:var(--surface-hover);
@@ -230,7 +230,7 @@
 .eventPanel{
 	background:var(--surface);
 	border:1px solid var(--border);
-	border-radius:14px;
+	border-radius:9px;
 	box-shadow:var(--shadow-sm);
 	padding:14px;
 	min-width:0;
@@ -277,7 +277,7 @@
 	font-size:0.82rem;
 	font-weight:600;
 	padding:6px 10px;
-	border-radius:10px;
+	border-radius:7px;
 	border:1px solid var(--border);
 	background:var(--surface-hover);
 	color:var(--text);
@@ -298,7 +298,7 @@
 	text-decoration:none;
 	color:var(--primary-dark);
 	padding:6px 10px;
-	border-radius:10px;
+	border-radius:7px;
 	border:1px solid var(--border);
 	background:var(--surface-hover);
 	white-space:nowrap;
@@ -318,7 +318,7 @@
 	display:flex;
 	background:var(--surface-hover);
 	border:1px solid var(--border);
-	border-radius:10px;
+	border-radius:7px;
 	padding:3px;
 	flex-shrink:0;
 
@@ -327,7 +327,7 @@
 		background:transparent;
 		color:var(--text-muted);
 		padding:7px 12px;
-		border-radius:8px;
+		border-radius:6px;
 		font-size:0.84rem;
 		font-weight:600;
 		cursor:pointer;
@@ -352,7 +352,7 @@
 .calendarDensitySwitch{
 	display:flex;
 	border:1px solid var(--border);
-	border-radius:10px;
+	border-radius:7px;
 	background:var(--surface-hover);
 	padding:3px;
 	flex-shrink:0;
@@ -362,7 +362,7 @@
 		background:transparent;
 		color:var(--text-muted);
 		padding:6px 10px;
-		border-radius:8px;
+		border-radius:6px;
 		font-size:0.78rem;
 		font-weight:600;
 		cursor:pointer;
@@ -393,7 +393,7 @@
 		border:1px solid var(--border);
 		background:var(--surface-hover);
 		color:var(--text-muted);
-		border-radius:8px;
+		border-radius:6px;
 		cursor:pointer;
 	}
 
@@ -434,7 +434,7 @@
 	overflow-x:auto;
 	overflow-y:hidden;
 	border:1px solid var(--border);
-	border-radius:10px;
+	border-radius:7px;
 	background:var(--surface-hover);
 	cursor:grab;
 	user-select:none;
@@ -464,7 +464,7 @@
 .timelineHeaderTrack{
 	display:flex;
 	border:1px solid var(--border);
-	border-radius:8px;
+	border-radius:6px;
 	overflow:hidden;
 	background:var(--surface);
 }
@@ -495,7 +495,7 @@
 	align-items:center;
 	gap:8px;
 	padding:6px;
-	border-radius:8px;
+	border-radius:6px;
 	cursor:pointer;
 }
 
@@ -586,7 +586,7 @@
 .dayCell{
 	min-height:160px;
 	border:1px solid var(--border);
-	border-radius:10px;
+	border-radius:7px;
 	padding:6px;
 	background:var(--surface);
 	display:flex;
@@ -625,7 +625,7 @@
 	border:none;
 	background:rgba(74, 134, 232, 0.16);
 	color:#2d5ea9;
-	border-radius:6px;
+	border-radius:4px;
 	padding:4px 6px;
 	text-align:left;
 	font-size:0.7rem;
@@ -647,7 +647,7 @@
 
 .calendarDetail{
 	border:1px solid var(--border);
-	border-radius:12px;
+	border-radius:8px;
 	background:var(--surface-hover);
 	padding:10px;
 }
@@ -669,7 +669,7 @@
 
 .calendarDetailEmpty{
 	padding:10px 8px;
-	border-radius:8px;
+	border-radius:6px;
 	background:var(--surface);
 	color:var(--text-muted);
 	font-size:0.8rem;
@@ -683,7 +683,7 @@
 
 .detailEventItem{
 	border:1px solid var(--border);
-	border-radius:10px;
+	border-radius:7px;
 	background:var(--surface);
 	padding:8px 9px;
 	display:flex;
@@ -725,7 +725,7 @@
 .summaryModal{
 	width:min(860px, 100%);
 	max-height:min(82vh, 820px);
-	border-radius:14px;
+	border-radius:9px;
 	border:1px solid var(--border);
 	background:var(--surface);
 	box-shadow:var(--shadow-lg);
@@ -764,7 +764,7 @@
 	justify-content:center;
 	width:30px;
 	height:30px;
-	border-radius:8px;
+	border-radius:6px;
 	border:1px solid var(--border);
 	background:var(--surface);
 	color:var(--text-muted);
@@ -844,7 +844,7 @@
 	width:100%;
 	overflow-x:auto;
 	border:1px solid rgba(87, 121, 176, 0.32);
-	border-radius:12px;
+	border-radius:8px;
 	background:#f4f0ff;
 	box-shadow:0 10px 22px rgba(34, 64, 104, 0.12);
 	padding:6px;
@@ -906,7 +906,7 @@
 	width:100%;
 	overflow-x:auto;
 	border:1px solid rgba(87, 121, 176, 0.32);
-	border-radius:12px;
+	border-radius:8px;
 	background:#f4f0ff;
 	box-shadow:0 10px 22px rgba(34, 64, 104, 0.12);
 	padding:6px;
@@ -950,7 +950,7 @@
 .summaryTextCard{
 	padding:12px;
 	border:1px solid var(--border);
-	border-radius:12px;
+	border-radius:8px;
 	background:var(--surface-hover);
 }
 
@@ -1063,7 +1063,7 @@
 	align-items:center;
 	padding:10px 12px;
 	border:1px solid var(--border);
-	border-radius:10px;
+	border-radius:7px;
 	background:rgba(166, 177, 225, 0.14);
 }
 
@@ -1086,7 +1086,7 @@
 
 .summaryGroupCard{
 	border:1px solid var(--border);
-	border-radius:12px;
+	border-radius:8px;
 	background:var(--surface-hover);
 	padding:10px;
 }
@@ -1109,7 +1109,7 @@
 	flex-direction:column;
 	gap:3px;
 	padding:8px 9px;
-	border-radius:9px;
+	border-radius:6px;
 	background:var(--surface);
 	border:1px solid var(--border);
 }
@@ -1127,7 +1127,7 @@
 
 .summaryEmpty{
 	padding:12px;
-	border-radius:10px;
+	border-radius:7px;
 	border:1px dashed var(--border);
 	background:var(--surface-hover);
 	color:var(--text-muted);

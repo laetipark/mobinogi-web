@@ -6,7 +6,7 @@
 	align-items:center;
 	justify-content:center;
 	padding:2rem;
-	background:linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+	background:transparent;
 }
 
 .registerContainer{
@@ -164,7 +164,7 @@
 /* 다크모드 지원 */
 @include dark-mode{
 	.registerPage{
-		background:linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+		background:transparent;
 	}
 
 	.registerContainer{
