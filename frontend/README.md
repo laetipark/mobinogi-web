@@ -114,7 +114,7 @@ npm run dev
       <br />
       <strong>아이템</strong>
       <br />
-      <sub>아이템, 교역, 제작 정보 검색</sub>
+      <sub>아이템, 물물교환, 제작 정보 검색</sub>
     </td>
     <td align="center" width="33%">
       <img src="../images/06_board.png" alt="게시판 화면" width="100%" />
