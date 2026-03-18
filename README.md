@@ -1,4 +1,4 @@
-![]([https://laetipark.me/thumbnail.png](https://github.com/laetipark/mobinogi-web/blob/master/frontend/public/thumbnail.png))
+![](frontend/public/thumbnail.png)
 
 # Sexynogi
 
